@@ -23,48 +23,35 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.event;
 
-import java.awt.*;
-
-public class TLabel extends TComponent
+public class TEvent
 {
-	private String text;
-	private Color textColor;
-
-	public TLabel()
+	private enum EventState
 	{
-		super();
-		text = "";
-		textColor = Color.BLACK;
+		KEY_DOWN,
+		KEY_UP
 	}
 
-	@Override
-	protected void paintComponent(TGraphics graphics)
+	public static final EventState KEY_DOWN = EventState.KEY_DOWN;
+	public static final EventState KEY_UP = EventState.KEY_UP;
+
+	private final EventState state;
+	private final char key;
+
+	public TEvent(char key, EventState state)
 	{
-		super.paintComponent(graphics);
-		graphics.setStrokeColor(textColor);
-		graphics.setStrokeBackground(drawsBackground() ? getBackgroundColor() : null);
-		graphics.drawText(text,drawsBorder() ? 1 : 0, drawsBorder() ? 1 : 0);
+		this.key = key;
+		this.state = state;
 	}
 
-	public void setText(String text)
+	public char getKey()
 	{
-		this.text = text;
+		return key;
 	}
 
-	public String getText()
+	public EventState getState()
 	{
-		return text;
-	}
-
-	public void setColor(Color textColor)
-	{
-		this.textColor = textColor;
-	}
-
-	public Color getColor()
-	{
-		return textColor;
+		return state;
 	}
 }

@@ -23,12 +23,9 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.dynamics;
 
-/**
- * Created by Palle on 20.12.15.
- */
-public interface CompletionHandler
+public interface GameloopAction
 {
-	public void animationCompleted(Animation animation);
+	public void update(double time, double timeDelta);
 }

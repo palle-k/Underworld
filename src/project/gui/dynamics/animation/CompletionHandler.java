@@ -23,78 +23,12 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.dynamics.animation;
 
-import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-
-public class GameLoop implements Runnable
+/**
+ * Created by Palle on 20.12.15.
+ */
+public interface CompletionHandler
 {
-	private List<GameloopAction> actionList;
-	private Thread gameloopThread;
-	private long baseTime;
-	private long time;
-
-	public GameLoop()
-	{
-		actionList = new ArrayList<>();
-		Class<GameLoop> clazz = GameLoop.class;
-	}
-
-	public void addAction(GameloopAction action)
-	{
-		actionList.add(action);
-	}
-
-	public void removeAction(GameloopAction action)
-	{
-		actionList.remove(action);
-	}
-
-	public void start()
-	{
-		gameloopThread = new Thread(this);
-		gameloopThread.start();
-	}
-
-	public void stop()
-	{
-		gameloopThread.interrupt();
-	}
-
-	@Override
-	public void run()
-	{
-		baseTime = System.currentTimeMillis();
-		while (true)
-		{
-			long newTime = System.currentTimeMillis() - baseTime;
-			long timeDelta = newTime - time;
-			time = newTime;
-			double updateTime = time * 0.001;
-			double updateTimeDelta = timeDelta * 0.001;
-			for (GameloopAction action : actionList)
-				try
-				{
-					SwingUtilities.invokeAndWait(() -> action.update(updateTime, updateTimeDelta));
-				} catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				} catch (InvocationTargetException e)
-				{
-					e.printStackTrace();
-				}
-			long executionTime = System.currentTimeMillis() - time;
-			if (executionTime < 16)
-				try
-				{
-					Thread.sleep(16 - executionTime);
-				} catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				}
-		}
-	}
+	public void animationCompleted(Animation animation);
 }

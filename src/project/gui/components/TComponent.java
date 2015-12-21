@@ -23,9 +23,11 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.components;
 
-import org.w3c.dom.css.Rect;
+import project.gui.event.TEvent;
+import project.gui.graphics.TGraphics;
+import project.gui.dynamics.animation.Animation;
 
 import java.awt.*;
 import java.util.ArrayList;

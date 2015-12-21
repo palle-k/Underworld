@@ -23,7 +23,9 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.dynamics.animation;
+
+import project.gui.dynamics.GameloopAction;
 
 public class Animation implements GameloopAction
 {
@@ -93,7 +95,7 @@ public class Animation implements GameloopAction
 		}
 	}
 
-	protected void setStartTime(double time)
+	public void setStartTime(double time)
 	{
 		startTime = time;
 		running = true;

@@ -25,14 +25,28 @@
 
 package project;
 
-import project.gui.*;
+import project.gui.dynamics.animation.Animation;
+import project.gui.components.TFrame;
+import project.gui.components.TLabel;
+import project.gui.dynamics.GameLoop;
+import project.gui.dynamics.GameloopAction;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class Labyrinth
 {
 	public static void main(String[] args)
 	{
+		try
+		{
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch (Exception e)
+		{
+
+		}
 		TFrame frame = new TFrame();
 		frame.setFrame(new Rectangle(0,0,80,25));
 		frame.setVisible(true);
@@ -61,7 +75,7 @@ public class Labyrinth
 		labelAnimation.setFromValue(1);
 		labelAnimation.setToValue(50);
 		labelAnimation.setDuration(2);
-		labelAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_EASE_OUT);
+		labelAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_EASE);
 		label.addAnimation(labelAnimation);
 	}
 }

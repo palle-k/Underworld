@@ -23,17 +23,19 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.components;
 
 import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
+import project.gui.graphics.TGraphics;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.lang.reflect.Method;
 
-public class TFrame extends TComponent
+public class TFrame extends TBufferedView
 {
 	private SwingTerminal terminal;
 
@@ -80,7 +82,7 @@ public class TFrame extends TComponent
 		if (underlyingFrame != null)
 		{
 			FontMetrics fontMetrics = underlyingFrame.getGraphics().getFontMetrics(createDefaultNormalFont());
-			underlyingFrame.setSize(fontMetrics.charWidth(' ') * frame.getSize().width,fontMetrics.getHeight() * frame.getSize().height);
+			underlyingFrame.setSize(fontMetrics.charWidth(' ') * frame.getSize().width,fontMetrics.getHeight() * frame.getSize().height + 22);
 		}
 	}
 
@@ -111,10 +113,28 @@ public class TFrame extends TComponent
 			terminal.enterPrivateMode();
 		else
 			terminal.exitPrivateMode();
-		getUnderlyingFrame().addComponentListener(new TFrameListener());
-		setSize(getSize());
-		setDrawsBackground(true);
-		setNeedsDisplay(null);
+		terminal.setCursorVisible(false);
+		if (visible)
+		{
+			getUnderlyingFrame().addComponentListener(new TFrameListener());
+			try
+			{
+				@SuppressWarnings("rawtypes")
+				Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+				@SuppressWarnings("rawtypes")
+				Class params[] = new Class[] { Window.class, Boolean.TYPE };
+				@SuppressWarnings("unchecked")
+				Method method = util.getMethod("setWindowCanFullScreen", params);
+				method.invoke(util, getUnderlyingFrame(), true);
+			}
+			catch (Exception e)
+			{
+
+			}
+			setSize(getSize());
+			setDrawsBackground(true);
+			setNeedsDisplay(null);
+		}
 	}
 
 	private JFrame getUnderlyingFrame()

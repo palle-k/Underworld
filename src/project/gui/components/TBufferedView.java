@@ -23,13 +23,15 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.components;
+
+import project.gui.graphics.TGraphics;
 
 import java.awt.*;
 
 public class TBufferedView extends TComponent
 {
-	static class TChar
+	public static class TChar
 	{
 		private final char character;
 		private final Color color;
@@ -68,6 +70,12 @@ public class TBufferedView extends TComponent
 			}
 			return super.equals(obj);
 		}
+
+		@Override
+		public String toString()
+		{
+			return "TChar: " + character + ", " + color + ", " + backgroundColor;
+		}
 	}
 
 	private TChar[][] backBuffer;
@@ -82,16 +90,11 @@ public class TBufferedView extends TComponent
 	@Override
 	void dispatchRepaint(TGraphics graphics, Rectangle dirtyRect)
 	{
-		validateBuffers();
-		dirtyRect = dirtyRect.intersection(new Rectangle(new Point(), getSize()));
-		for (int x = 0; x < dirtyRect.width; x++)
-		{
-			for (int y = 0; y < dirtyRect.height; y++)
-			{
-				backBuffer[x+dirtyRect.x][y+dirtyRect.y] = null;
-			}
-		}
-		TGraphics bufferedGraphics = new TGraphics(backBuffer, getWidth(), getHeight());
+		if (validateBuffers())
+			dirtyRect = new Rectangle(new Point(), getSize());
+		else
+			dirtyRect = dirtyRect.intersection(new Rectangle(new Point(), getSize()));
+		TGraphics bufferedGraphics = new TGraphics(backBuffer, dirtyRect, getWidth(), getHeight());
 		paintComponent(bufferedGraphics);
 		resetNeedsDisplay();
 		for (TComponent child : getChildren())
@@ -105,18 +108,20 @@ public class TBufferedView extends TComponent
 		swapBuffers(graphics);
 	}
 
-	private void validateBuffers()
+	private boolean validateBuffers()
 	{
+		boolean bufferUpdated = false;
 		if (backBuffer.length != frame.width || backBuffer[0].length != frame.height)
 		{
 			backBuffer = new TChar[frame.width][frame.height];
-			needsDisplay = true;
+			bufferUpdated = true;
 		}
 		if (frameBuffer.length != frame.width || frameBuffer[0].length != frame.height)
 		{
 			frameBuffer = new TChar[getWidth()][getHeight()];
-			needsDisplay = true;
+			bufferUpdated = true;
 		}
+		return bufferUpdated;
 	}
 
 	private void swapBuffers(TGraphics graphics)

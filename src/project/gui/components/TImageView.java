@@ -23,9 +23,45 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.components;
 
-public interface GameloopAction
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
+public class TImageView
 {
-	public void update(double time, double timeDelta);
+	private BufferedImage image;
+
+	public TImageView(BufferedImage image)
+	{
+		this.image = image;
+	}
+
+	public TImageView()
+	{
+
+	}
+
+	public BufferedImage getImage()
+	{
+		return image;
+	}
+
+	public void setImage(BufferedImage image)
+	{
+		this.image = image;
+	}
+
+	public void setImage(File f) throws IOException
+	{
+		image = ImageIO.read(f);
+	}
+
+	public void setImage(URL url) throws IOException
+	{
+		image = ImageIO.read(url);
+	}
 }

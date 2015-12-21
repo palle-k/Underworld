@@ -23,9 +23,10 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.graphics;
 
 import com.googlecode.lanterna.terminal.Terminal;
+import project.gui.components.TBufferedView;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
@@ -85,7 +86,7 @@ public class TGraphics
 	private int height;
 	private Rectangle dirtyRect;
 
-	protected TGraphics(Terminal target, Rectangle dirtyRect)
+	public TGraphics(Terminal target, Rectangle dirtyRect)
 	{
 		this.target = target;
 		offsetX = 0;
@@ -108,16 +109,17 @@ public class TGraphics
 		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), null);
 	}
 
-	TGraphics(TBufferedView.TChar[][] buffer, int width, int height)
+	public TGraphics(TBufferedView.TChar[][] buffer, Rectangle dirtyRect, int width, int height)
 	{
 		this.buffer = buffer;
 		this.width = width;
 		this.height = height;
 		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), null);
 		this.maskToBounds = true;
+		this.dirtyRect = dirtyRect;
 	}
 
-	protected TGraphics getChildContext(Rectangle childRect, boolean maskToBounds)
+	public TGraphics getChildContext(Rectangle childRect, boolean maskToBounds)
 	{
 		return new TGraphics(this, childRect.x, childRect.y, childRect.width, childRect.height, maskToBounds);
 	}
@@ -251,7 +253,6 @@ public class TGraphics
 
 	public void fillRect(Rectangle rect)
 	{
-		System.out.println("fill " + rect);
 		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
 		{
 			for (int x = (int) rect.getMinX(); x < rect.getMaxX(); x++)
@@ -298,7 +299,7 @@ public class TGraphics
 		}
 	}
 
-	void setPoint(int x, int y, Color color, Color backgroundColor, char c)
+	public void setPoint(int x, int y, Color color, Color backgroundColor, char c)
 	{
 		if (canDrawAtPoint(x, y))
 		{

@@ -23,7 +23,7 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.dynamics.animation;
 
 /**
  * Created by Palle on 20.12.15.

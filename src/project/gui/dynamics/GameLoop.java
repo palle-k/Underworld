@@ -23,45 +23,78 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui;
+package project.gui.dynamics;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
+import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TImageView
+public class GameLoop implements Runnable
 {
-	private BufferedImage image;
+	private List<GameloopAction> actionList;
+	private Thread gameloopThread;
+	private long baseTime;
+	private long time;
 
-	public TImageView(BufferedImage image)
+	public GameLoop()
 	{
-		this.image = image;
+		actionList = new ArrayList<>();
+		Class<GameLoop> clazz = GameLoop.class;
 	}
 
-	public TImageView()
+	public void addAction(GameloopAction action)
 	{
-
+		actionList.add(action);
 	}
 
-	public BufferedImage getImage()
+	public void removeAction(GameloopAction action)
 	{
-		return image;
+		actionList.remove(action);
 	}
 
-	public void setImage(BufferedImage image)
+	public void start()
 	{
-		this.image = image;
+		gameloopThread = new Thread(this);
+		gameloopThread.start();
 	}
 
-	public void setImage(File f) throws IOException
+	public void stop()
 	{
-		image = ImageIO.read(f);
+		gameloopThread.interrupt();
 	}
 
-	public void setImage(URL url) throws IOException
+	@Override
+	public void run()
 	{
-		image = ImageIO.read(url);
+		baseTime = System.currentTimeMillis();
+		while (true)
+		{
+			long newTime = System.currentTimeMillis() - baseTime;
+			long timeDelta = newTime - time;
+			time = newTime;
+			double updateTime = time * 0.001;
+			double updateTimeDelta = timeDelta * 0.001;
+			for (GameloopAction action : actionList)
+				try
+				{
+					SwingUtilities.invokeAndWait(() -> action.update(updateTime, updateTimeDelta));
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				} catch (InvocationTargetException e)
+				{
+					e.printStackTrace();
+				}
+			long executionTime = System.currentTimeMillis() - time;
+			if (executionTime < 16)
+				try
+				{
+					Thread.sleep(16 - executionTime);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+		}
 	}
 }
