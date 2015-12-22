@@ -27,6 +27,8 @@ package project.gui.layout;
 
 import project.gui.components.TComponent;
 
+import java.awt.*;
+
 public class VerticalFlowLayout implements TLayoutManager
 {
 	private enum HorizontalAlignment
@@ -50,12 +52,18 @@ public class VerticalFlowLayout implements TLayoutManager
 	public static final HorizontalAlignment RIGHT = HorizontalAlignment.RIGHT;
 	public static final VerticalAlignment TOP = VerticalAlignment.TOP;
 	private HorizontalAlignment horizontalAlignment = HorizontalAlignment.CENTER;
+	private Insets layoutInsets = new Insets(0, 0, 0, 0);
 	private int spacing;
 	private VerticalAlignment verticalAlignment = VerticalAlignment.MIDDLE;
 
 	public HorizontalAlignment getHorizontalAlignment()
 	{
 		return horizontalAlignment;
+	}
+
+	public Insets getLayoutInsets()
+	{
+		return layoutInsets;
 	}
 
 	public int getSpacing()
@@ -71,23 +79,23 @@ public class VerticalFlowLayout implements TLayoutManager
 	@Override
 	public void layoutComponent(final TComponent component)
 	{
-		int totalHeight = 0;
+		int totalHeight = layoutInsets.top + layoutInsets.bottom;
 		for (TComponent child : component.getChildren())
 			totalHeight += child.getHeight() + spacing;
-		int currentPosY = 0;
+		int currentPosY = layoutInsets.top;
 		if (verticalAlignment == MIDDLE)
 			currentPosY = (component.getHeight() - totalHeight) / 2;
 		else if (verticalAlignment == BOTTOM)
 			currentPosY = component.getHeight() - totalHeight;
-		int componentWidth = component.getWidth();
+		int componentWidth = component.getWidth() - layoutInsets.left - layoutInsets.right;
 		for (TComponent child : component.getChildren())
 		{
 			if (horizontalAlignment == LEFT)
-				child.setPosX(0);
+				child.setPosX(layoutInsets.left);
 			else if (horizontalAlignment == RIGHT)
-				child.setPosX(componentWidth - child.getWidth());
+				child.setPosX(componentWidth - layoutInsets.right - child.getWidth());
 			else if (horizontalAlignment == CENTER)
-				child.setPosX((componentWidth - child.getWidth()) / 2);
+				child.setPosX((componentWidth - child.getWidth()) / 2 + layoutInsets.left);
 			child.setPosY(currentPosY);
 			currentPosY += child.getHeight() + spacing;
 		}
@@ -96,6 +104,19 @@ public class VerticalFlowLayout implements TLayoutManager
 	public void setHorizontalAlignment(final HorizontalAlignment horizontalAlignment)
 	{
 		this.horizontalAlignment = horizontalAlignment;
+	}
+
+	public void setLayoutInsets(final Insets layoutInsets)
+	{
+		this.layoutInsets = layoutInsets;
+	}
+
+	public void setLayoutInsets(int top, int left, int bottom, int right)
+	{
+		layoutInsets.top = top;
+		layoutInsets.left = left;
+		layoutInsets.right = right;
+		layoutInsets.bottom = bottom;
 	}
 
 	public void setSpacing(final int spacing)

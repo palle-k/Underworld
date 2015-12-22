@@ -25,7 +25,9 @@
 
 package project.gui.components;
 
-public class TButton
+import project.gui.event.Selectable;
+
+public class TButton extends TLabel implements Selectable
 {
 	private enum ButtonStyle
 	{
@@ -39,9 +41,69 @@ public class TButton
 	public static final ButtonStyle BACKGROUND_INDICATOR = ButtonStyle.BACKGROUND_INDICATOR;
 	public static final ButtonStyle BORDER_INDICATOR = ButtonStyle.BORDER_INDICATOR;
 	public static final ButtonStyle LIGHT_LEFT_INDICATOR = ButtonStyle.LIGHT_LEFT_INDICATOR;
+	private Runnable actionHandler;
+	private String originalText;
+	private boolean selected;
+	private boolean selectionEnabled;
 
 	public TButton()
 	{
+		super();
+		selectionEnabled = true;
+	}
 
+	@Override
+	public void deselect()
+	{
+		selected = false;
+		setText(originalText);
+	}
+
+	public Runnable getActionHandler()
+	{
+		return actionHandler;
+	}
+
+	@Override
+	public boolean isSelected()
+	{
+		return selected;
+	}
+
+	@Override
+	public void performAction()
+	{
+		if (actionHandler != null)
+			actionHandler.run();
+	}
+
+	@Override
+	public void select()
+	{
+		selected = true;
+		setText(originalText);
+	}
+
+	@Override
+	public boolean selectionEnabled()
+	{
+		return selectionEnabled;
+	}
+
+	public void setActionHandler(final Runnable actionHandler)
+	{
+		this.actionHandler = actionHandler;
+	}
+
+	public void setSelectionEnabled(final boolean selectionEnabled)
+	{
+		this.selectionEnabled = selectionEnabled;
+	}
+
+	@Override
+	public void setText(final String text)
+	{
+		originalText = text;
+		super.setText((isSelected() ? "> " : "  ") + text);
 	}
 }

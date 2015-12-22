@@ -23,71 +23,38 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.ui.views;
 
+import project.game.data.Level;
 import project.gui.components.TComponent;
+import project.gui.graphics.TGraphics;
 
-public class ViewController
+import java.awt.*;
+
+public class LevelView extends TComponent
 {
-	private final TComponent view;
-	private ViewController parent;
+	private Level level;
 
-	public ViewController(ViewController parent, TComponent view)
+	public Level getLevel()
 	{
-		this.parent = parent;
-		this.view = view;
+		return level;
 	}
 
-	public ViewController(TComponent view)
+	public void setLevel(final Level level)
 	{
-		this.view = view;
+		this.level = level;
 	}
 
-	public ViewController()
+	@Override
+	protected void paintComponent(final TGraphics graphics)
 	{
-		this.view = new TComponent();
-	}
-
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
-	public void viewDidAppear()
-	{
-
-	}
-
-	public void viewDidDisappear()
-	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
+		super.paintComponent(graphics);
+		for (int x = 0; x < getWidth(); x++)
+			for (int y = 0; y < getHeight(); y++)
+			{
+				int pixel = level.getPixel(x / 4, y / 2);
+				if (pixel == 0)
+					graphics.setPoint(x, y, Color.WHITE, Color.WHITE, ' ');
+			}
 	}
 }

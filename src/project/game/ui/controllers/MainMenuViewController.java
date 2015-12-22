@@ -23,43 +23,23 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project;
+package project.game.ui.controllers;
 
-import project.gui.components.TFrame;
+import project.gui.components.TButton;
 import project.gui.components.TLabel;
-import project.gui.dynamics.GameLoop;
+import project.gui.controller.ViewController;
+import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
-import javax.swing.*;
-import java.awt.*;
-
-public class Labyrinth
+public class MainMenuViewController extends ViewController
 {
-	public static void main(String[] args)
+	@Override
+	public void viewDidAppear()
 	{
-		try
-		{
-			System.setProperty("apple.laf.useScreenMenuBar", "true");
-			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Labyrinth");
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e)
-		{
-
-		}
-
-		Color backgroundColor = new Color(30, 30, 30);
-
-		TFrame frame = new TFrame();
-		frame.setFrame(new Rectangle(0, 0, 140, 40));
-		frame.setVisible(true);
-		frame.setBackgroundColor(backgroundColor);
-
-		VerticalFlowLayout layout = new VerticalFlowLayout();
-		layout.setSpacing(5);
-		frame.setLayoutManager(layout);
+		super.viewDidAppear();
 
 		TLabel label = new TLabel();
-		label.setSize(64, 8);
+		label.setSize(64, 10);
 		label.setText("           )  (           (                 )   (    (    (     \n" +
 				"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
 				"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
@@ -68,29 +48,51 @@ public class Labyrinth
 				"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
 				"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
 				" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
-		label.setColor(Color.WHITE);
-		label.setBackgroundColor(backgroundColor);
-		label.setDrawsBackground(true);
-		frame.add(label);
+		label.setVisible(true);
+		getView().add(label);
 
-		TLabel line2 = new TLabel();
-		line2.setSize(28, 1);
-		line2.setText("Press any key to continue...");
-		line2.setColor(Color.WHITE);
-		line2.setBackgroundColor(backgroundColor);
-		line2.setDrawsBackground(true);
-		frame.add(line2);
+		TButton play = new TButton();
+		play.setSize(6, 1);
+		play.setText("Play");
+		play.setActionHandler(() -> getNavigationController().push(new LevelViewController()));
+		getView().add(play);
 
-		TLabel copyright = new TLabel();
-		copyright.setSize(31, 1);
-		copyright.setText("v1.0.0 - (c) Palle Klewitz 2015");
-		copyright.setBackgroundColor(backgroundColor);
-		copyright.setDrawsBackground(true);
-		copyright.setColor(Color.LIGHT_GRAY);
-		frame.add(copyright);
+		TButton introduction = new TButton();
+		introduction.setSize(10, 1);
+		introduction.setText("Tutorial");
+		getView().add(introduction);
 
-		GameLoop loop = new GameLoop();
-		loop.addAction((double time, double timeDelta) -> frame.updateAnimations(time, timeDelta));
-		loop.start();
+		TButton settings = new TButton();
+		settings.setSize(10, 1);
+		settings.setText("Settings");
+		settings.setActionHandler(() -> getNavigationController().push(new SettingsViewController()));
+		getView().add(settings);
+
+		TButton quit = new TButton();
+		quit.setSize(6, 1);
+		quit.setText("Quit");
+		quit.setActionHandler(() -> getNavigationController().getView().setVisible(false));
+		getView().add(quit);
+
+		SelectableGroup buttonGroup = new SelectableGroup();
+		buttonGroup.addSelectable(play);
+		buttonGroup.addSelectable(introduction);
+		buttonGroup.addSelectable(settings);
+		buttonGroup.addSelectable(quit);
+		getView().addResponder(buttonGroup);
+
+		VerticalFlowLayout layout = new VerticalFlowLayout();
+		layout.setSpacing(2);
+		layout.setHorizontalAlignment(VerticalFlowLayout.LEFT);
+		layout.setVerticalAlignment(VerticalFlowLayout.TOP);
+		layout.setLayoutInsets(3, 5, 0, 0);
+		getView().setLayoutManager(layout);
+	}
+
+	@Override
+	public void viewDidDisappear()
+	{
+		super.viewDidDisappear();
+		getView().removeAll();
 	}
 }

@@ -23,71 +23,24 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.data.state;
 
-import project.gui.components.TComponent;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
-public class ViewController
+public class SettingsState implements Externalizable
 {
-	private final TComponent view;
-	private ViewController parent;
-
-	public ViewController(ViewController parent, TComponent view)
-	{
-		this.parent = parent;
-		this.view = view;
-	}
-
-	public ViewController(TComponent view)
-	{
-		this.view = view;
-	}
-
-	public ViewController()
-	{
-		this.view = new TComponent();
-	}
-
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
-	public void viewDidAppear()
+	@Override
+	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
 	{
 
 	}
 
-	public void viewDidDisappear()
+	@Override
+	public void writeExternal(final ObjectOutput out) throws IOException
 	{
 
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
 	}
 }

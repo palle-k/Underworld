@@ -23,71 +23,51 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.ui.controllers;
 
-import project.gui.components.TComponent;
+import project.gui.components.TButton;
+import project.gui.components.TLabel;
+import project.gui.controller.ViewController;
+import project.gui.event.SelectableGroup;
+import project.gui.layout.VerticalFlowLayout;
 
-public class ViewController
+public class ControlSettingsViewController extends ViewController
 {
-	private final TComponent view;
-	private ViewController parent;
-
-	public ViewController(ViewController parent, TComponent view)
-	{
-		this.parent = parent;
-		this.view = view;
-	}
-
-	public ViewController(TComponent view)
-	{
-		this.view = view;
-	}
-
-	public ViewController()
-	{
-		this.view = new TComponent();
-	}
-
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
+	@Override
 	public void viewDidAppear()
 	{
+		super.viewDidAppear();
 
+		TLabel label = new TLabel();
+		label.setSize(54, 10);
+		label.setText("  ___ ___  _  _ _____ ___  ___  _    ___ \n" +
+				" / __/ _ \\| \\| |_   _| _ \\/ _ \\| |  / __|\n" +
+				"| (_| (_) | .` | | | |   / (_) | |__\\__ \\\n" +
+				" \\___\\___/|_|\\_| |_| |_|_\\\\___/|____|___/\n");
+		getView().add(label);
+
+		TButton back = new TButton();
+		back.setSize(6, 1);
+		back.setText("Back");
+		back.setActionHandler(() -> getNavigationController().pop());
+		getView().add(back);
+
+		SelectableGroup buttonGroup = new SelectableGroup();
+		buttonGroup.addSelectable(back);
+		getView().addResponder(buttonGroup);
+
+		VerticalFlowLayout layout = new VerticalFlowLayout();
+		layout.setSpacing(2);
+		layout.setHorizontalAlignment(VerticalFlowLayout.LEFT);
+		layout.setVerticalAlignment(VerticalFlowLayout.TOP);
+		layout.setLayoutInsets(3, 5, 0, 0);
+		getView().setLayoutManager(layout);
 	}
-
+	
+	@Override
 	public void viewDidDisappear()
 	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
+		super.viewDidDisappear();
+		getView().removeAll();
 	}
 }

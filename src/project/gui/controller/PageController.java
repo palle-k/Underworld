@@ -81,23 +81,12 @@ public class PageController extends ViewController
 		viewControllerList.remove(controller);
 	}
 
-	@Override
-	public void viewDidAppear()
-	{
-
-	}
-
-	@Override
-	public void viewDidDisappear()
-	{
-
-	}
-
 	private void hideCurrentPage()
 	{
 		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
 		{
 			getView().remove(viewControllerList.get(currentControllerIndex).getView());
+			viewControllerList.get(currentControllerIndex).viewDidDisappear();
 		}
 	}
 
@@ -106,6 +95,7 @@ public class PageController extends ViewController
 		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
 		{
 			getView().add(viewControllerList.get(currentControllerIndex).getView());
+			viewControllerList.get(currentControllerIndex).viewDidAppear();
 		}
 	}
 }

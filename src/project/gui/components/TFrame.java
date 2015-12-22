@@ -27,17 +27,22 @@ package project.gui.components;
 
 import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
+import project.gui.event.TEvent;
+import project.gui.event.TResponder;
 import project.gui.graphics.TGraphics;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.lang.reflect.Method;
+import java.util.Stack;
 
 public class TFrame extends TBufferedView
 {
-	private class TFrameListener implements ComponentListener
+	private class TFrameListener implements ComponentListener, KeyListener
 	{
 
 		@Override
@@ -70,6 +75,40 @@ public class TFrame extends TBufferedView
 		{
 
 		}
+
+		@Override
+		public void keyPressed(final KeyEvent e)
+		{
+			if (e.getExtendedKeyCode() == KeyEvent.VK_TAB)
+			{
+				TResponder nextResponder = getNextResponder();
+				if (nextResponder != null)
+					nextResponder.requestFirstResponder();
+			} else
+			{
+				TResponder firstResponder = getFirstResponder();
+				if (firstResponder == null)
+					return;
+				TEvent event = new TEvent((char) e.getKeyCode(), TEvent.KEY_DOWN);
+				firstResponder.dispatchEvent(event);
+			}
+		}
+
+		@Override
+		public void keyReleased(final KeyEvent e)
+		{
+			TResponder firstResponder = getFirstResponder();
+			if (firstResponder == null)
+				return;
+			TEvent event = new TEvent((char) e.getKeyCode(), TEvent.KEY_UP);
+			firstResponder.dispatchEvent(event);
+		}
+
+		@Override
+		public void keyTyped(final KeyEvent e)
+		{
+
+		}
 	}
 
 	private static Font createDefaultNormalFont()
@@ -81,13 +120,17 @@ public class TFrame extends TBufferedView
 		return new Font("Monospaced", 0, 14);
 	}
 
+	private boolean addedListener;
+	private Stack<Rectangle> repaintStack;
 	private SwingTerminal terminal;
 
 	public TFrame()
 	{
 		super();
+		addedListener = false;
 		terminal = TerminalFacade.createSwingTerminal(80, 25);
 		setMaskToBounds(true);
+		repaintStack = new Stack<>();
 	}
 
 	public String getTitle()
@@ -124,13 +167,20 @@ public class TFrame extends TBufferedView
 		if (terminal == null || getUnderlyingFrame() == null)
 			return;
 		super.setNeedsDisplay(dirtyRect);
-		final Rectangle bridge_DirtyRect = dirtyRect;
+		if (dirtyRect == null)
+		{
+			//terminal.clearScreen();
+			//clearFramebuffer();
+			dirtyRect = new Rectangle(0, 0, getWidth(), getHeight());
+		}
+		repaintStack.push(dirtyRect);
 		SwingUtilities.invokeLater(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				Rectangle dirtyRect = bridge_DirtyRect;
+				//Rectangle dirtyRect = bridge_DirtyRect;
+				long startTime = System.currentTimeMillis();
 				boolean needsLayout = false;
 				if (frame.width != terminal.getTerminalSize().getColumns())
 				{
@@ -144,17 +194,18 @@ public class TFrame extends TBufferedView
 				}
 				if (needsLayout)
 					setNeedsLayout();
-				if (dirtyRect == null)
-				{
-					//terminal.clearScreen();
-					//clearFramebuffer();
-					dirtyRect = new Rectangle(0, 0, getWidth(), getHeight());
-				}
+
 				if (!needsDisplay())
 					return;
-				TGraphics g = new TGraphics(terminal, dirtyRect);
-				dispatchRepaint(g, dirtyRect);
-				terminal.moveCursor(getWidth(), getHeight());
+				while (!repaintStack.isEmpty())
+				{
+					Rectangle dirtyRect = repaintStack.pop();
+					TGraphics g = new TGraphics(terminal, dirtyRect);
+					dispatchRepaint(g, dirtyRect);
+					terminal.moveCursor(getWidth(), getHeight());
+				}
+				long endTime = System.currentTimeMillis();
+				//System.out.printf("Rendering time: %dms\n", endTime - startTime);
 			}
 		});
 	}
@@ -189,7 +240,13 @@ public class TFrame extends TBufferedView
 		terminal.setCursorVisible(false);
 		if (visible)
 		{
-			getUnderlyingFrame().addComponentListener(new TFrameListener());
+			if (!addedListener)
+			{
+				TFrameListener listener = new TFrameListener();
+				getUnderlyingFrame().addComponentListener(listener);
+				getUnderlyingFrame().addKeyListener(listener);
+				addedListener = true;
+			}
 			try
 			{
 				@SuppressWarnings("rawtypes")
@@ -201,11 +258,14 @@ public class TFrame extends TBufferedView
 				method.invoke(util, getUnderlyingFrame(), true);
 			} catch (Exception e)
 			{
-
+				//Don't care about exception (probably because full screen not supported)
 			}
 			setSize(getSize());
 			setDrawsBackground(true);
 			setNeedsDisplay(null);
+			TResponder nextResponder = getNextResponder();
+			if (nextResponder != null)
+				nextResponder.requestFirstResponder();
 		}
 	}
 

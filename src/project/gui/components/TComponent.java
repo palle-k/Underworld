@@ -26,7 +26,8 @@
 package project.gui.components;
 
 import project.gui.dynamics.animation.Animation;
-import project.gui.event.TEvent;
+import project.gui.event.TResponder;
+import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 import project.gui.layout.TLayoutManager;
 
@@ -34,18 +35,16 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TComponent /*extends TResponder*/
+public class TComponent extends TResponder
 {
 	protected Rectangle frame;
 	protected boolean needsDisplay;
-	private boolean allowsFirstResponder;
 	private List<Animation> animations;
 	private Color backgroundColor;
 	private Color borderColor;
 	private List<TComponent> children;
 	private boolean drawsBackground;
 	private boolean drawsBorder;
-	private boolean firstResponder;
 	private TLayoutManager layoutManager;
 	private boolean maskToBounds;
 	private TComponent parent;
@@ -59,6 +58,8 @@ public class TComponent /*extends TResponder*/
 		needsDisplay = true;
 		visible = true;
 		setMaskToBounds(true);
+		borderColor = Appearance.defaultBorderColor;
+		backgroundColor = Appearance.defaultBackgroundColor;
 	}
 
 	public void add(TComponent child)
@@ -66,6 +67,7 @@ public class TComponent /*extends TResponder*/
 		synchronized (children)
 		{
 			children.add(child);
+			addResponder(child);
 		}
 		child.setParent(this);
 		setNeedsLayout();
@@ -77,6 +79,7 @@ public class TComponent /*extends TResponder*/
 		synchronized (children)
 		{
 			children.add(index, child);
+			addResponder(child);
 		}
 		child.setParent(this);
 		setNeedsLayout();
@@ -173,10 +176,18 @@ public class TComponent /*extends TResponder*/
 		synchronized (children)
 		{
 			children.remove(child);
+			removeResponder(child);
 		}
 		child.setParent(null);
 		setNeedsLayout();
 		setNeedsDisplay();
+	}
+
+	public void removeAll()
+	{
+		super.removeAll();
+		while (!children.isEmpty())
+			remove(children.get(0));
 	}
 
 	public void removeAnimation(Animation animation)
@@ -244,6 +255,7 @@ public class TComponent /*extends TResponder*/
 	public void setLayoutManager(TLayoutManager layoutManager)
 	{
 		this.layoutManager = layoutManager;
+		setNeedsLayout();
 	}
 
 	public void setLocation(Point location)
@@ -341,16 +353,6 @@ public class TComponent /*extends TResponder*/
 		return parent;
 	}
 
-	protected void keyDown(TEvent event)
-	{
-		//implement in subclass
-	}
-
-	protected void keyUp(TEvent event)
-	{
-		//implement in subclass
-	}
-
 	protected void paintComponent(TGraphics graphics)
 	{
 		if (getFrame() == null)
@@ -372,11 +374,6 @@ public class TComponent /*extends TResponder*/
 	protected void resetNeedsDisplay()
 	{
 		needsDisplay = false;
-	}
-
-	protected void setAllowsFirstResponder(boolean allowsFirstResponder)
-	{
-		this.allowsFirstResponder = allowsFirstResponder;
 	}
 
 	protected void setNeedsDisplay(Rectangle dirtyRect)
@@ -419,94 +416,10 @@ public class TComponent /*extends TResponder*/
 		}
 	}
 
-	private void becomeFirstResponder()
-	{
-		firstResponder = true;
-	}
-
-	private boolean canBecomeFirstResponder()
-	{
-		return allowsFirstResponder;
-	}
-
-	private void dispatchEvent(TEvent event)
-	{
-		if (isFirstResponder())
-		{
-			if (event.getState() == TEvent.KEY_DOWN)
-				keyDown(event);
-			else if (event.getState() == TEvent.KEY_UP)
-				keyUp(event);
-		}
-	}
-
-	private TComponent getFirstResponder()
-	{
-		if (isFirstResponder())
-			return this;
-		else
-		{
-			for (TComponent child : children)
-				if (child.includesFirstResponder())
-					return child.getFirstResponder();
-		}
-		return null;
-	}
-
-	private boolean hasNextResponder()
-	{
-		boolean foundFirstResponder = false;
-		boolean hasNext = false;
-		for (int i = 0; i < children.size(); i++)
-		{
-			if (foundFirstResponder || children.get(i).includesFirstResponder())
-				foundFirstResponder = true;
-			if (foundFirstResponder)
-			{
-				hasNext |= children.get(i).hasNextResponder();
-			}
-		}
-		return hasNext;
-	}
-
-	private boolean includesFirstResponder()
-	{
-		if (isFirstResponder())
-			return true;
-		for (TComponent child : children)
-			if (child.includesFirstResponder())
-				return true;
-		return false;
-	}
-
-	private boolean isFirstResponder()
-	{
-		return firstResponder;
-	}
-
 	private void setParent(TComponent parent)
 	{
 		this.parent = parent;
 		setNeedsDisplay();
 	}
 
-	private void shiftNextFirstResponder()
-	{
-		boolean found = false;
-		boolean assigned = false;
-		for (int i = 0; i < children.size(); i++)
-		{
-			if (children.get(i).includesFirstResponder())
-				found = true;
-			if (found && children.get(i).hasNextResponder())
-			{
-				children.get(i).shiftNextFirstResponder();
-				assigned = false;
-				break;
-			}
-		}
-		if (found && !assigned && canBecomeFirstResponder())
-			becomeFirstResponder();
-
-	}
 }

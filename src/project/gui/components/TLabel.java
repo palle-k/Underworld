@@ -25,6 +25,7 @@
 
 package project.gui.components;
 
+import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 
 import java.awt.*;
@@ -38,8 +39,9 @@ public class TLabel extends TComponent
 	public TLabel()
 	{
 		super();
+		setDrawsBackground(true);
 		text = "";
-		textColor = Color.BLACK;
+		textColor = Appearance.defaultTextColor;
 		textInsets = new Insets(0, 0, 0, 0);
 	}
 
@@ -66,6 +68,7 @@ public class TLabel extends TComponent
 	public void setText(String text)
 	{
 		this.text = text;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void setTextInsets(Insets textInsets)
@@ -78,9 +81,9 @@ public class TLabel extends TComponent
 	protected void paintComponent(TGraphics graphics)
 	{
 		super.paintComponent(graphics);
-		graphics.setStrokeColor(textColor);
+		graphics.setStrokeColor(getColor());
 		graphics.setStrokeBackground(drawsBackground() ? getBackgroundColor() : null);
-		graphics.drawText(text, (drawsBorder() ? 1 : 0) + textInsets.left, (drawsBorder() ? 1 : 0) + textInsets.top);
+		graphics.drawText(getText(), (drawsBorder() ? 1 : 0) + getTextInsets().left, (drawsBorder() ? 1 : 0) + getTextInsets().top);
 		//TODO advanced text layout
 	}
 }

@@ -23,71 +23,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.data;
 
-import project.gui.components.TComponent;
-
-public class ViewController
+public class Enemy extends GameActor
 {
-	private final TComponent view;
-	private ViewController parent;
-
-	public ViewController(ViewController parent, TComponent view)
-	{
-		this.parent = parent;
-		this.view = view;
-	}
-
-	public ViewController(TComponent view)
-	{
-		this.view = view;
-	}
-
-	public ViewController()
-	{
-		this.view = new TComponent();
-	}
-
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
-	public void viewDidAppear()
-	{
-
-	}
-
-	public void viewDidDisappear()
-	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
-	}
+	private int attack_range;
+	private int damage;
+	private int damage_variation;
+	private int earnedExperience;
+	private int health;
+	private int speed;
 }

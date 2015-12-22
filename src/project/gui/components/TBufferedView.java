@@ -81,6 +81,7 @@ public class TBufferedView extends TComponent
 
 	public TBufferedView()
 	{
+		super();
 		backBuffer = new TChar[0][0];
 		frameBuffer = new TChar[0][0];
 	}

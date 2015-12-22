@@ -47,23 +47,38 @@ public class NavigationController extends ViewController
 	public NavigationController(TComponent view)
 	{
 		super(view);
+		view.setLayoutManager(new FullSizeSubviewLayout());
 		navigationStack = new Stack<>();
 	}
 
 	public void pop()
 	{
-		getView().remove(navigationStack.peek().getView());
-		navigationStack.peek().setParent(null);
-		navigationStack.pop();
-		getView().add(navigationStack.peek().getView());
+		if (!navigationStack.isEmpty())
+		{
+			getView().remove(navigationStack.peek().getView());
+			navigationStack.peek().setParent(null);
+			navigationStack.pop().viewDidDisappear();
+			getView().add(navigationStack.peek().getView());
+			navigationStack.peek().viewDidAppear();
+		} else
+		{
+			getView().setVisible(false);
+			viewDidDisappear();
+		}
 	}
 
 	public void push(ViewController controller)
 	{
-		getView().remove(navigationStack.peek().getView());
+		if (!navigationStack.isEmpty())
+		{
+			ViewController previousController = navigationStack.peek();
+			getView().remove(previousController.getView());
+			previousController.viewDidDisappear();
+		}
 		controller.setParent(this);
 		navigationStack.push(controller);
-		getView().add(navigationStack.peek().getView());
+		getView().add(controller.getView());
+		controller.viewDidAppear();
 	}
 
 	@Override

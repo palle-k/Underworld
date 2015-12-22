@@ -23,71 +23,62 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.data;
 
-import project.gui.components.TComponent;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Properties;
 
-public class ViewController
+public class Level
 {
-	private final TComponent view;
-	private ViewController parent;
+	private int[][] map;
 
-	public ViewController(ViewController parent, TComponent view)
+	public Level(URL url) throws IOException
 	{
-		this.parent = parent;
-		this.view = view;
+		Properties properties = new Properties();
+		properties.load(url.openStream());
+
+		int width = Integer.parseInt(properties.getProperty("Width"));
+		int height = Integer.parseInt(properties.getProperty("Height"));
+
+		map = new int[width][height];
+
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				String value = properties.getProperty(x + "," + y);
+				if (value == null)
+				{
+					map[x][y] = -1;
+				} else
+				{
+					map[x][y] = Integer.parseInt(value);
+				}
+			}
+		}
 	}
 
-	public ViewController(TComponent view)
+	public int getHeight()
 	{
-		this.view = view;
+		return map[0].length;
 	}
 
-	public ViewController()
+	public int getPixel(int x, int y)
 	{
-		this.view = new TComponent();
+		if (x >= map.length)
+			return 0;
+		else if (y >= map[x].length)
+			return 0;
+		else if (x < 0)
+			return 0;
+		else if (y < 0)
+			return 0;
+		return map[x][y];
 	}
 
-	public NavigationController getNavigationController()
+	public int getWidth()
 	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
-	public void viewDidAppear()
-	{
-
-	}
-
-	public void viewDidDisappear()
-	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
+		return map.length;
 	}
 }

@@ -23,71 +23,17 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.gui.event;
 
-import project.gui.components.TComponent;
-
-public class ViewController
+public interface Selectable
 {
-	private final TComponent view;
-	private ViewController parent;
+	void deselect();
 
-	public ViewController(ViewController parent, TComponent view)
-	{
-		this.parent = parent;
-		this.view = view;
-	}
+	boolean isSelected();
 
-	public ViewController(TComponent view)
-	{
-		this.view = view;
-	}
+	void performAction();
 
-	public ViewController()
-	{
-		this.view = new TComponent();
-	}
+	void select();
 
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
-	public void viewDidAppear()
-	{
-
-	}
-
-	public void viewDidDisappear()
-	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
-	}
+	boolean selectionEnabled();
 }

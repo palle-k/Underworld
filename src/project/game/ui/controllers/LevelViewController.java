@@ -23,71 +23,40 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.controller;
+package project.game.ui.controllers;
 
-import project.gui.components.TComponent;
+import project.game.data.Level;
+import project.game.ui.views.LevelView;
+import project.gui.controller.ViewController;
 
-public class ViewController
+import java.io.IOException;
+
+public class LevelViewController extends ViewController
 {
-	private final TComponent view;
-	private ViewController parent;
-
-	public ViewController(ViewController parent, TComponent view)
-	{
-		this.parent = parent;
-		this.view = view;
-	}
-
-	public ViewController(TComponent view)
-	{
-		this.view = view;
-	}
-
-	public ViewController()
-	{
-		this.view = new TComponent();
-	}
-
-	public NavigationController getNavigationController()
-	{
-		if (this instanceof NavigationController)
-			return (NavigationController) this;
-		else if (parent != null)
-			return parent.getNavigationController();
-		return null;
-	}
-
-	public PageController getPageController()
-	{
-		if (this instanceof PageController)
-			return (PageController) this;
-		else if (parent != null)
-			return parent.getPageController();
-		return null;
-	}
-
-	public ViewController getParent()
-	{
-		return parent;
-	}
-
-	public TComponent getView()
-	{
-		return view;
-	}
-
+	@Override
 	public void viewDidAppear()
 	{
+		super.viewDidAppear();
+		Level level;
+		try
+		{
+			level = new Level(Level.class.getResource("level.properties"));
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+			return;
+		}
 
+		LevelView levelView = new LevelView();
+		levelView.setSize(level.getWidth() * 4, level.getHeight() * 2);
+		levelView.setLevel(level);
+		getView().add(levelView);
 	}
 
+	@Override
 	public void viewDidDisappear()
 	{
-
-	}
-
-	protected void setParent(final ViewController parent)
-	{
-		this.parent = parent;
+		super.viewDidDisappear();
+		getView().removeAll();
 	}
 }
