@@ -23,12 +23,84 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.components;
 
-/**
- * Created by Palle on 20.12.15.
- */
-public interface CompletionHandler
+import project.gui.event.TEvent;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class TResponder
 {
-	void animationCompleted(Animation animation);
+	private final List<TResponder> subresponders;
+	private boolean allowsFirstResponder;
+	private boolean isFirstResponder;
+	private TResponder parentResponder;
+
+	protected TResponder()
+	{
+		subresponders = new ArrayList<>();
+	}
+
+	public boolean allowsFirstResponder()
+	{
+		return allowsFirstResponder;
+	}
+
+	public void requestFirstResponder()
+	{
+
+	}
+
+	public void setAllowsFirstResponder(final boolean allowsFirstResponder)
+	{
+		this.allowsFirstResponder = allowsFirstResponder;
+	}
+
+	protected void addResponder(TResponder responder)
+	{
+		subresponders.add(responder);
+		responder.parentResponder = this;
+	}
+
+	protected void becomeFirstResponder()
+	{
+		isFirstResponder = true;
+	}
+
+	protected void keyDown(TEvent event)
+	{
+		//implement in subclass
+	}
+
+	protected void keyUp(TEvent event)
+	{
+		//implement in subclass
+	}
+
+	protected void removeResponder(TResponder responder)
+	{
+		if (subresponders.remove(responder))
+			responder.parentResponder = null;
+	}
+
+	protected void resignFirstResponder()
+	{
+		isFirstResponder = false;
+	}
+
+	private boolean hasFirstResponder()
+	{
+		if (isFirstResponder)
+			return true;
+		boolean includesFirstResponder = false;
+		for (TResponder child : subresponders)
+			includesFirstResponder |= child.hasFirstResponder();
+		return includesFirstResponder;
+	}
+
+	private void updateFirstResponder(TResponder newFirstResponder)
+	{
+
+	}
 }

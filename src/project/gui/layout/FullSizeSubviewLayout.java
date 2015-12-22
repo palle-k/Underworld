@@ -23,12 +23,22 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.layout;
+
+import project.gui.components.TComponent;
 
 /**
- * Created by Palle on 20.12.15.
+ * Created by Palle on 22.12.15.
  */
-public interface CompletionHandler
+public class FullSizeSubviewLayout implements TLayoutManager
 {
-	void animationCompleted(Animation animation);
+	@Override
+	public void layoutComponent(final TComponent component)
+	{
+		for (TComponent child : component.getChildren())
+		{
+			child.setLocation(0, 0);
+			child.setSize(component.getSize());
+		}
+	}
 }

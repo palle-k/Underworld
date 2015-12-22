@@ -23,12 +23,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.layout;
 
-/**
- * Created by Palle on 20.12.15.
- */
-public interface CompletionHandler
+import project.gui.components.TComponent;
+
+public interface TLayoutManager
 {
-	void animationCompleted(Animation animation);
+	void layoutComponent(TComponent component);
 }

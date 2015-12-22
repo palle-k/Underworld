@@ -23,12 +23,60 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.controller;
 
-/**
- * Created by Palle on 20.12.15.
- */
-public interface CompletionHandler
+import project.gui.components.TComponent;
+
+public abstract class ViewController
 {
-	void animationCompleted(Animation animation);
+	private final TComponent view;
+	private ViewController parent;
+
+	public ViewController(ViewController parent, TComponent view)
+	{
+		this.parent = parent;
+		this.view = view;
+	}
+
+	public ViewController(TComponent view)
+	{
+		this.view = view;
+	}
+
+	public NavigationController getNavigationController()
+	{
+		if (this instanceof NavigationController)
+			return (NavigationController) this;
+		else if (parent != null)
+			return parent.getNavigationController();
+		return null;
+	}
+
+	public PageController getPageController()
+	{
+		if (this instanceof PageController)
+			return (PageController) this;
+		else if (parent != null)
+			return parent.getPageController();
+		return null;
+	}
+
+	public ViewController getParent()
+	{
+		return parent;
+	}
+
+	public TComponent getView()
+	{
+		return view;
+	}
+
+	public abstract void viewDidAppear();
+	
+	public abstract void viewDidDisappear();
+
+	protected void setParent(final ViewController parent)
+	{
+		this.parent = parent;
+	}
 }

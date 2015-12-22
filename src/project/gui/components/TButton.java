@@ -23,12 +23,25 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.components;
 
-/**
- * Created by Palle on 20.12.15.
- */
-public interface CompletionHandler
+public class TButton
 {
-	void animationCompleted(Animation animation);
+	private enum ButtonStyle
+	{
+		LIGHT_LEFT_INDICATOR,
+		BACKGROUND_INDICATOR,
+		BORDER_INDICATOR,
+		BACKGROUND_BORDER_INDICATOR
+	}
+
+	public static final ButtonStyle BACKGROUND_BORDER_INDICATOR = ButtonStyle.BACKGROUND_BORDER_INDICATOR;
+	public static final ButtonStyle BACKGROUND_INDICATOR = ButtonStyle.BACKGROUND_INDICATOR;
+	public static final ButtonStyle BORDER_INDICATOR = ButtonStyle.BORDER_INDICATOR;
+	public static final ButtonStyle LIGHT_LEFT_INDICATOR = ButtonStyle.LIGHT_LEFT_INDICATOR;
+
+	public TButton()
+	{
+
+	}
 }

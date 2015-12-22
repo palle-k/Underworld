@@ -23,64 +23,89 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.components;
+package project.gui.controller;
 
-import project.gui.graphics.TGraphics;
+import project.gui.components.TComponent;
 
-import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TLabel extends TComponent
+/**
+ * Controller for ViewControllers on the same level
+ */
+public class PageController extends ViewController
 {
-	private String text;
-	private Color textColor;
-	private Insets textInsets;
+	private final List<ViewController> viewControllerList;
+	private int currentControllerIndex = -1;
 
-	public TLabel()
+	public PageController(final ViewController parent, final TComponent view)
 	{
-		super();
-		text = "";
-		textColor = Color.BLACK;
-		textInsets = new Insets(0, 0, 0, 0);
+		super(parent, view);
+		viewControllerList = new ArrayList<>();
 	}
 
-	public Color getColor()
+	public PageController(final TComponent view)
 	{
-		return textColor;
+		super(view);
+		viewControllerList = new ArrayList<>();
 	}
 
-	public String getText()
+	public void addController(ViewController controller)
 	{
-		return text;
+		viewControllerList.add(controller);
 	}
 
-	public Insets getTextInsets()
+	public void addController(ViewController controller, int index)
 	{
-		return textInsets;
+		viewControllerList.add(index, controller);
 	}
 
-	public void setColor(Color textColor)
+	public void next()
 	{
-		this.textColor = textColor;
+		hideCurrentPage();
+		currentControllerIndex = (currentControllerIndex + 1) % viewControllerList.size();
+		showCurrentPage();
 	}
 
-	public void setText(String text)
+	public void previous()
 	{
-		this.text = text;
+		hideCurrentPage();
+		if (currentControllerIndex <= 0)
+			currentControllerIndex = viewControllerList.size();
+		currentControllerIndex--;
+		showCurrentPage();
 	}
 
-	public void setTextInsets(Insets textInsets)
+	public void removeController(ViewController controller)
 	{
-		this.textInsets = textInsets;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		viewControllerList.remove(controller);
 	}
 
 	@Override
-	protected void paintComponent(TGraphics graphics)
+	public void viewDidAppear()
 	{
-		super.paintComponent(graphics);
-		graphics.setStrokeColor(textColor);
-		graphics.setStrokeBackground(drawsBackground() ? getBackgroundColor() : null);
-		graphics.drawText(text, (drawsBorder() ? 1 : 0) + textInsets.left, (drawsBorder() ? 1 : 0) + textInsets.top);
-		//TODO advanced text layout
+
+	}
+
+	@Override
+	public void viewDidDisappear()
+	{
+
+	}
+
+	private void hideCurrentPage()
+	{
+		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
+		{
+			getView().remove(viewControllerList.get(currentControllerIndex).getView());
+		}
+	}
+
+	private void showCurrentPage()
+	{
+		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
+		{
+			getView().add(viewControllerList.get(currentControllerIndex).getView());
+		}
 	}
 }

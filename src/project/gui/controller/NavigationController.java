@@ -23,12 +23,58 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.dynamics.animation;
+package project.gui.controller;
+
+import project.gui.components.TComponent;
+import project.gui.layout.FullSizeSubviewLayout;
+
+import java.util.Stack;
 
 /**
- * Created by Palle on 20.12.15.
+ * Controller for hierarchical structures
  */
-public interface CompletionHandler
+public class NavigationController extends ViewController
 {
-	void animationCompleted(Animation animation);
+	private Stack<ViewController> navigationStack;
+
+	public NavigationController(ViewController parent, TComponent view)
+	{
+		super(parent, view);
+		view.setLayoutManager(new FullSizeSubviewLayout());
+		navigationStack = new Stack<>();
+	}
+
+	public NavigationController(TComponent view)
+	{
+		super(view);
+		navigationStack = new Stack<>();
+	}
+
+	public void pop()
+	{
+		getView().remove(navigationStack.peek().getView());
+		navigationStack.peek().setParent(null);
+		navigationStack.pop();
+		getView().add(navigationStack.peek().getView());
+	}
+
+	public void push(ViewController controller)
+	{
+		getView().remove(navigationStack.peek().getView());
+		controller.setParent(this);
+		navigationStack.push(controller);
+		getView().add(navigationStack.peek().getView());
+	}
+
+	@Override
+	public void viewDidAppear()
+	{
+
+	}
+
+	@Override
+	public void viewDidDisappear()
+	{
+
+	}
 }

@@ -1,26 +1,26 @@
 /******************************************************************************
  * Copyright (c) 2015 Palle Klewitz.                                          *
- *                                                                            *
+ * *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- *  including without limitation the rights to use, copy, modify,             *
- *  merge, publish, distribute, sublicense, and/or sell copies of             *
- *  the Software, and to permit persons to whom the Software                  *
- *  is furnished to do so, subject to the following conditions:               *
- *                                                                            *
+ * including without limitation the rights to use, copy, modify,             *
+ * merge, publish, distribute, sublicense, and/or sell copies of             *
+ * the Software, and to permit persons to whom the Software                  *
+ * is furnished to do so, subject to the following conditions:               *
+ * *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- *                                                                            *
+ * *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.dynamics;
@@ -33,8 +33,8 @@ import java.util.List;
 public class GameLoop implements Runnable
 {
 	private List<GameloopAction> actionList;
-	private Thread gameloopThread;
 	private long baseTime;
+	private Thread gameloopThread;
 	private long time;
 
 	public GameLoop()
@@ -43,25 +43,14 @@ public class GameLoop implements Runnable
 		Class<GameLoop> clazz = GameLoop.class;
 	}
 
-	public void addAction(GameloopAction action)
+	public synchronized void addAction(GameloopAction action)
 	{
 		actionList.add(action);
 	}
 
-	public void removeAction(GameloopAction action)
+	public synchronized void removeAction(GameloopAction action)
 	{
 		actionList.remove(action);
-	}
-
-	public void start()
-	{
-		gameloopThread = new Thread(this);
-		gameloopThread.start();
-	}
-
-	public void stop()
-	{
-		gameloopThread.interrupt();
 	}
 
 	@Override
@@ -75,18 +64,17 @@ public class GameLoop implements Runnable
 			time = newTime;
 			double updateTime = time * 0.001;
 			double updateTimeDelta = timeDelta * 0.001;
-			for (GameloopAction action : actionList)
-				try
-				{
-					SwingUtilities.invokeAndWait(() -> action.update(updateTime, updateTimeDelta));
-				} catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				} catch (InvocationTargetException e)
-				{
-					e.printStackTrace();
-				}
-			long executionTime = System.currentTimeMillis() - time;
+			try
+			{
+				SwingUtilities.invokeAndWait(() -> invokeActions(updateTime, updateTimeDelta));
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			} catch (InvocationTargetException e)
+			{
+				e.printStackTrace();
+			}
+			long executionTime = System.currentTimeMillis() - baseTime - time;
 			if (executionTime < 16)
 				try
 				{
@@ -96,5 +84,22 @@ public class GameLoop implements Runnable
 					e.printStackTrace();
 				}
 		}
+	}
+
+	public void start()
+	{
+		gameloopThread = new Thread(this);
+		gameloopThread.start();
+	}
+
+	public void stop()
+	{
+		gameloopThread.interrupt();
+	}
+
+	private synchronized void invokeActions(double time, double timeDelta)
+	{
+		for (GameloopAction action : actionList)
+			action.update(time, timeDelta);
 	}
 }

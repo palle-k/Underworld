@@ -1,26 +1,26 @@
 /******************************************************************************
  * Copyright (c) 2015 Palle Klewitz.                                          *
- *                                                                            *
+ * *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- *  including without limitation the rights to use, copy, modify,             *
- *  merge, publish, distribute, sublicense, and/or sell copies of             *
- *  the Software, and to permit persons to whom the Software                  *
- *  is furnished to do so, subject to the following conditions:               *
- *                                                                            *
+ * including without limitation the rights to use, copy, modify,             *
+ * merge, publish, distribute, sublicense, and/or sell copies of             *
+ * the Software, and to permit persons to whom the Software                  *
+ * is furnished to do so, subject to the following conditions:               *
+ * *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- *                                                                            *
+ * *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.graphics;
@@ -35,14 +35,14 @@ public class TGraphics
 {
 	private class TGraphicsState
 	{
-		private Color fillColor;
-		private Color strokeColor;
 		private Color fillBackground;
-		private Color strokeBackground;
 		private char fillChar;
-		private char strokeChar;
-		private GeneralPath path;
+		private Color fillColor;
 		private TGraphicsState parentState;
+		private GeneralPath path;
+		private Color strokeBackground;
+		private char strokeChar;
+		private Color strokeColor;
 
 		private TGraphicsState(
 				Color fillColor,
@@ -75,16 +75,16 @@ public class TGraphics
 		}
 	}
 
-	private TGraphicsState currentState;
-	private Terminal target;
-	private TGraphics parent;
 	private TBufferedView.TChar[][] buffer;
+	private TGraphicsState currentState;
+	private Rectangle dirtyRect;
+	private int height;
 	private boolean maskToBounds;
 	private int offsetX;
 	private int offsetY;
+	private TGraphics parent;
+	private Terminal target;
 	private int width;
-	private int height;
-	private Rectangle dirtyRect;
 
 	public TGraphics(Terminal target, Rectangle dirtyRect)
 	{
@@ -119,24 +119,61 @@ public class TGraphics
 		this.dirtyRect = dirtyRect;
 	}
 
+	public void closePath()
+	{
+		currentState.path.closePath();
+	}
+
+	public void drawText(String text, int x, int y)
+	{
+		if (text == null)
+			return;
+		int baseX = x;
+		char[] characters = text.toCharArray();
+		for (char c : characters)
+		{
+			if (c == '\n')
+			{
+				y++;
+				x = baseX;
+			} else if (c == '\t')
+				x += 4;
+			else
+			{
+				setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, c);
+				x++;
+			}
+		}
+	}
+
+	public void fill(char c)
+	{
+		Rectangle bounds = currentState.path.getBounds();
+		for (int y = 0; y < bounds.getMaxY(); y++)
+		{
+			for (int x = 0; x < bounds.getMaxX(); x++)
+			{
+				if (currentState.path.contains(x, y))
+					setPoint(x, y, currentState.fillColor, currentState.fillBackground, currentState.fillChar);
+			}
+		}
+		currentState.path.reset();
+	}
+
+	public void fillRect(Rectangle rect)
+	{
+		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
+		{
+			for (int x = (int) rect.getMinX(); x < rect.getMaxX(); x++)
+			{
+				setPoint(x, y, currentState.fillColor, currentState.fillBackground, currentState.fillChar);
+			}
+		}
+	}
+
 	public TGraphics getChildContext(Rectangle childRect, boolean maskToBounds)
 	{
 		return new TGraphics(this, childRect.x, childRect.y, childRect.width, childRect.height, maskToBounds);
-	}
-
-	public void setFillColor(Color fillColor)
-	{
-		this.currentState.fillColor = fillColor;
-	}
-
-	public Color getFillColor()
-	{
-		return currentState.fillColor;
-	}
-
-	public void setFillBackground(Color fillBackground)
-	{
-		currentState.fillBackground = fillBackground;
 	}
 
 	public Color getFillBackground()
@@ -144,9 +181,9 @@ public class TGraphics
 		return currentState.fillBackground;
 	}
 
-	public void setStrokeBackground(Color strokeBackground)
+	public Color getFillColor()
 	{
-		currentState.strokeBackground = strokeBackground;
+		return currentState.fillColor;
 	}
 
 	public Color getStrokeBackground()
@@ -154,24 +191,14 @@ public class TGraphics
 		return currentState.strokeBackground;
 	}
 
-	public void setStrokeColor(Color strokeColor)
-	{
-		this.currentState.strokeColor = strokeColor;
-	}
-
-	public void setFillChar(char c)
-	{
-		currentState.fillChar = c;
-	}
-
-	public void setStrokeChar(char c)
-	{
-		currentState.strokeChar = c;
-	}
-
 	public Color getStrokeColor()
 	{
 		return currentState.strokeColor;
+	}
+
+	public void lineTo(int x, int y)
+	{
+		currentState.path.lineTo(x, y);
 	}
 
 	public void moveTo(int x, int y)
@@ -179,14 +206,12 @@ public class TGraphics
 		currentState.path.moveTo(x, y);
 	}
 
-	public void lineTo(int x, int y)
+	public void popState()
 	{
-		currentState.path.lineTo(x,y);
-	}
-
-	public void closePath()
-	{
-		currentState.path.closePath();
+		if (currentState.canPop())
+			currentState = currentState.pop();
+		else
+			resetState();
 	}
 
 	public void pushState()
@@ -211,92 +236,19 @@ public class TGraphics
 		currentState.strokeBackground = Color.BLACK;
 	}
 
-	public void popState()
+	public void setFillBackground(Color fillBackground)
 	{
-		if (currentState.canPop())
-			currentState = currentState.pop();
-		else
-			resetState();
+		currentState.fillBackground = fillBackground;
 	}
 
-	public void fill(char c)
+	public void setFillChar(char c)
 	{
-		Rectangle bounds = currentState.path.getBounds();
-		for (int y = 0; y < bounds.getMaxY(); y++)
-		{
-			for (int x = 0; x < bounds.getMaxX(); x++)
-			{
-				if (currentState.path.contains(x, y))
-					setPoint(x, y, currentState.fillColor, currentState.fillBackground, currentState.fillChar);
-			}
-		}
-		currentState.path.reset();
+		currentState.fillChar = c;
 	}
 
-	public void stroke(char c)
+	public void setFillColor(Color fillColor)
 	{
-		Rectangle bounds = currentState.path.getBounds();
-		boolean inside = false;
-		for (int y = (int) bounds.getMinY(); y < bounds.getMaxY(); y++)
-		{
-			for (int x = (int) bounds.getMinX(); x < bounds.getMaxX(); x++)
-			{
-				boolean previous = inside;
-				if (currentState.path.contains(x, y))
-					inside = true;
-				if (previous ^ inside)
-					setPoint(x - (inside ? 0 : 1), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-			}
-		}
-		currentState.path.reset();
-	}
-
-	public void fillRect(Rectangle rect)
-	{
-		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
-		{
-			for (int x = (int) rect.getMinX(); x < rect.getMaxX(); x++)
-			{
-				setPoint(x, y, currentState.fillColor, currentState.fillBackground, currentState.fillChar);
-			}
-		}
-	}
-
-	public void strokeRect(Rectangle rect)
-	{
-		for (int x = (int) rect.getMinX(); x <= rect.getMaxX(); x++)
-		{
-			setPoint(x, (int) rect.getMinY(), currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-			setPoint(x, (int) rect.getMaxY(), currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-		}
-		for (int y = (int) rect.getMinY(); y <= rect.getMaxY(); y++)
-		{
-			setPoint((int) rect.getMinX(), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-			setPoint((int) rect.getMaxX(), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-		}
-	}
-
-	public void drawText(String text, int x, int y)
-	{
-		if (text == null)
-			return;
-		int baseX = x;
-		char[] characters = text.toCharArray();
-		for (char c : characters)
-		{
-			if (c == '\n')
-			{
-				y++;
-				x = baseX;
-			}
-			else if (c == '\t')
-				x+=4;
-			else
-			{
-				setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, c);
-				x++;
-			}
-		}
+		this.currentState.fillColor = fillColor;
 	}
 
 	public void setPoint(int x, int y, Color color, Color backgroundColor, char c)
@@ -325,9 +277,56 @@ public class TGraphics
 		}
 	}
 
+	public void setStrokeBackground(Color strokeBackground)
+	{
+		currentState.strokeBackground = strokeBackground;
+	}
+
+	public void setStrokeChar(char c)
+	{
+		currentState.strokeChar = c;
+	}
+
+	public void setStrokeColor(Color strokeColor)
+	{
+		this.currentState.strokeColor = strokeColor;
+	}
+
+	public void stroke(char c)
+	{
+		Rectangle bounds = currentState.path.getBounds();
+		boolean inside = false;
+		for (int y = (int) bounds.getMinY(); y < bounds.getMaxY(); y++)
+		{
+			for (int x = (int) bounds.getMinX(); x < bounds.getMaxX(); x++)
+			{
+				boolean previous = inside;
+				if (currentState.path.contains(x, y))
+					inside = true;
+				if (previous ^ inside)
+					setPoint(x - (inside ? 0 : 1), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+			}
+		}
+		currentState.path.reset();
+	}
+
+	public void strokeRect(Rectangle rect)
+	{
+		for (int x = (int) rect.getMinX(); x < rect.getMaxX(); x++)
+		{
+			setPoint(x, (int) rect.getMinY(), currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+			setPoint(x, (int) rect.getMaxY() - 1, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+		}
+		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
+		{
+			setPoint((int) rect.getMinX(), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+			setPoint((int) rect.getMaxX() - 1, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+		}
+	}
+
 	private boolean canDrawAtPoint(int x, int y)
 	{
-		if (dirtyRect != null && !dirtyRect.contains(x,y))
+		if (dirtyRect != null && !dirtyRect.contains(x, y))
 			return false;
 		if (!maskToBounds)
 			return true;
