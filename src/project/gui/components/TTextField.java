@@ -23,21 +23,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.components;
 
-public class Enemy extends GameActor
+import project.gui.event.TEvent;
+
+import java.awt.event.KeyEvent;
+
+public class TTextField extends TLabel
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
-
-	protected Enemy(final String[] restingStates)
+	public TTextField()
 	{
-		super(restingStates);
+		super();
+		setAllowsFirstResponder(true);
+	}
+
+	@Override
+	protected void keyUp(final TEvent event)
+	{
+		if (event.getKey() == '\b')
+		{
+			if (getText().length() > 0)
+				setText(getText().substring(0, getText().length() - 1));
+		} else if (event.getKey() != '\n' && event.getKey() != KeyEvent.VK_CONTROL && event.getKey() != KeyEvent.VK_ALT && event.getKey() != KeyEvent.VK_SHIFT)
+			setText(getText() + Character.toString(event.getKey()));
+		super.keyUp(event);
 	}
 }

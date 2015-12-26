@@ -34,6 +34,7 @@ public abstract class TResponder
 	private boolean allowsFirstResponder;
 	private TEventHandler eventHandler;
 	private boolean isFirstResponder;
+	private boolean isSingleFirstResponder;
 	private TResponder parentResponder;
 
 	protected TResponder()
@@ -121,6 +122,11 @@ public abstract class TResponder
 		return isFirstResponder;
 	}
 
+	public boolean isSingleFirstResponder()
+	{
+		return isSingleFirstResponder;
+	}
+
 	public void removeAll()
 	{
 		while (!subresponders.isEmpty())
@@ -163,6 +169,11 @@ public abstract class TResponder
 	public void setEventHandler(final TEventHandler eventHandler)
 	{
 		this.eventHandler = eventHandler;
+	}
+
+	public void setSingleFirstResponder(final boolean singleFirstResponder)
+	{
+		isSingleFirstResponder = singleFirstResponder;
 	}
 
 	protected void becomeFirstResponder()

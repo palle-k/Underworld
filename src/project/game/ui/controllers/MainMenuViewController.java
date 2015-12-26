@@ -25,21 +25,30 @@
 
 package project.game.ui.controllers;
 
+import project.game.data.state.SavedGameState;
 import project.gui.components.TButton;
+import project.gui.components.TComponent;
 import project.gui.components.TLabel;
+import project.gui.controller.PageController;
 import project.gui.controller.ViewController;
+import project.gui.dynamics.animation.Animation;
+import project.gui.dynamics.animation.AnimationHandler;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
+
+import java.awt.*;
+
+import static project.game.localization.LocalizedString.LocalizedString;
 
 public class MainMenuViewController extends ViewController
 {
 	@Override
-	public void viewDidAppear()
+	public void initializeView()
 	{
-		super.viewDidAppear();
+		super.initializeView();
 
 		TLabel label = new TLabel();
-		label.setSize(64, 10);
+		label.setSize(64, 8);
 		label.setText("           )  (           (                 )   (    (    (     \n" +
 				"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
 				"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
@@ -49,50 +58,100 @@ public class MainMenuViewController extends ViewController
 				"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
 				" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
 		label.setVisible(true);
+		label.setColor(new Color(255, 100, 0));
 		getView().add(label);
 
+		final Animation fireAnimation = new Animation(new AnimationHandler()
+		{
+			@Override
+			public void updateAnimation(final double value)
+			{
+				if (value < 0.5)
+					label.setText("           )  (           (                 )   (    (    (     \n" +
+							"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
+							"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
+							"    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
+							" _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
+							"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+							"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+							" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+				else
+					label.setText("           (  )           )                 (   )    )    )     \n" +
+							"        ) \\)  (/ (        (/ (  )  )     ) \\)   (/ ( (/ ( (/ (  \n" +
+							"    )   (/)(())(\\)   )   ))(\\)  (/(()   '(/)(( ))(\\)))(\\)))(\\)  \n" +
+							"    (/ ))_(/  \\)_((  (/   \\)_(())_()(/ ())_(/   \\)_((\\)_((\\)_(( \n" +
+							" _ ))_( _))_()_((_  ))_( )_((  _))((/_()( ))_( )_(( )_(( )_((_  \n" +
+							"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+							"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+							" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+			}
+		});
+		fireAnimation.setDuration(0.5);
+		fireAnimation.setFromValue(0);
+		fireAnimation.setToValue(1);
+		fireAnimation.setLoops(true);
+		label.addAnimation(fireAnimation);
+
 		TButton play = new TButton();
-		play.setSize(6, 1);
-		play.setText("Play");
-		play.setActionHandler(() -> getNavigationController().push(new LevelViewController()));
+		play.setSize(20, 1);
+		play.setText(LocalizedString("main_menu_play"));
+		play.setActionHandler(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				PageController gamePages = new PageController(new TComponent());
+				if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
+					gamePages.addController(new ClassChooserController());
+				//if (!SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
+				//	gamePages.addController(new TutorialViewController());
+				gamePages.addController(new LevelViewController());
+				getNavigationController().push(gamePages);
+			}
+		});
 		getView().add(play);
 
 		TButton introduction = new TButton();
-		introduction.setSize(10, 1);
-		introduction.setText("Tutorial");
+		introduction.setSize(20, 1);
+		introduction.setText(LocalizedString("main_menu_tutorial"));
 		getView().add(introduction);
 
 		TButton settings = new TButton();
-		settings.setSize(10, 1);
-		settings.setText("Settings");
+		settings.setSize(20, 1);
+		settings.setText(LocalizedString("main_menu_settings"));
 		settings.setActionHandler(() -> getNavigationController().push(new SettingsViewController()));
 		getView().add(settings);
 
 		TButton quit = new TButton();
-		quit.setSize(6, 1);
-		quit.setText("Quit");
-		quit.setActionHandler(() -> getNavigationController().getView().setVisible(false));
+		quit.setSize(20, 1);
+		quit.setText(LocalizedString("main_menu_quit"));
+		quit.setActionHandler(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				getNavigationController().getView().setVisible(false);
+			}
+		});
 		getView().add(quit);
 
+		TLabel navigationHelpLabel = new TLabel();
+		navigationHelpLabel.setSize(50, 2);
+		navigationHelpLabel.setText(LocalizedString("main_menu_navigation_instruction"));
+		navigationHelpLabel.setColor(Color.GRAY);
+		getView().add(navigationHelpLabel);
+
 		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addSelectable(play);
-		buttonGroup.addSelectable(introduction);
-		buttonGroup.addSelectable(settings);
-		buttonGroup.addSelectable(quit);
+		buttonGroup.addResponder(play);
+		buttonGroup.addResponder(introduction);
+		buttonGroup.addResponder(settings);
+		buttonGroup.addResponder(quit);
 		getView().addResponder(buttonGroup);
 
 		VerticalFlowLayout layout = new VerticalFlowLayout();
-		layout.setSpacing(2);
-		layout.setHorizontalAlignment(VerticalFlowLayout.LEFT);
-		layout.setVerticalAlignment(VerticalFlowLayout.TOP);
+		layout.setSpacing(3);
+		layout.setHorizontalAlignment(VerticalFlowLayout.CENTER);
 		layout.setLayoutInsets(3, 5, 0, 0);
 		getView().setLayoutManager(layout);
-	}
-
-	@Override
-	public void viewDidDisappear()
-	{
-		super.viewDidDisappear();
-		getView().removeAll();
 	}
 }

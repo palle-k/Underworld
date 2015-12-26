@@ -25,30 +25,23 @@
 
 package project.game;
 
-import project.game.data.Level;
+import project.game.data.state.SavedGameState;
+import project.game.localization.LocalizedString;
 import project.game.ui.controllers.LaunchViewController;
 import project.gui.components.TFrame;
 import project.gui.controller.NavigationController;
-import project.gui.dynamics.GameLoop;
 import project.gui.graphics.Appearance;
 
-import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
-public class Labyrinth
+public class Underworld
 {
 	public static void main(String[] args)
 	{
-		try
-		{
-			System.setProperty("apple.laf.useScreenMenuBar", "true");
-			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Labyrinth");
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e)
-		{
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Underworld");
 
-		}
+		LocalizedString.InitializeLocalizedStrings();
 
 		Appearance.defaultBackgroundColor = new Color(30, 30, 30);
 		Appearance.defaultTextColor = Color.WHITE;
@@ -57,21 +50,12 @@ public class Labyrinth
 		TFrame frame = new TFrame();
 		frame.setFrame(new Rectangle(0, 0, 140, 40));
 		frame.setVisible(true);
-		//frame.setBackgroundColor(backgroundColor);
-
-		GameLoop loop = new GameLoop();
-		loop.addAction((double time, double timeDelta) -> frame.updateAnimations(time, timeDelta));
-		loop.start();
+		frame.setTitle("Underworld");
 
 		NavigationController navigationController = new NavigationController(frame);
 		navigationController.push(new LaunchViewController());
 
-		try
-		{
-			Level level = new Level(Level.class.getResource("level.properties"));
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		SavedGameState.loadState();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> SavedGameState.getSavedGameState().save()));
 	}
 }

@@ -27,8 +27,11 @@ package project.gui.components;
 
 import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
+import com.googlecode.lanterna.terminal.swing.TerminalAppearance;
+import project.gui.dynamics.GameLoop;
 import project.gui.event.TEvent;
 import project.gui.event.TResponder;
+import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 
 import javax.swing.*;
@@ -44,7 +47,6 @@ public class TFrame extends TBufferedView
 {
 	private class TFrameListener implements ComponentListener, KeyListener
 	{
-
 		@Override
 		public void componentHidden(ComponentEvent e)
 		{
@@ -81,15 +83,19 @@ public class TFrame extends TBufferedView
 		{
 			if (e.getExtendedKeyCode() == KeyEvent.VK_TAB)
 			{
-				TResponder nextResponder = getNextResponder();
-				if (nextResponder != null)
-					nextResponder.requestFirstResponder();
+				TResponder firstResponder = getFirstResponder();
+				if (!firstResponder.isSingleFirstResponder())
+				{
+					TResponder nextResponder = getNextResponder();
+					if (nextResponder != null)
+						nextResponder.requestFirstResponder();
+				}
 			} else
 			{
 				TResponder firstResponder = getFirstResponder();
 				if (firstResponder == null)
 					return;
-				TEvent event = new TEvent((char) e.getKeyCode(), TEvent.KEY_DOWN);
+				TEvent event = new TEvent((char) e.getExtendedKeyCode(), TEvent.KEY_DOWN);
 				firstResponder.dispatchEvent(event);
 			}
 		}
@@ -100,7 +106,7 @@ public class TFrame extends TBufferedView
 			TResponder firstResponder = getFirstResponder();
 			if (firstResponder == null)
 				return;
-			TEvent event = new TEvent((char) e.getKeyCode(), TEvent.KEY_UP);
+			TEvent event = new TEvent((char) e.getExtendedKeyCode(), TEvent.KEY_UP);
 			firstResponder.dispatchEvent(event);
 		}
 
@@ -121,6 +127,7 @@ public class TFrame extends TBufferedView
 	}
 
 	private boolean addedListener;
+	private GameLoop gameLoop;
 	private Stack<Rectangle> repaintStack;
 	private SwingTerminal terminal;
 
@@ -128,9 +135,15 @@ public class TFrame extends TBufferedView
 	{
 		super();
 		addedListener = false;
-		terminal = TerminalFacade.createSwingTerminal(80, 25);
+		TerminalAppearance appearance = TerminalAppearance.DEFAULT_APPEARANCE;
+		terminal = TerminalFacade.createSwingTerminal(appearance, 80, 25);
 		setMaskToBounds(true);
 		repaintStack = new Stack<>();
+	}
+
+	public GameLoop getGameLoop()
+	{
+		return gameLoop;
 	}
 
 	public String getTitle()
@@ -179,8 +192,10 @@ public class TFrame extends TBufferedView
 			@Override
 			public void run()
 			{
+				if (repaintStack.isEmpty())
+					return;
 				//Rectangle dirtyRect = bridge_DirtyRect;
-				long startTime = System.currentTimeMillis();
+				//long startTime = System.currentTimeMillis();
 				boolean needsLayout = false;
 				if (frame.width != terminal.getTerminalSize().getColumns())
 				{
@@ -204,7 +219,8 @@ public class TFrame extends TBufferedView
 					dispatchRepaint(g, dirtyRect);
 					terminal.moveCursor(getWidth(), getHeight());
 				}
-				long endTime = System.currentTimeMillis();
+
+				//long endTime = System.currentTimeMillis();
 				//System.out.printf("Rendering time: %dms\n", endTime - startTime);
 			}
 		});
@@ -245,7 +261,28 @@ public class TFrame extends TBufferedView
 				TFrameListener listener = new TFrameListener();
 				getUnderlyingFrame().addComponentListener(listener);
 				getUnderlyingFrame().addKeyListener(listener);
+				gameLoop = new GameLoop();
+				gameLoop.addAction((double time, double timeDelta) -> updateAnimations(time, timeDelta));
+				gameLoop.start();
 				addedListener = true;
+
+				JComponent terminalRenderer = (JComponent) getUnderlyingFrame().getContentPane().getComponent(0);
+				getUnderlyingFrame().getContentPane().remove(terminalRenderer);
+
+				JPanel antialiasedPanel = new JPanel()
+				{
+					@Override
+					protected void paintChildren(final Graphics g)
+					{
+						((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+						super.paintChildren(g);
+					}
+				};
+				antialiasedPanel.setBackground(Appearance.defaultBackgroundColor);
+				antialiasedPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+				antialiasedPanel.add(terminalRenderer);
+				getUnderlyingFrame().getContentPane().add(antialiasedPanel);
+
 			}
 			try
 			{
@@ -258,7 +295,7 @@ public class TFrame extends TBufferedView
 				method.invoke(util, getUnderlyingFrame(), true);
 			} catch (Exception e)
 			{
-				//Don't care about exception (probably because full screen not supported)
+				//Don't care about exception (fullscreen not supported)
 			}
 			setSize(getSize());
 			setDrawsBackground(true);
@@ -266,6 +303,9 @@ public class TFrame extends TBufferedView
 			TResponder nextResponder = getNextResponder();
 			if (nextResponder != null)
 				nextResponder.requestFirstResponder();
+		} else
+		{
+			gameLoop.stop();
 		}
 	}
 
@@ -273,4 +313,5 @@ public class TFrame extends TBufferedView
 	{
 		return terminal.getJFrame();
 	}
+
 }

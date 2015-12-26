@@ -23,21 +23,78 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.controller.dialog;
 
-public class Enemy extends GameActor
+import project.gui.components.TLabel;
+import project.gui.event.TEvent;
+import project.gui.event.TEventHandler;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+
+public class SingleKeyInputDialog extends Dialog
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
+	private int chosenKey;
+	private String inputMessage = "";
+	private TLabel messageLabel;
 
-	protected Enemy(final String[] restingStates)
+	public int getChosenKey()
 	{
-		super(restingStates);
+		return chosenKey;
+	}
+
+	public String getInputMessage()
+	{
+		return inputMessage;
+	}
+
+	@Override
+	public void initializeView()
+	{
+		super.initializeView();
+
+		messageLabel = new TLabel();
+		messageLabel.setText(inputMessage);
+		messageLabel.setFrame(new Rectangle(2, 2, 46, 4));
+		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
+		getDialogView().add(messageLabel);
+
+		SingleKeyInputDialog self = this;
+
+		getDialogView().setAllowsFirstResponder(true);
+		getDialogView().requestFirstResponder();
+		getDialogView().setSingleFirstResponder(true);
+		getDialogView().setEventHandler(new TEventHandler()
+		{
+			@Override
+			public void keyDown(final TEvent event)
+			{
+
+			}
+
+			@Override
+			public void keyUp(final TEvent event)
+			{
+				if (event.getKey() == KeyEvent.VK_ESCAPE)
+				{
+					getNavigationController().pop();
+					if (getDelegate() != null)
+						getDelegate().dialogDidCancel(self);
+				} else if (event.getKey() != KeyEvent.VK_ENTER && event.getKey() >= 0x20)
+				{
+					chosenKey = event.getKey();
+					getNavigationController().pop();
+					if (getDelegate() != null)
+						getDelegate().dialogDidReturn(self);
+				}
+			}
+		});
+	}
+
+	public void setInputMessage(final String inputMessage)
+	{
+		this.inputMessage = inputMessage;
+		if (messageLabel != null)
+			messageLabel.setText(inputMessage);
 	}
 }

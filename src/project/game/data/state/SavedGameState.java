@@ -25,22 +25,72 @@
 
 package project.game.data.state;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
-public class SavedGameState implements Externalizable
+public class SavedGameState
 {
-	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
-	{
+	private static SavedGameState state;
 
+	public static SavedGameState getSavedGameState()
+	{
+		if (state == null)
+			loadState();
+		return state;
 	}
 
-	@Override
-	public void writeExternal(final ObjectOutput out) throws IOException
+	public static void loadState()
 	{
+		Preferences preferences = Preferences.userRoot().node("com.palleklewitz.Underworld");
+		state = new SavedGameState(preferences);
+	}
 
+	private LevelState levelState;
+	private PlayerState playerState;
+	private SettingsState settingsState;
+
+	public SavedGameState(Preferences preferences)
+	{
+		levelState = new LevelState(preferences);
+		playerState = new PlayerState(preferences);
+		settingsState = new SettingsState(preferences);
+	}
+
+	public LevelState getLevelState()
+	{
+		return levelState;
+	}
+
+	public PlayerState getPlayerState()
+	{
+		return playerState;
+	}
+
+	public SettingsState getSettingsState()
+	{
+		return settingsState;
+	}
+
+	public void reset()
+	{
+		try
+		{
+			Preferences.userRoot().node("com.palleklewitz.Underworld").removeNode();
+		} catch (BackingStoreException e)
+		{
+			e.printStackTrace();
+		}
+		Preferences preferences = Preferences.userRoot().node("com.palleklewitz.Underworld");
+		levelState = new LevelState(preferences);
+		playerState = new PlayerState(preferences);
+		settingsState = new SettingsState(preferences);
+	}
+
+	public void save()
+	{
+		Preferences preferences = Preferences.userRoot().node("com.palleklewitz.Underworld");
+		levelState.save(preferences);
+		playerState.save(preferences);
+		settingsState.save(preferences);
 	}
 }

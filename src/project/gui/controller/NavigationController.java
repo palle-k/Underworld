@@ -57,9 +57,13 @@ public class NavigationController extends ViewController
 		{
 			getView().remove(navigationStack.peek().getView());
 			navigationStack.peek().setParent(null);
+			boolean parentWasRemoved = navigationStack.peek().replacesParentViewController();
 			navigationStack.pop().viewDidDisappear();
-			getView().add(navigationStack.peek().getView());
-			navigationStack.peek().viewDidAppear();
+			if (parentWasRemoved)
+			{
+				getView().add(navigationStack.peek().getView());
+				navigationStack.peek().viewDidAppear();
+			}
 		} else
 		{
 			getView().setVisible(false);
@@ -69,7 +73,7 @@ public class NavigationController extends ViewController
 
 	public void push(ViewController controller)
 	{
-		if (!navigationStack.isEmpty())
+		if (!navigationStack.isEmpty() && controller.replacesParentViewController())
 		{
 			ViewController previousController = navigationStack.peek();
 			getView().remove(previousController.getView());

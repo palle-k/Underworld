@@ -23,71 +23,83 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.ui.controllers;
+package project.gui.controller.dialog;
 
 import project.gui.components.TLabel;
-import project.gui.controller.ViewController;
+import project.gui.components.TTextField;
 import project.gui.event.TEvent;
 import project.gui.event.TEventHandler;
-import project.gui.layout.VerticalFlowLayout;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
-import static project.game.localization.LocalizedString.LocalizedString;
-
-public class LaunchViewController extends ViewController
+public class InputDialog extends Dialog
 {
+	private String inputMessage = "";
+	private TLabel inputMessageLabel;
+	private String response;
+
+	public String getInputMessage()
+	{
+		return inputMessage;
+	}
 
 	@Override
 	public void initializeView()
 	{
 		super.initializeView();
 
-		VerticalFlowLayout layout = new VerticalFlowLayout();
-		layout.setSpacing(5);
-		layout.setLayoutInsets(10, 0, 0, 0);
-		getView().setLayoutManager(layout);
 
-		Color backgroundColor = new Color(30, 30, 30);
+		inputMessageLabel = new TLabel();
+		inputMessageLabel.setFrame(new Rectangle(2, 2, 46, 2));
+		inputMessageLabel.setColor(Color.BLACK);
+		inputMessageLabel.setBackgroundColor(Color.LIGHT_GRAY);
+		inputMessageLabel.setText(getInputMessage());
+		getDialogView().add(inputMessageLabel);
 
-		TLabel label = new TLabel();
-		label.setSize(64, 8);
-		label.setText("           )  (           (                 )   (    (    (     \n" +
-				"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
-				"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
-				"    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
-				" _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
-				"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-				"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-				" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
-		label.setColor(new Color(255, 100, 0));
-		getView().add(label);
+		TTextField inputField = new TTextField();
+		inputField.setFrame(new Rectangle(2, 5, 46, 1));
+		inputField.setBackgroundColor(Color.WHITE);
+		inputField.setDrawsBackground(true);
+		inputField.setColor(Color.BLACK);
+		inputField.setSingleFirstResponder(true);
 
-		TLabel line2 = new TLabel();
-		line2.setSize(28, 1);
-		line2.setText(LocalizedString("launch_screen_press_any_key"));
-		getView().add(line2);
+		final InputDialog self = this;
 
-		TLabel copyright = new TLabel();
-		copyright.setSize(31, 1);
-		copyright.setText("v1.0.0 - (c) Palle Klewitz 2015");
-		copyright.setColor(Color.LIGHT_GRAY);
-		getView().add(copyright);
-
-		getView().setAllowsFirstResponder(true);
-		getView().setEventHandler(new TEventHandler()
+		inputField.setEventHandler(new TEventHandler()
 		{
 			@Override
 			public void keyDown(final TEvent event)
 			{
+
 			}
 
 			@Override
 			public void keyUp(final TEvent event)
 			{
-				getNavigationController().push(new MainMenuViewController());
+				if (event.getKey() == KeyEvent.VK_ENTER)
+				{
+					System.out.printf("Enter\n");
+					getNavigationController().pop();
+					if (getDelegate() != null)
+						getDelegate().dialogDidReturn(self);
+				} else if (event.getKey() == KeyEvent.VK_ESCAPE)
+				{
+					System.out.printf("Escape\n");
+					getNavigationController().pop();
+					if (getDelegate() != null)
+						getDelegate().dialogDidCancel(self);
+				}
 			}
 		});
+		getDialogView().add(inputField);
+		inputField.requestFirstResponder();
 	}
 
+	public void setInputMessage(final String inputMessage)
+	{
+		this.inputMessage = inputMessage;
+		if (inputMessageLabel != null)
+			inputMessageLabel.setText(inputMessage);
+	}
 }

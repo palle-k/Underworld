@@ -45,6 +45,7 @@ public class TButton extends TLabel implements Selectable
 	private String originalText;
 	private boolean selected;
 	private boolean selectionEnabled;
+	private Runnable selectionHandler;
 
 	public TButton()
 	{
@@ -62,6 +63,11 @@ public class TButton extends TLabel implements Selectable
 	public Runnable getActionHandler()
 	{
 		return actionHandler;
+	}
+
+	public Runnable getSelectionHandler()
+	{
+		return selectionHandler;
 	}
 
 	@Override
@@ -82,6 +88,8 @@ public class TButton extends TLabel implements Selectable
 	{
 		selected = true;
 		setText(originalText);
+		if (selectionHandler != null)
+			selectionHandler.run();
 	}
 
 	@Override
@@ -98,6 +106,11 @@ public class TButton extends TLabel implements Selectable
 	public void setSelectionEnabled(final boolean selectionEnabled)
 	{
 		this.selectionEnabled = selectionEnabled;
+	}
+
+	public void setSelectionHandler(final Runnable selectionHandler)
+	{
+		this.selectionHandler = selectionHandler;
 	}
 
 	@Override

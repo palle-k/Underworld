@@ -23,21 +23,59 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.components;
 
-public class Enemy extends GameActor
+import java.awt.*;
+
+public class TScrollView extends TComponent
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
+	private TComponent contentView;
+	private Dimension offset;
+	private Insets scrollInsets;
 
-	protected Enemy(final String[] restingStates)
+	public TScrollView()
 	{
-		super(restingStates);
+		offset = new Dimension();
+		contentView = new TBufferedView();
+		scrollInsets = new Insets(0, 0, 0, 0);
+		add(contentView);
+	}
+
+	public TScrollView(TComponent contentView)
+	{
+		this.contentView = contentView;
+		scrollInsets = new Insets(0, 0, 0, 0);
+		add(contentView);
+	}
+
+	public TComponent getContentView()
+	{
+		return contentView;
+	}
+
+	public Dimension getOffset()
+	{
+		return offset;
+	}
+
+	public Insets getScrollInsets()
+	{
+		return scrollInsets;
+	}
+
+	public void setOffset(final Dimension offset)
+	{
+		this.offset = offset;
+		contentView.setLocation(-offset.width + scrollInsets.left, -offset.height + scrollInsets.top);
+	}
+
+	public void setScrollInsets(final Insets scrollInsets)
+	{
+		this.scrollInsets = scrollInsets;
+	}
+
+	public void setScrollInsets(int top, int left, int bottom, int right)
+	{
+		this.scrollInsets = new Insets(top, left, bottom, right);
 	}
 }

@@ -26,37 +26,101 @@
 package project.game.ui.controllers;
 
 import project.game.data.Level;
+import project.game.data.state.SavedGameState;
 import project.game.ui.views.LevelView;
+import project.gui.components.TLabel;
+import project.gui.components.TProgressBar;
+import project.gui.components.TScrollView;
 import project.gui.controller.ViewController;
+import project.gui.dynamics.animation.Animation;
+import project.gui.event.TEvent;
+import project.gui.event.TEventHandler;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 public class LevelViewController extends ViewController
 {
+	private boolean moveDownKeyPressed;
+	private boolean moveLeftKeyPressed;
+	private boolean moveRightKeyPressed;
+	private boolean moveUpKeyPressed;
+
 	@Override
-	public void viewDidAppear()
+	public void initializeView()
 	{
-		super.viewDidAppear();
+		super.initializeView();
 		Level level;
 		try
 		{
-			level = new Level(Level.class.getResource("level.properties"));
+			level = new Level(Level.class.getResource("levels/level_big_sparse.properties"));
 		} catch (IOException e)
 		{
 			e.printStackTrace();
 			return;
 		}
 
-		LevelView levelView = new LevelView();
-		levelView.setSize(level.getWidth() * 4, level.getHeight() * 2);
-		levelView.setLevel(level);
-		getView().add(levelView);
-	}
+		TLabel playerHealthLabel = new TLabel();
+		playerHealthLabel.setSize(10, 1);
+		playerHealthLabel.setText("Health:");
+		//getView().add(playerHealthLabel);
 
-	@Override
-	public void viewDidDisappear()
-	{
-		super.viewDidDisappear();
-		getView().removeAll();
+		TProgressBar playerHealth = new TProgressBar();
+		playerHealth.setLocation(10, 0);
+		playerHealth.setSize(30, 1);
+		playerHealth.setValue(6.0);
+		playerHealth.setMaxValue(10.0);
+		//getView().add(playerHealth);
+
+		LevelView levelView = new LevelView();
+		levelView.setSize(level.getWidth(), level.getHeight());
+		levelView.setLevel(level);
+		levelView.setMaskToBounds(true);
+
+		TScrollView scrollView = new TScrollView(levelView);
+		scrollView.setFrame(new Rectangle(0, 0, getView().getWidth(), getView().getHeight()));
+		scrollView.setMaskToBounds(true);
+
+		Animation scrollAnimation = new Animation((double value) -> scrollView.setOffset(new Dimension(level.getPath()[(int) value].x - getView().getWidth() / 2, level.getPath()[(int) value].y - getView().getHeight() / 2)));
+		scrollAnimation.setFromValue(0);
+		scrollAnimation.setToValue(level.getPath().length - 1);
+		scrollAnimation.setDuration(60);
+		scrollAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
+		scrollView.addAnimation(scrollAnimation);
+
+		getView().add(scrollView);
+		getView().setAllowsFirstResponder(true);
+		getView().setEventHandler(new TEventHandler()
+		{
+			@Override
+			public void keyDown(final TEvent event)
+			{
+				if (event.getKey() == KeyEvent.VK_ESCAPE)
+					getNavigationController().pop();
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveUpKey())
+					moveUpKeyPressed = true;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveLeftKey())
+					moveLeftKeyPressed = true;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveRightKey())
+					moveRightKeyPressed = true;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveDownKey())
+					moveDownKeyPressed = true;
+
+			}
+
+			@Override
+			public void keyUp(final TEvent event)
+			{
+				if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveUpKey())
+					moveUpKeyPressed = false;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveLeftKey())
+					moveLeftKeyPressed = false;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveRightKey())
+					moveRightKeyPressed = false;
+				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveDownKey())
+					moveDownKeyPressed = false;
+			}
+		});
 	}
 }

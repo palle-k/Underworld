@@ -47,7 +47,8 @@ public class Animation implements GameloopAction
 	private double delay;
 	private double duration;
 	private double fromValue;
-	private AnimationCurve interpolationMode;
+	private AnimationCurve interpolationMode = ANIMATION_CURVE_LINEAR;
+	private boolean loops;
 	private boolean running;
 	private double startTime;
 	private double toValue;
@@ -110,6 +111,8 @@ public class Animation implements GameloopAction
 
 	public boolean isFinished(double time)
 	{
+		if (loops)
+			return false;
 		if (!completed && time > startTime + duration)
 			if (completionHandler != null)
 				callCompletionHandler();
@@ -120,6 +123,11 @@ public class Animation implements GameloopAction
 	public boolean isRunning()
 	{
 		return running;
+	}
+
+	public boolean loops()
+	{
+		return loops;
 	}
 
 	public void setAnimationHandler(AnimationHandler animationHandler)
@@ -152,6 +160,11 @@ public class Animation implements GameloopAction
 		this.interpolationMode = interpolationMode;
 	}
 
+	public void setLoops(final boolean loops)
+	{
+		this.loops = loops;
+	}
+
 	public void setStartTime(double time)
 	{
 		startTime = time + delay;
@@ -173,22 +186,25 @@ public class Animation implements GameloopAction
 			animationHandler.updateAnimation(toValue);
 			return;
 		}
+		double animationTime = time - startTime;
+		if (loops)
+			animationTime %= duration;
 		switch (interpolationMode)
 		{
 			case ANIMATION_CURVE_LINEAR:
-				animationHandler.updateAnimation((time - startTime) / duration * (toValue - fromValue) + fromValue);
+				animationHandler.updateAnimation(animationTime / duration * (toValue - fromValue) + fromValue);
 				break;
 
 			case ANIMATION_CURVE_EASE:
-				animationHandler.updateAnimation((Math.cos((time - startTime) / duration * 3.141592654f) * -0.5f + 0.5f) * (toValue - fromValue) + fromValue);
+				animationHandler.updateAnimation((Math.cos(animationTime / duration * 3.141592654f) * -0.5f + 0.5f) * (toValue - fromValue) + fromValue);
 				break;
 
 			case ANIMATION_CURVE_EASE_IN:
-				animationHandler.updateAnimation((-Math.cos((time - startTime) / duration * 3.141592654f * 0.5f) + 1.0f) * (toValue - fromValue) + fromValue);
+				animationHandler.updateAnimation((-Math.cos(animationTime / duration * 3.141592654f * 0.5f) + 1.0f) * (toValue - fromValue) + fromValue);
 				break;
 
 			case ANIMATION_CURVE_EASE_OUT:
-				animationHandler.updateAnimation(Math.sin((time - startTime) / duration * 3.141592654f * 0.5f) * (toValue - fromValue) + fromValue);
+				animationHandler.updateAnimation(Math.sin(animationTime / duration * 3.141592654f * 0.5f) * (toValue - fromValue) + fromValue);
 				break;
 		}
 	}

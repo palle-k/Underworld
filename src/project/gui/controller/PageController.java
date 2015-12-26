@@ -26,6 +26,7 @@
 package project.gui.controller;
 
 import project.gui.components.TComponent;
+import project.gui.layout.FullSizeSubviewLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,28 +37,32 @@ import java.util.List;
 public class PageController extends ViewController
 {
 	private final List<ViewController> viewControllerList;
-	private int currentControllerIndex = -1;
+	private int currentControllerIndex = 0;
 
 	public PageController(final ViewController parent, final TComponent view)
 	{
 		super(parent, view);
+		view.setLayoutManager(new FullSizeSubviewLayout());
 		viewControllerList = new ArrayList<>();
 	}
 
 	public PageController(final TComponent view)
 	{
 		super(view);
+		view.setLayoutManager(new FullSizeSubviewLayout());
 		viewControllerList = new ArrayList<>();
 	}
 
 	public void addController(ViewController controller)
 	{
 		viewControllerList.add(controller);
+		controller.setParent(this);
 	}
 
 	public void addController(ViewController controller, int index)
 	{
 		viewControllerList.add(index, controller);
+		controller.setParent(this);
 	}
 
 	public void next()
@@ -79,11 +84,26 @@ public class PageController extends ViewController
 	public void removeController(ViewController controller)
 	{
 		viewControllerList.remove(controller);
+		controller.setParent(null);
+	}
+
+	@Override
+	public void viewDidAppear()
+	{
+		super.viewDidAppear();
+		showCurrentPage();
+	}
+
+	@Override
+	public void viewDidDisappear()
+	{
+		super.viewDidDisappear();
+		hideCurrentPage();
 	}
 
 	private void hideCurrentPage()
 	{
-		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
+		if (currentControllerIndex >= 0 && currentControllerIndex < viewControllerList.size())
 		{
 			getView().remove(viewControllerList.get(currentControllerIndex).getView());
 			viewControllerList.get(currentControllerIndex).viewDidDisappear();
@@ -92,7 +112,7 @@ public class PageController extends ViewController
 
 	private void showCurrentPage()
 	{
-		if (currentControllerIndex != -1 && currentControllerIndex < viewControllerList.size())
+		if (currentControllerIndex >= 0 && currentControllerIndex < viewControllerList.size())
 		{
 			getView().add(viewControllerList.get(currentControllerIndex).getView());
 			viewControllerList.get(currentControllerIndex).viewDidAppear();

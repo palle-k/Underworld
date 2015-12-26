@@ -35,6 +35,7 @@ public class GameLoop implements Runnable
 	private List<GameloopAction> actionList;
 	private long baseTime;
 	private Thread gameloopThread;
+	private boolean running;
 	private long time;
 
 	public GameLoop()
@@ -57,7 +58,7 @@ public class GameLoop implements Runnable
 	public void run()
 	{
 		baseTime = System.currentTimeMillis();
-		while (true)
+		while (running)
 		{
 			long newTime = System.currentTimeMillis() - baseTime;
 			long timeDelta = newTime - time;
@@ -88,13 +89,14 @@ public class GameLoop implements Runnable
 
 	public void start()
 	{
+		running = true;
 		gameloopThread = new Thread(this);
 		gameloopThread.start();
 	}
 
 	public void stop()
 	{
-		gameloopThread.interrupt();
+		running = false;
 	}
 
 	private synchronized void invokeActions(double time, double timeDelta)

@@ -25,22 +25,48 @@
 
 package project.game.data.state;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.util.prefs.Preferences;
 
-public class PlayerState implements Externalizable
+public class PlayerState
 {
-	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	private enum PlayerClass
 	{
-
+		KNIGHT,
+		HUNTER,
+		WIZARD
 	}
 
-	@Override
-	public void writeExternal(final ObjectOutput out) throws IOException
-	{
+	public static final PlayerClass HUNTER = PlayerClass.HUNTER;
+	public static final PlayerClass KNIGHT = PlayerClass.KNIGHT;
+	public static final PlayerClass WIZARD = PlayerClass.WIZARD;
 
+	private PlayerClass playerClass;
+
+	protected PlayerState(Preferences preferences)
+	{
+		int playerClassOrdinal = preferences.getInt("player_class_ordinal", -1);
+		if (playerClassOrdinal != -1)
+			playerClass = PlayerClass.values()[playerClassOrdinal];
+	}
+
+	public PlayerClass getPlayerClass()
+	{
+		return playerClass;
+	}
+
+	public boolean playerClassChosen()
+	{
+		return playerClass != null;
+	}
+
+	public void setPlayerClass(final PlayerClass playerClass)
+	{
+		this.playerClass = playerClass;
+	}
+
+	protected void save(Preferences preferences)
+	{
+		if (playerClass != null)
+			preferences.putInt("player_class_ordinal", playerClass.ordinal());
 	}
 }

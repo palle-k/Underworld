@@ -25,49 +25,236 @@
 
 package project.game.ui.controllers;
 
+import project.game.data.state.SavedGameState;
+import project.game.data.state.SettingsState;
 import project.gui.components.TButton;
 import project.gui.components.TLabel;
 import project.gui.controller.ViewController;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
+import static project.game.localization.LocalizedString.LocalizedString;
+
 public class ControlSettingsViewController extends ViewController
 {
+	public static final String[] keycodeDescriptions =
+			{
+					"Space",
+					"Page Up",
+					"Page Down",
+					"End",
+					"Home",
+					"Arrow Left",
+					"Arrow Up",
+					"Arrow Right",
+					"Arrow Down",
+					")",
+					"*",
+					"+",
+					",",
+					"-",
+					".",
+					"/",
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9",
+					":",
+					";",
+					"<",
+					"=",
+					">",
+					"?",
+					"@",
+					"A",
+					"B",
+					"C",
+					"D",
+					"E",
+					"F",
+					"G",
+					"H",
+					"I",
+					"J",
+					"K",
+					"L",
+					"M",
+					"N",
+					"O",
+					"P",
+					"Q",
+					"R",
+					"S",
+					"T",
+					"U",
+					"V",
+					"W",
+					"X",
+					"Y",
+					"Z",
+					"[",
+					"\\",
+					"]",
+					"^",
+					"_",
+					"`",
+					"a",
+					"b",
+					"c",
+					"d",
+					"e",
+					"f",
+					"g",
+					"h",
+					"i",
+					"j",
+					"k",
+					"l",
+					"m",
+					"n",
+					"o",
+					"p",
+					"q",
+					"r",
+					"s",
+					"t",
+					"u",
+					"v",
+					"w",
+					"x",
+					"y",
+					"z",
+					"{",
+					"|",
+					"}",
+					"~",
+					"Delete"
+			};
+
 	@Override
-	public void viewDidAppear()
+	public void initializeView()
 	{
-		super.viewDidAppear();
+		super.initializeView();
 
 		TLabel label = new TLabel();
-		label.setSize(54, 10);
+		label.setSize(54, 7);
 		label.setText("  ___ ___  _  _ _____ ___  ___  _    ___ \n" +
 				" / __/ _ \\| \\| |_   _| _ \\/ _ \\| |  / __|\n" +
 				"| (_| (_) | .` | | | |   / (_) | |__\\__ \\\n" +
 				" \\___\\___/|_|\\_| |_| |_|_\\\\___/|____|___/\n");
 		getView().add(label);
 
+		final SettingsState settingsState = SavedGameState.getSavedGameState().getSettingsState();
+
+		TButton moveUp = new TButton();
+		moveUp.setSize(30, 1);
+		getView().add(moveUp);
+
+		TButton moveLeft = new TButton();
+		moveLeft.setSize(30, 1);
+		getView().add(moveLeft);
+
+		TButton moveRight = new TButton();
+		moveRight.setSize(30, 1);
+		getView().add(moveRight);
+
+		TButton moveDown = new TButton();
+		moveDown.setSize(30, 1);
+		getView().add(moveDown);
+
+		TButton baseAttack = new TButton();
+		baseAttack.setSize(30, 1);
+		getView().add(baseAttack);
+
+		TButton skill1 = new TButton();
+		skill1.setSize(30, 1);
+		getView().add(skill1);
+
+		TButton skill2 = new TButton();
+		skill2.setSize(30, 1);
+		getView().add(skill2);
+
+		TButton skill3 = new TButton();
+		skill3.setSize(30, 1);
+		getView().add(skill3);
+
+		TButton skill4 = new TButton();
+		skill4.setSize(30, 1);
+		getView().add(skill4);
+
+		TButton healthPotion = new TButton();
+		healthPotion.setSize(30, 1);
+		getView().add(healthPotion);
+
+		TButton attackPotion = new TButton();
+		attackPotion.setSize(30, 1);
+		getView().add(attackPotion);
+
 		TButton back = new TButton();
-		back.setSize(6, 1);
-		back.setText("Back");
+		back.setSize(30, 1);
+		back.setText(LocalizedString("control_settings_back"));
 		back.setActionHandler(() -> getNavigationController().pop());
 		getView().add(back);
 
 		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addSelectable(back);
+		buttonGroup.addResponder(moveUp);
+		buttonGroup.addResponder(moveLeft);
+		buttonGroup.addResponder(moveRight);
+		buttonGroup.addResponder(moveDown);
+		buttonGroup.addResponder(baseAttack);
+		buttonGroup.addResponder(skill1);
+		buttonGroup.addResponder(skill2);
+		buttonGroup.addResponder(skill3);
+		buttonGroup.addResponder(skill4);
+		buttonGroup.addResponder(healthPotion);
+		buttonGroup.addResponder(attackPotion);
+		buttonGroup.addResponder(back);
 		getView().addResponder(buttonGroup);
 
+		ControlSettingsUpdate labelUpdate = new ControlSettingsUpdate()
+		{
+			@Override
+			public void updateKey(final int newValue)
+			{
+				moveUp.setText(LocalizedString("control_settings_up") + " (" + keycodeDescriptions[settingsState.getMoveUpKey() - 32] + ")");
+				moveLeft.setText(LocalizedString("control_settings_left") + " (" + keycodeDescriptions[settingsState.getMoveLeftKey() - 32] + ")");
+				moveRight.setText(LocalizedString("control_settings_right") + " (" + keycodeDescriptions[settingsState.getMoveRightKey() - 32] + ")");
+				moveDown.setText(LocalizedString("control_settings_down") + " (" + keycodeDescriptions[settingsState.getMoveDownKey() - 32] + ")");
+				baseAttack.setText(LocalizedString("control_settings_base_attack") + " (" + keycodeDescriptions[settingsState.getBaseAttackKey() - 32] + ")");
+				skill1.setText(LocalizedString("control_settings_skill_1") + " (" + keycodeDescriptions[settingsState.getSkill1Key() - 32] + ")");
+				skill2.setText(LocalizedString("control_settings_skill_2") + " (" + keycodeDescriptions[settingsState.getSkill2Key() - 32] + ")");
+				skill3.setText(LocalizedString("control_settings_skill_3") + " (" + keycodeDescriptions[settingsState.getSkill3Key() - 32] + ")");
+				skill4.setText(LocalizedString("control_settings_skill_4") + " (" + keycodeDescriptions[settingsState.getSkill4Key() - 32] + ")");
+				healthPotion.setText(LocalizedString("control_settings_health_potion") + " (" + keycodeDescriptions[settingsState.getHealthPotionKey() - 32] + ")");
+				attackPotion.setText(LocalizedString("control_settings_attack_potion") + " (" + keycodeDescriptions[settingsState.getAttackPotionKey() - 32] + ")");
+			}
+		};
+		labelUpdate.updateKey(0);
+
+		moveUp.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveUpKey(newKey), labelUpdate));
+		moveLeft.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveLeftKey(newKey), labelUpdate));
+		moveRight.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveRightKey(newKey), labelUpdate));
+		moveDown.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveDownKey(newKey), labelUpdate));
+
+		baseAttack.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setBaseAttackKey(newKey), labelUpdate));
+		skill1.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill1Key(newKey), labelUpdate));
+		skill2.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill2Key(newKey), labelUpdate));
+		skill3.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill3Key(newKey), labelUpdate));
+		skill4.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill4Key(newKey), labelUpdate));
+
+		healthPotion.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setHealthPotionKey(newKey), labelUpdate));
+		attackPotion.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setAttackPotionKey(newKey), labelUpdate));
+
 		VerticalFlowLayout layout = new VerticalFlowLayout();
-		layout.setSpacing(2);
-		layout.setHorizontalAlignment(VerticalFlowLayout.LEFT);
-		layout.setVerticalAlignment(VerticalFlowLayout.TOP);
+		layout.setSpacing(1);
+		layout.setHorizontalAlignment(VerticalFlowLayout.CENTER);
 		layout.setLayoutInsets(3, 5, 0, 0);
 		getView().setLayoutManager(layout);
-	}
-	
-	@Override
-	public void viewDidDisappear()
-	{
-		super.viewDidDisappear();
-		getView().removeAll();
 	}
 }

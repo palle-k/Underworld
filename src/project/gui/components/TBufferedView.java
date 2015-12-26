@@ -96,22 +96,27 @@ public class TBufferedView extends TComponent
 	@Override
 	void dispatchRepaint(TGraphics graphics, Rectangle dirtyRect)
 	{
-		//System.out.printf("dispatch repaint (buffered) on rect %s\n", dirtyRect);
 		boolean redrawAll = validateBuffers();
 		if (redrawAll)
 			dirtyRect = new Rectangle(new Point(), getSize());
 		else
 			dirtyRect = dirtyRect.intersection(new Rectangle(new Point(), getSize()));
+
+		//System.out.printf("dispatch repaint (buffered) on rect %s\n", dirtyRect);
 		TGraphics bufferedGraphics = new TGraphics(backBuffer, dirtyRect, getWidth(), getHeight());
 		paintComponent(bufferedGraphics);
 		resetNeedsDisplay();
 		for (TComponent child : getChildren())
 		{
-			//if (!(redrawAll || child.needsDisplay()))
+			//if (!redrawAll && !child.needsDisplay() && !child.childrenNeedDisplay())
 			//	continue;
 			Rectangle r = new Rectangle(dirtyRect);
 			if (child.masksToBounds())
+			{
+				//if (!r.intersects(child.getFrame()))
+				//	continue;
 				r = r.intersection(child.getFrame());
+			}
 			r.translate(-child.getLocation().x, -child.getLocation().y);
 			child.dispatchRepaint(bufferedGraphics.getChildContext(child.getFrame(), child.masksToBounds()), r);
 		}
@@ -136,12 +141,20 @@ public class TBufferedView extends TComponent
 	private boolean validateBuffers()
 	{
 		boolean bufferUpdated = false;
-		if (backBuffer.length != frame.width || backBuffer[0].length != frame.height)
+		if (backBuffer == null)
+		{
+			backBuffer = new TChar[frame.width][frame.height];
+			bufferUpdated = true;
+		} else if (backBuffer.length != frame.width || backBuffer[0].length != frame.height)
 		{
 			backBuffer = new TChar[frame.width][frame.height];
 			bufferUpdated = true;
 		}
-		if (frameBuffer.length != frame.width || frameBuffer[0].length != frame.height)
+		if (frameBuffer == null)
+		{
+			frameBuffer = new TChar[frame.width][frame.height];
+			bufferUpdated = true;
+		} else if (frameBuffer.length != frame.width || frameBuffer[0].length != frame.height)
 		{
 			frameBuffer = new TChar[getWidth()][getHeight()];
 			bufferUpdated = true;

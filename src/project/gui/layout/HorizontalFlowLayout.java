@@ -29,7 +29,10 @@ import project.gui.components.TComponent;
 
 import java.awt.*;
 
-public class VerticalFlowLayout implements TLayoutManager
+/**
+ * Created by Palle on 25.12.15.
+ */
+public class HorizontalFlowLayout implements TLayoutManager
 {
 	private enum HorizontalAlignment
 	{
@@ -79,25 +82,26 @@ public class VerticalFlowLayout implements TLayoutManager
 	@Override
 	public void layoutComponent(final TComponent component)
 	{
-		int totalHeight = layoutInsets.top + layoutInsets.bottom;
+		int totalWidth = layoutInsets.left + layoutInsets.right;
+
 		for (TComponent child : component.getChildren())
-			totalHeight += child.getHeight() + spacing;
-		int currentPosY = layoutInsets.top;
-		if (verticalAlignment == MIDDLE)
-			currentPosY = (component.getHeight() - totalHeight) / 2 + layoutInsets.top;
-		else if (verticalAlignment == BOTTOM)
-			currentPosY = totalHeight - component.getHeight() - layoutInsets.bottom;
-		int componentWidth = component.getWidth() - layoutInsets.left - layoutInsets.right;
+			totalWidth += child.getWidth() + spacing;
+		int currenPosX = layoutInsets.left;
+		if (horizontalAlignment == CENTER)
+			currenPosX = (component.getWidth() - totalWidth) / 2 + layoutInsets.left;
+		else if (horizontalAlignment == RIGHT)
+			currenPosX = totalWidth - component.getWidth() - layoutInsets.left;
+		int componentHeight = component.getHeight() - layoutInsets.top - layoutInsets.bottom;
 		for (TComponent child : component.getChildren())
 		{
-			if (horizontalAlignment == LEFT)
-				child.setPosX(layoutInsets.left);
-			else if (horizontalAlignment == RIGHT)
-				child.setPosX(componentWidth - layoutInsets.right - child.getWidth());
-			else if (horizontalAlignment == CENTER)
-				child.setPosX((componentWidth - child.getWidth()) / 2 + layoutInsets.left);
-			child.setPosY(currentPosY);
-			currentPosY += child.getHeight() + spacing;
+			if (verticalAlignment == TOP)
+				child.setPosY(layoutInsets.top);
+			else if (verticalAlignment == BOTTOM)
+				child.setPosY(componentHeight - layoutInsets.bottom - child.getHeight());
+			else if (verticalAlignment == MIDDLE)
+				child.setPosY((componentHeight - child.getHeight()) / 2 + layoutInsets.top);
+			child.setPosX(currenPosX);
+			currenPosX += child.getWidth() + spacing;
 		}
 	}
 

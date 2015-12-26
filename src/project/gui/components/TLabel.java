@@ -67,6 +67,8 @@ public class TLabel extends TComponent
 
 	public void setText(String text)
 	{
+		if (this.text.equals(text))
+			return;
 		this.text = text;
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
@@ -85,5 +87,6 @@ public class TLabel extends TComponent
 		graphics.setStrokeBackground(drawsBackground() ? getBackgroundColor() : null);
 		graphics.drawText(getText(), (drawsBorder() ? 1 : 0) + getTextInsets().left, (drawsBorder() ? 1 : 0) + getTextInsets().top);
 		//TODO advanced text layout
+		//TODO automatic size calculation
 	}
 }

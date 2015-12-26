@@ -23,21 +23,72 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.components;
 
-public class Enemy extends GameActor
+import project.gui.graphics.Appearance;
+import project.gui.graphics.TGraphics;
+
+import java.awt.*;
+
+public class TProgressBar extends TComponent
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
+	private Color color;
+	private double maxValue;
+	private double value;
 
-	protected Enemy(final String[] restingStates)
+	public TProgressBar()
 	{
-		super(restingStates);
+		value = 0;
+		maxValue = 1;
+		color = Appearance.defaultTextColor;
+	}
+
+	public Color getColor()
+	{
+		return color;
+	}
+
+	public double getMaxValue()
+	{
+		return maxValue;
+	}
+
+	public double getValue()
+	{
+		return value;
+	}
+
+	public void setColor(final Color color)
+	{
+		this.color = color;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+	}
+
+	public void setMaxValue(final double maxValue)
+	{
+		this.maxValue = maxValue;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+	}
+
+	public void setValue(final double value)
+	{
+		this.value = value;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+	}
+
+	@Override
+	protected void paintComponent(final TGraphics graphics)
+	{
+		super.paintComponent(graphics);
+		for (int y = 0; y < getHeight(); y++)
+		{
+			graphics.setPoint(0, y, getColor(), getBackgroundColor(), '[');
+			graphics.setPoint(getWidth() - 1, y, getColor(), getBackgroundColor(), ']');
+
+			for (int x = 1; x < value / maxValue * (getWidth() - 3); x++)
+			{
+				graphics.setPoint(x, y, getColor(), getBackgroundColor(), '#');
+			}
+		}
 	}
 }

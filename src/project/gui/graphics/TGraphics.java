@@ -137,7 +137,7 @@ public class TGraphics
 				y++;
 				x = baseX;
 			} else if (c == '\t')
-				x += 4;
+				x += 4 - (x % 4);
 			else
 			{
 				setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, c);

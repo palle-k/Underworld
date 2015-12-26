@@ -31,21 +31,27 @@ public class ViewController
 {
 	private final TComponent view;
 	private ViewController parent;
+	private boolean replacesParentViewController;
+	private boolean viewInitialized;
 
 	public ViewController(ViewController parent, TComponent view)
 	{
 		this.parent = parent;
 		this.view = view;
+		replacesParentViewController = true;
+		viewInitialized = false;
 	}
 
 	public ViewController(TComponent view)
 	{
 		this.view = view;
+		replacesParentViewController = true;
 	}
 
 	public ViewController()
 	{
 		this.view = new TComponent();
+		replacesParentViewController = true;
 	}
 
 	public NavigationController getNavigationController()
@@ -76,9 +82,28 @@ public class ViewController
 		return view;
 	}
 
-	public void viewDidAppear()
+	public void initializeView()
 	{
 
+	}
+
+	public boolean replacesParentViewController()
+	{
+		return replacesParentViewController;
+	}
+
+	public void setReplacesParentViewController(final boolean replacesParentViewController)
+	{
+		this.replacesParentViewController = replacesParentViewController;
+	}
+
+	public void viewDidAppear()
+	{
+		if (!viewInitialized)
+		{
+			initializeView();
+			viewInitialized = true;
+		}
 	}
 
 	public void viewDidDisappear()

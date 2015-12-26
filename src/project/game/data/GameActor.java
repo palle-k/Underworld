@@ -25,14 +25,32 @@
 
 package project.game.data;
 
+import project.gui.components.TComponent;
+
 import java.awt.*;
 
-public class GameActor
+public class GameActor extends MapObject
 {
 	protected String[] attackLayers;
 	protected String[] attackStates;
 	protected String[] defenseStates;
 	protected String[] movingStates;
-	protected String[] restingStates;
 	private Point location;
+
+	protected GameActor(final String[] restingStates)
+	{
+		super(restingStates);
+	}
+
+	@Override
+	public Rectangle getBounds()
+	{
+		return null;
+	}
+
+	@Override
+	public TComponent getView()
+	{
+		return null;
+	}
 }

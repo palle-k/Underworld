@@ -71,6 +71,7 @@ public class TComponent extends TResponder
 		}
 		child.setParent(this);
 		setNeedsLayout();
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 		child.setNeedsDisplay();
 	}
 
@@ -83,12 +84,24 @@ public class TComponent extends TResponder
 		}
 		child.setParent(this);
 		setNeedsLayout();
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 		child.setNeedsDisplay();
 	}
 
 	public void addAnimation(Animation animation)
 	{
 		animations.add(animation);
+	}
+
+	public boolean childrenNeedDisplay()
+	{
+		synchronized (children)
+		{
+			for (TComponent child : children)
+				if (child.needsDisplay() || child.childrenNeedDisplay())
+					return true;
+		}
+		return false;
 	}
 
 	public boolean drawsBackground()
@@ -180,7 +193,7 @@ public class TComponent extends TResponder
 		}
 		child.setParent(null);
 		setNeedsLayout();
-		setNeedsDisplay();
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void removeAll()

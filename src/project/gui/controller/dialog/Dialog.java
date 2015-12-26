@@ -23,21 +23,52 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.controller.dialog;
 
-public class Enemy extends GameActor
+import project.gui.components.TComponent;
+import project.gui.controller.ViewController;
+import project.gui.layout.VerticalFlowLayout;
+
+import java.awt.*;
+
+public class Dialog extends ViewController
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
+	private DialogDelegate delegate;
+	private TComponent dialogView;
 
-	protected Enemy(final String[] restingStates)
+	public Dialog()
 	{
-		super(restingStates);
+		super();
+		setReplacesParentViewController(false);
+	}
+
+	public DialogDelegate getDelegate()
+	{
+		return delegate;
+	}
+
+	@Override
+	public void initializeView()
+	{
+		super.initializeView();
+		dialogView = new TComponent();
+		dialogView.setSize(50, 8);
+		dialogView.setBackgroundColor(Color.LIGHT_GRAY);
+		dialogView.setDrawsBackground(true);
+		dialogView.setBorderColor(Color.WHITE);
+		dialogView.setDrawsBorder(true);
+		getView().add(dialogView);
+
+		getView().setLayoutManager(new VerticalFlowLayout());
+	}
+
+	public void setDelegate(final DialogDelegate delegate)
+	{
+		this.delegate = delegate;
+	}
+
+	protected TComponent getDialogView()
+	{
+		return dialogView;
 	}
 }

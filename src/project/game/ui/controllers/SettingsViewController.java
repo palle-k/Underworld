@@ -25,69 +25,64 @@
 
 package project.game.ui.controllers;
 
+import project.game.data.state.SavedGameState;
 import project.gui.components.TButton;
 import project.gui.components.TLabel;
 import project.gui.controller.ViewController;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
+import static project.game.localization.LocalizedString.LocalizedString;
+
 public class SettingsViewController extends ViewController
 {
 	@Override
-	public void viewDidAppear()
+	public void initializeView()
 	{
-		super.viewDidAppear();
+		super.initializeView();
 
 		TLabel label = new TLabel();
-		label.setSize(54, 10);
+		label.setSize(54, 8);
 		label.setText(" ___ ___ _____ _____ ___ _  _  ___ ___ \n" +
 				"/ __| __|_   _|_   _|_ _| \\| |/ __/ __|\n" +
 				"\\__ \\ _|  | |   | |  | || .` | (_ \\__ \\\n" +
 				"|___/___| |_|   |_| |___|_|\\_|\\___|___/\n");
+		label.setText(LocalizedString("settings_menu_title"));
 		getView().add(label);
-
 
 		TButton resetState = new TButton();
 		resetState.setSize(20, 1);
-		resetState.setText("Reset saved Game");
+		resetState.setText(LocalizedString("settings_menu_reset_game_state"));
+		resetState.setActionHandler(() -> SavedGameState.getSavedGameState().reset());
 		getView().add(resetState);
 
 		TButton showProgress = new TButton();
 		showProgress.setSize(20, 1);
-		showProgress.setText("Show Game Progress");
+		showProgress.setText(LocalizedString("settings_menu_show_progress"));
 		getView().add(showProgress);
 
 		TButton setControls = new TButton();
 		setControls.setSize(20, 1);
-		setControls.setText("Set Controls");
+		setControls.setText(LocalizedString("settings_menu_set_controls"));
 		setControls.setActionHandler(() -> getNavigationController().push(new ControlSettingsViewController()));
 		getView().add(setControls);
-
 		TButton back = new TButton();
-		back.setSize(6, 1);
-		back.setText("Back");
+		back.setSize(20, 1);
+		back.setText(LocalizedString("settings_menu_back"));
 		back.setActionHandler(() -> getNavigationController().pop());
 		getView().add(back);
 
 		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addSelectable(resetState);
-		buttonGroup.addSelectable(showProgress);
-		buttonGroup.addSelectable(setControls);
-		buttonGroup.addSelectable(back);
+		buttonGroup.addResponder(resetState);
+		buttonGroup.addResponder(showProgress);
+		buttonGroup.addResponder(setControls);
+		buttonGroup.addResponder(back);
 		getView().addResponder(buttonGroup);
 
 		VerticalFlowLayout layout = new VerticalFlowLayout();
 		layout.setSpacing(2);
-		layout.setHorizontalAlignment(VerticalFlowLayout.LEFT);
-		layout.setVerticalAlignment(VerticalFlowLayout.TOP);
+		layout.setHorizontalAlignment(VerticalFlowLayout.CENTER);
 		layout.setLayoutInsets(3, 5, 0, 0);
 		getView().setLayoutManager(layout);
-	}
-
-	@Override
-	public void viewDidDisappear()
-	{
-		super.viewDidDisappear();
-		getView().removeAll();
 	}
 }

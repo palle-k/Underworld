@@ -25,22 +25,30 @@
 
 package project.game.data.state;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.util.prefs.Preferences;
 
-public class LevelState implements Externalizable
+public class LevelState
 {
-	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
-	{
+	private boolean tutorialPlayed;
 
+	protected LevelState(Preferences preferences)
+	{
+		tutorialPlayed = preferences.getBoolean("level_tutorial_played", false);
 	}
 
-	@Override
-	public void writeExternal(final ObjectOutput out) throws IOException
+	public void setTutorialPlayed(final boolean tutorialPlayed)
 	{
-
+		this.tutorialPlayed = tutorialPlayed;
 	}
+
+	public boolean tutorialWasPlayed()
+	{
+		return tutorialPlayed;
+	}
+
+	protected void save(Preferences preferences)
+	{
+		preferences.putBoolean("level_tutorial_played", tutorialPlayed);
+	}
+
 }

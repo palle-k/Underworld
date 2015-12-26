@@ -32,4 +32,9 @@ public class Player extends GameActor
 	private int autohit_damage_variation;
 	private int health;
 	private int speed;
+
+	protected Player(final String[] restingStates)
+	{
+		super(restingStates);
+	}
 }

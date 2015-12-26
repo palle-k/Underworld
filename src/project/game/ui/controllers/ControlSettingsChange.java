@@ -23,21 +23,45 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.game.ui.controllers;
 
-public class Enemy extends GameActor
+import project.gui.controller.NavigationController;
+import project.gui.controller.dialog.Dialog;
+import project.gui.controller.dialog.DialogDelegate;
+import project.gui.controller.dialog.SingleKeyInputDialog;
+
+public class ControlSettingsChange implements DialogDelegate, Runnable
 {
-	private int attack_range; //Maximum distance for attacking the player
-	private int damage; //Average damage
-	private int damage_variation; //Range of variation of damage
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
-	private int speed; //Speed of the enemy (0 for static enemy)
-	private int vision_range; //Maximum distance to begin following the player
+	private NavigationController navigationController;
+	private ControlSettingsUpdate[] onReturn;
 
-	protected Enemy(final String[] restingStates)
+	public ControlSettingsChange(NavigationController navigationController, final ControlSettingsUpdate... onReturn)
 	{
-		super(restingStates);
+		this.navigationController = navigationController;
+		this.onReturn = onReturn;
+	}
+
+	@Override
+	public void dialogDidCancel(final Dialog dialog)
+	{
+
+	}
+
+	@Override
+	public void dialogDidReturn(final Dialog dialog)
+	{
+		if (onReturn == null)
+			return;
+		for (ControlSettingsUpdate action : onReturn)
+			action.updateKey(((SingleKeyInputDialog) dialog).getChosenKey());
+	}
+
+	@Override
+	public void run()
+	{
+		SingleKeyInputDialog dialog = new SingleKeyInputDialog();
+		dialog.setInputMessage("Enter a new key code.\nshift, ctrl, alt, enter, tab and esc not allowed.\nCancel with esc.");
+		dialog.setDelegate(this);
+		navigationController.push(dialog);
 	}
 }
