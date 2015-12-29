@@ -104,7 +104,7 @@ public class TBufferedView extends TComponent
 
 		//System.out.printf("dispatch repaint (buffered) on rect %s\n", dirtyRect);
 		TGraphics bufferedGraphics = new TGraphics(backBuffer, dirtyRect, getWidth(), getHeight());
-		paintComponent(bufferedGraphics);
+		paintComponent(bufferedGraphics, dirtyRect);
 		resetNeedsDisplay();
 		for (TComponent child : getChildren())
 		{

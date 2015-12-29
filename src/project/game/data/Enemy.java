@@ -32,12 +32,42 @@ public class Enemy extends GameActor
 	private int damage_variation; //Range of variation of damage
 	private int earnedExperience; //Earned experience when killing the enemy
 	private int follow_range; //Maximum distance to continue following the player
-	private int health; //Health of the enemy
 	private int speed; //Speed of the enemy (0 for static enemy)
 	private int vision_range; //Maximum distance to begin following the player
 
-	protected Enemy(final String[] restingStates)
+	protected Enemy()
 	{
-		super(restingStates);
+		super(null);
 	}
+
+	public int getAttackRange()
+	{
+		return attack_range;
+	}
+
+	public int getDamage()
+	{
+		return damage;
+	}
+
+	public int getDamageVariation()
+	{
+		return damage_variation;
+	}
+
+	public int getEarnedExperience()
+	{
+		return earnedExperience;
+	}
+
+	public int getFollowRange()
+	{
+		return follow_range;
+	}
+
+	public int getVisionRange()
+	{
+		return vision_range;
+	}
+
 }

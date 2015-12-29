@@ -27,17 +27,29 @@ package project.game.ui.views;
 
 import project.game.data.Level;
 import project.gui.components.TComponent;
+import project.gui.components.TScrollView;
 import project.gui.graphics.TGraphics;
 
 import java.awt.*;
 
-public class LevelView extends TComponent
+public class MapView extends TScrollView
 {
 	private Level level;
+	private Point visionPoint;
+
+	public void addOverlay(TComponent component)
+	{
+		getContentView().add(component);
+	}
 
 	public Level getLevel()
 	{
 		return level;
+	}
+
+	public void removeOverlay(TComponent component)
+	{
+		getContentView().remove(component);
 	}
 
 	public void setLevel(final Level level)
@@ -45,20 +57,36 @@ public class LevelView extends TComponent
 		this.level = level;
 	}
 
-	@Override
-	protected void paintComponent(final TGraphics graphics)
+	public void setPointOfVision(Point point)
 	{
-		super.paintComponent(graphics);
+		this.visionPoint = point;
+		setNeedsDisplay();
+	}
+
+	@Override
+	protected void paintComponent(final TGraphics graphics, Rectangle dirtyRect)
+	{
+		super.paintComponent(graphics, dirtyRect);
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++)
 			{
-				int pixel = level.getPixel(x, y);
-				if (pixel >= 1)
-					graphics.setPoint(x, y, Color.WHITE, Color.WHITE, ' ');
-				else if (pixel == -1)
-					graphics.setPoint(x, y, null, Color.GREEN, ' ');
-				else
+				if (x + getOffset().x < 0 || x + getOffset().x >= level.getWidth() || y + getOffset().y < 0 ||
+				    y + getOffset().y >= level.getHeight())
+				{
 					graphics.setPoint(x, y, null, getBackgroundColor(), ' ');
+				}
+				else
+				{
+					int pixel = level.getPixel(x + getOffset().x, y + getOffset().y);
+					if (pixel >= 1)
+						graphics.setPoint(x, y, null, getBackgroundColor(), ' ');
+						//else if (pixel == -1)
+						//	graphics.setPoint(x, y, null, Color.GREEN, ' ');
+						//else if (visionPoint != null && !level.getMap().canSee(visionPoint, new Point(x + offset.x, y + offset.y)))
+						//	graphics.setPoint(x, y, Color.WHITE, Color.WHITE, ' ');
+					else
+						graphics.setPoint(x, y, null, Color.WHITE, ' ');
+				}
 			}
 	}
 }

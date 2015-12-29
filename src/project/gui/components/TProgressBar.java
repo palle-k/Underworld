@@ -77,9 +77,9 @@ public class TProgressBar extends TComponent
 	}
 
 	@Override
-	protected void paintComponent(final TGraphics graphics)
+	protected void paintComponent(final TGraphics graphics, Rectangle dirtyRect)
 	{
-		super.paintComponent(graphics);
+		super.paintComponent(graphics, dirtyRect);
 		for (int y = 0; y < getHeight(); y++)
 		{
 			graphics.setPoint(0, y, getColor(), getBackgroundColor(), '[');

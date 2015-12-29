@@ -30,12 +30,12 @@ import java.awt.*;
 public class TScrollView extends TComponent
 {
 	private TComponent contentView;
-	private Dimension offset;
-	private Insets scrollInsets;
+	private Point      offset;
+	private Insets     scrollInsets;
 
 	public TScrollView()
 	{
-		offset = new Dimension();
+		offset = new Point();
 		contentView = new TBufferedView();
 		scrollInsets = new Insets(0, 0, 0, 0);
 		add(contentView);
@@ -53,7 +53,7 @@ public class TScrollView extends TComponent
 		return contentView;
 	}
 
-	public Dimension getOffset()
+	public Point getOffset()
 	{
 		return offset;
 	}
@@ -63,10 +63,11 @@ public class TScrollView extends TComponent
 		return scrollInsets;
 	}
 
-	public void setOffset(final Dimension offset)
+	public void setOffset(final Point offset)
 	{
 		this.offset = offset;
-		contentView.setLocation(-offset.width + scrollInsets.left, -offset.height + scrollInsets.top);
+		contentView.setLocation(-offset.x + scrollInsets.left, -offset.y + scrollInsets.top);
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void setScrollInsets(final Insets scrollInsets)

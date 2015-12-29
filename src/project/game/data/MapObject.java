@@ -28,17 +28,59 @@ package project.game.data;
 import project.gui.components.TComponent;
 
 import java.awt.*;
+import java.util.Properties;
 
 public abstract class MapObject
 {
-	protected String[] restingStates;
+	protected Rectangle bounds;
+	protected Color     color;
+	protected String    restingState;
+	private   Runnable  onContact;
+	private   Level     owner;
 
-	protected MapObject(final String[] restingStates)
+	protected MapObject(Properties properties)
 	{
-		this.restingStates = restingStates;
+		restingState = properties.getProperty("resting");
+
+		int r = Integer.parseInt(properties.getProperty("color_r"));
+		int g = Integer.parseInt(properties.getProperty("color_g"));
+		int b = Integer.parseInt(properties.getProperty("color_b"));
+
+		color = new Color(r, g, b);
+
+		bounds = new Rectangle();
 	}
 
-	public abstract Rectangle getBounds();
+	public Rectangle getBounds()
+	{
+		return bounds;
+	}
 
 	public abstract TComponent getView();
+
+	public void setBounds(final Rectangle bounds)
+	{
+		this.bounds = bounds;
+	}
+
+	protected Runnable getOnPlayerContact()
+	{
+		return onContact;
+	}
+
+	protected Level getOwner()
+	{
+		return owner;
+	}
+
+	protected void setOnPlayerContact(final Runnable onContact)
+	{
+		this.onContact = onContact;
+	}
+
+	protected void setOwner(final Level owner)
+	{
+		this.owner = owner;
+	}
+
 }

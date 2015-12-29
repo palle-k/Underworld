@@ -25,16 +25,45 @@
 
 package project.game.data;
 
+import project.game.data.state.PlayerState;
+import project.game.data.state.SavedGameState;
+
+import java.io.IOException;
+import java.util.Properties;
+
 public class Player extends GameActor
 {
+	public static Player makePlayer() throws IOException
+	{
+		Properties  properties  = new Properties();
+		PlayerState playerState = SavedGameState.getSavedGameState().getPlayerState();
+		if (playerState.playerClassChosen())
+		{
+			String configurationFile = "";
+			if (playerState.getPlayerClass() == PlayerState.HUNTER)
+				configurationFile = "Hunter";
+			else if (playerState.getPlayerClass() == PlayerState.KNIGHT)
+				configurationFile = "Knight";
+			else if (playerState.getPlayerClass() == PlayerState.WIZARD)
+				configurationFile = "Wizard";
+			configurationFile = "objects/" + configurationFile + ".properties";
+			properties.load(Player.class.getResourceAsStream(configurationFile));
+
+			return new Player(properties);
+		}
+		else
+			throw new RuntimeException("Presenting Level before player class was chosen.");
+
+	}
 	private int autohit_attack_range;
 	private int autohit_damage;
 	private int autohit_damage_variation;
 	private int health;
 	private int speed;
 
-	protected Player(final String[] restingStates)
+	protected Player(Properties playerProperties) throws IOException
 	{
-		super(restingStates);
+		super(playerProperties);
+		//TODO parse attacks etc...
 	}
 }

@@ -41,6 +41,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.Stack;
 
 public class TFrame extends TBufferedView
@@ -185,6 +186,17 @@ public class TFrame extends TBufferedView
 			//terminal.clearScreen();
 			//clearFramebuffer();
 			dirtyRect = new Rectangle(0, 0, getWidth(), getHeight());
+		}
+		Iterator<Rectangle> dirtyRectIterator = repaintStack.iterator();
+		while (dirtyRectIterator.hasNext())
+		{
+			Rectangle next = dirtyRectIterator.next();
+			if (dirtyRect.contains(next))
+				dirtyRectIterator.remove();
+			else if (next.contains(dirtyRect))
+				return;
+			else if (next.equals(dirtyRect))
+				return;
 		}
 		repaintStack.push(dirtyRect);
 		SwingUtilities.invokeLater(new Runnable()

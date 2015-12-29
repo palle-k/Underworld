@@ -80,9 +80,9 @@ public class TLabel extends TComponent
 	}
 
 	@Override
-	protected void paintComponent(TGraphics graphics)
+	protected void paintComponent(TGraphics graphics, Rectangle dirtyRect)
 	{
-		super.paintComponent(graphics);
+		super.paintComponent(graphics, dirtyRect);
 		graphics.setStrokeColor(getColor());
 		graphics.setStrokeBackground(drawsBackground() ? getBackgroundColor() : null);
 		graphics.drawText(getText(), (drawsBorder() ? 1 : 0) + getTextInsets().left, (drawsBorder() ? 1 : 0) + getTextInsets().top);

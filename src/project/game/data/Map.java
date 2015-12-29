@@ -227,16 +227,30 @@ public class Map
 		this.points = points;
 	}
 
+	public boolean canMoveTo(Point point)
+	{
+		if (isOutOfBounds(point))
+			return false;
+		return points[point.x][point.y] <= 0;
+	}
+
 	public boolean canSee(Point fromPoint, Point toPoint)
 	{
-		int dx = fromPoint.x - toPoint.x;
-		int dy = fromPoint.y - toPoint.y;
-		int dist = dx + dy; //grid distance of direct path
-		for (int i = 0; i <= dist; i++)
+		double dx   = toPoint.x - fromPoint.x;
+		double dy   = toPoint.y - fromPoint.y;
+		double dist = Math.sqrt(dx * dx + dy * dy);
+
+		double unitDx = dx / dist;
+		double unitDy = dy / dist;
+
+		if (dist == 0)
+			return true;
+
+		for (int i = 0; i < dist; i++)
 		{
-			int x = dx * i / dist + toPoint.x;
-			int y = dy * i / dist + toPoint.y;
-			if (getPoint(x, y) > 0)
+			double x = unitDx * i + fromPoint.x;
+			double y = unitDy * i + fromPoint.y;
+			if (getPoint((int) x, (int) y) > 0)
 				return false;
 		}
 		return true;

@@ -60,7 +60,8 @@ public class ControlSettingsChange implements DialogDelegate, Runnable
 	public void run()
 	{
 		SingleKeyInputDialog dialog = new SingleKeyInputDialog();
-		dialog.setInputMessage("Enter a new key code.\nshift, ctrl, alt, enter, tab and esc not allowed.\nCancel with esc.");
+		dialog.setInputMessage(
+				"Enter a new key code.\nshift, ctrl, alt, enter, tab\nand esc not allowed.\nCancel with esc.");
 		dialog.setDelegate(this);
 		navigationController.push(dialog);
 	}

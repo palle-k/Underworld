@@ -25,6 +25,7 @@
 
 package project.gui.components;
 
+import project.gui.dynamics.GameloopAction;
 import project.gui.dynamics.animation.Animation;
 import project.gui.event.TResponder;
 import project.gui.graphics.Appearance;
@@ -37,18 +38,19 @@ import java.util.List;
 
 public class TComponent extends TResponder
 {
-	protected Rectangle frame;
-	protected boolean needsDisplay;
-	private List<Animation> animations;
-	private Color backgroundColor;
-	private Color borderColor;
-	private List<TComponent> children;
-	private boolean drawsBackground;
-	private boolean drawsBorder;
-	private TLayoutManager layoutManager;
-	private boolean maskToBounds;
-	private TComponent parent;
-	private boolean visible;
+	protected Rectangle        frame;
+	protected boolean          needsDisplay;
+	private   List<Animation>  animations;
+	private   Color            backgroundColor;
+	private   Color            borderColor;
+	private   List<TComponent> children;
+	private   boolean          drawsBackground;
+	private   boolean          drawsBorder;
+	private   TLayoutManager   layoutManager;
+	private   boolean          maskToBounds;
+	private   GameloopAction   onAnimationUpdate;
+	private   TComponent       parent;
+	private   boolean          visible;
 
 	public TComponent()
 	{
@@ -149,6 +151,11 @@ public class TComponent extends TResponder
 		return frame.getLocation();
 	}
 
+	public GameloopAction getOnAnimationUpdate()
+	{
+		return onAnimationUpdate;
+	}
+
 	public int getPosX()
 	{
 		return getLocation().x;
@@ -172,6 +179,20 @@ public class TComponent extends TResponder
 	public boolean isVisible()
 	{
 		return visible;
+	}
+
+	public boolean isVisible(Point p)
+	{
+		if (new Rectangle(new Point(), getSize()).contains(p))
+		{
+			if (parent == null)
+				return true;
+			Point offsetPoint = new Point(p);
+			offsetPoint.translate(getPosX(), getPosY());
+			return parent.isVisible(offsetPoint);
+		}
+		else
+			return false;
 	}
 
 	public boolean masksToBounds()
@@ -303,6 +324,11 @@ public class TComponent extends TResponder
 			}
 	}
 
+	public void setOnAnimationUpdate(final GameloopAction onAnimationUpdate)
+	{
+		this.onAnimationUpdate = onAnimationUpdate;
+	}
+
 	public void setPosX(int x)
 	{
 		setLocation(x, frame.y);
@@ -359,6 +385,8 @@ public class TComponent extends TResponder
 				child.updateAnimations(time, timeDelta);
 			}
 		}
+		if (onAnimationUpdate != null)
+			onAnimationUpdate.update(time, timeDelta);
 	}
 
 	protected TComponent getParent()
@@ -366,7 +394,7 @@ public class TComponent extends TResponder
 		return parent;
 	}
 
-	protected void paintComponent(TGraphics graphics)
+	protected void paintComponent(TGraphics graphics, Rectangle dirtyRect)
 	{
 		if (getFrame() == null)
 			return;
@@ -411,7 +439,7 @@ public class TComponent extends TResponder
 
 	void dispatchRepaint(TGraphics graphics, Rectangle dirtyRect)
 	{
-		paintComponent(graphics);
+		paintComponent(graphics, dirtyRect);
 		resetNeedsDisplay();
 		synchronized (children)
 		{
@@ -434,5 +462,4 @@ public class TComponent extends TResponder
 		this.parent = parent;
 		setNeedsDisplay();
 	}
-
 }

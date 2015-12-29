@@ -34,7 +34,8 @@ public class Key extends MapObject
 
 	protected Key()
 	{
-		super(new String[]{ "/^\\____\n\\_>-vvv" });
+		super(null);
+		//super(new String[]{ "/^\\____\n\\_>-vvv" });
 	}
 
 	@Override

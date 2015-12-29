@@ -84,7 +84,7 @@ public class ViewController
 
 	public void initializeView()
 	{
-
+		getView().setOnAnimationUpdate((double time, double timeDelta) -> updateViews(time, timeDelta));
 	}
 
 	public boolean replacesParentViewController()
@@ -114,5 +114,10 @@ public class ViewController
 	protected void setParent(final ViewController parent)
 	{
 		this.parent = parent;
+	}
+
+	protected void updateViews(double time, double timeDelta)
+	{
+
 	}
 }

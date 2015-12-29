@@ -80,7 +80,8 @@ public class SingleKeyInputDialog extends Dialog
 					getNavigationController().pop();
 					if (getDelegate() != null)
 						getDelegate().dialogDidCancel(self);
-				} else if (event.getKey() != KeyEvent.VK_ENTER && event.getKey() >= 0x20)
+				}
+				else if (event.getKey() != KeyEvent.VK_ENTER && event.getKey() >= 0x20 && event.getKey() < 128)
 				{
 					chosenKey = event.getKey();
 					getNavigationController().pop();
