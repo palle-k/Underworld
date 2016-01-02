@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.game.ui.controllers;
@@ -145,9 +145,9 @@ public class ControlSettingsViewController extends ViewController
 		TLabel label = new TLabel();
 		label.setSize(54, 7);
 		label.setText("  ___ ___  _  _ _____ ___  ___  _    ___ \n" +
-				" / __/ _ \\| \\| |_   _| _ \\/ _ \\| |  / __|\n" +
-				"| (_| (_) | .` | | | |   / (_) | |__\\__ \\\n" +
-				" \\___\\___/|_|\\_| |_| |_|_\\\\___/|____|___/\n");
+		              " / __/ _ \\| \\| |_   _| _ \\/ _ \\| |  / __|\n" +
+		              "| (_| (_) | .` | | | |   / (_) | |__\\__ \\\n" +
+		              " \\___\\___/|_|\\_| |_| |_|_\\\\___/|____|___/\n");
 		getView().add(label);
 
 		final SettingsState settingsState = SavedGameState.getSavedGameState().getSettingsState();
@@ -222,34 +222,78 @@ public class ControlSettingsViewController extends ViewController
 			@Override
 			public void updateKey(final int newValue)
 			{
-				moveUp.setText(LocalizedString("control_settings_up") + " (" + keycodeDescriptions[settingsState.getMoveUpKey() - 32] + ")");
-				moveLeft.setText(LocalizedString("control_settings_left") + " (" + keycodeDescriptions[settingsState.getMoveLeftKey() - 32] + ")");
-				moveRight.setText(LocalizedString("control_settings_right") + " (" + keycodeDescriptions[settingsState.getMoveRightKey() - 32] + ")");
-				moveDown.setText(LocalizedString("control_settings_down") + " (" + keycodeDescriptions[settingsState.getMoveDownKey() - 32] + ")");
-				baseAttack.setText(LocalizedString("control_settings_base_attack") + " (" + keycodeDescriptions[settingsState.getBaseAttackKey() - 32] + ")");
-				skill1.setText(LocalizedString("control_settings_skill_1") + " (" + keycodeDescriptions[settingsState.getSkill1Key() - 32] + ")");
-				skill2.setText(LocalizedString("control_settings_skill_2") + " (" + keycodeDescriptions[settingsState.getSkill2Key() - 32] + ")");
-				skill3.setText(LocalizedString("control_settings_skill_3") + " (" + keycodeDescriptions[settingsState.getSkill3Key() - 32] + ")");
-				skill4.setText(LocalizedString("control_settings_skill_4") + " (" + keycodeDescriptions[settingsState.getSkill4Key() - 32] + ")");
-				healthPotion.setText(LocalizedString("control_settings_health_potion") + " (" + keycodeDescriptions[settingsState.getHealthPotionKey() - 32] + ")");
-				attackPotion.setText(LocalizedString("control_settings_attack_potion") + " (" + keycodeDescriptions[settingsState.getAttackPotionKey() - 32] + ")");
+				moveUp.setText(LocalizedString("control_settings_up") + " (" +
+				               keycodeDescriptions[settingsState.getMoveUpKey() - 32] + ")");
+				moveLeft.setText(LocalizedString("control_settings_left") + " (" +
+				                 keycodeDescriptions[settingsState.getMoveLeftKey() - 32] + ")");
+				moveRight.setText(LocalizedString("control_settings_right") + " (" +
+				                  keycodeDescriptions[settingsState.getMoveRightKey() - 32] + ")");
+				moveDown.setText(LocalizedString("control_settings_down") + " (" +
+				                 keycodeDescriptions[settingsState.getMoveDownKey() - 32] + ")");
+				baseAttack.setText(LocalizedString("control_settings_base_attack") + " (" +
+				                   keycodeDescriptions[settingsState.getBaseAttackKey() - 32] + ")");
+				skill1.setText(LocalizedString("control_settings_skill_1") + " (" +
+				               keycodeDescriptions[settingsState.getSkill1Key() - 32] + ")");
+				skill2.setText(LocalizedString("control_settings_skill_2") + " (" +
+				               keycodeDescriptions[settingsState.getSkill2Key() - 32] + ")");
+				skill3.setText(LocalizedString("control_settings_skill_3") + " (" +
+				               keycodeDescriptions[settingsState.getSkill3Key() - 32] + ")");
+				skill4.setText(LocalizedString("control_settings_skill_4") + " (" +
+				               keycodeDescriptions[settingsState.getSkill4Key() - 32] + ")");
+				healthPotion.setText(LocalizedString("control_settings_health_potion") + " (" +
+				                     keycodeDescriptions[settingsState.getHealthPotionKey() - 32] + ")");
+				attackPotion.setText(LocalizedString("control_settings_attack_potion") + " (" +
+				                     keycodeDescriptions[settingsState.getAttackPotionKey() - 32] + ")");
 			}
 		};
 		labelUpdate.updateKey(0);
 
-		moveUp.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveUpKey(newKey), labelUpdate));
-		moveLeft.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveLeftKey(newKey), labelUpdate));
-		moveRight.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveRightKey(newKey), labelUpdate));
-		moveDown.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setMoveDownKey(newKey), labelUpdate));
+		moveUp.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setMoveUpKey(newKey),
+				labelUpdate));
+		moveLeft.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setMoveLeftKey(newKey),
+				labelUpdate));
+		moveRight.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setMoveRightKey(newKey),
+				labelUpdate));
+		moveDown.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setMoveDownKey(newKey),
+				labelUpdate));
 
-		baseAttack.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setBaseAttackKey(newKey), labelUpdate));
-		skill1.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill1Key(newKey), labelUpdate));
-		skill2.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill2Key(newKey), labelUpdate));
-		skill3.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill3Key(newKey), labelUpdate));
-		skill4.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setSkill4Key(newKey), labelUpdate));
+		baseAttack.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setBaseAttackKey(newKey),
+				labelUpdate));
+		skill1.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setSkill1Key(newKey),
+				labelUpdate));
+		skill2.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setSkill2Key(newKey),
+				labelUpdate));
+		skill3.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setSkill3Key(newKey),
+				labelUpdate));
+		skill4.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setSkill4Key(newKey),
+				labelUpdate));
 
-		healthPotion.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setHealthPotionKey(newKey), labelUpdate));
-		attackPotion.setActionHandler(new ControlSettingsChange(getNavigationController(), (int newKey) -> settingsState.setAttackPotionKey(newKey), labelUpdate));
+		healthPotion.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setHealthPotionKey(newKey),
+				labelUpdate));
+		attackPotion.setActionHandler(new ControlSettingsChange(
+				getNavigationController(),
+				(int newKey) -> settingsState.setAttackPotionKey(newKey),
+				labelUpdate));
 
 		VerticalFlowLayout layout = new VerticalFlowLayout();
 		layout.setSpacing(1);

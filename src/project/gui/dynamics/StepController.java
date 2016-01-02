@@ -23,27 +23,103 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.gui.dynamics;
 
-public class Enemy extends GameActor
+public class StepController
 {
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int speed; //Speed of the enemy (0 for static enemy)
+	private long    absoluteValue;
+	private boolean active;
+	private double  frequency;
+	private long    lastUpdateTime;
+	private long    maxValue;
+	private long    offsetValue;
+	private long    updateTime;
 
-	protected Enemy()
+	public StepController(final double frequency)
 	{
-		super(null);
+		this.frequency = frequency;
 	}
 
-	public int getEarnedExperience()
+	public long getAbsoluteValue()
 	{
-		return earnedExperience;
+		return active ? (absoluteValue < maxValue ? absoluteValue : maxValue) : 0;
 	}
 
-	public int getFollowRange()
+	public double getFrequency()
 	{
-		return follow_range;
+		return frequency;
 	}
 
+	public long getMaxValue()
+	{
+		return maxValue;
+	}
+
+	public int getNumberOfSteps()
+	{
+		return active ? (int) (updateTime - lastUpdateTime) : 0;
+	}
+
+	public long getOffsetValue()
+	{
+		return offsetValue;
+	}
+
+	public boolean isFinished()
+	{
+		return absoluteValue >= maxValue;
+	}
+
+	public boolean requiresUpdate()
+	{
+		return active && updateTime != lastUpdateTime;
+	}
+
+	public void setFrequency(final double frequency)
+	{
+		if (active)
+			throw new RuntimeException("Frequency of StepController must not be updated while active. Stop first.");
+		else if (frequency < 0)
+			throw new IllegalArgumentException("Frequency must be greater than or equal to 0");
+		this.frequency = frequency;
+	}
+
+	public void setMaxValue(final long maxValue)
+	{
+		this.maxValue = maxValue;
+	}
+
+	public void setOffsetValue(final long offsetValue)
+	{
+		this.offsetValue = offsetValue;
+		absoluteValue = offsetValue;
+	}
+
+	public void start()
+	{
+		active = true;
+	}
+
+	public void stop()
+	{
+		active = false;
+		lastUpdateTime = -1;
+		absoluteValue = 0;
+	}
+
+	public void updateTime(double time)
+	{
+		if (!active)
+			return;
+
+		long stepTime = (long) (time * frequency);
+		if (lastUpdateTime < 0)
+		{
+			lastUpdateTime = stepTime;
+			updateTime = stepTime;
+		}
+		lastUpdateTime = updateTime;
+		updateTime = stepTime;
+		absoluteValue += getNumberOfSteps();
+	}
 }

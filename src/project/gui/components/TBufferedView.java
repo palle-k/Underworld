@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.components;
@@ -34,7 +34,7 @@ public class TBufferedView extends TComponent
 	public static class TChar
 	{
 		private final Color backgroundColor;
-		private final char character;
+		private final char  character;
 		private final Color color;
 
 		public TChar(char character, Color color, Color backgroundColor)
@@ -64,7 +64,8 @@ public class TBufferedView extends TComponent
 					return false;
 				if (backgroundColor != null && other.backgroundColor == null)
 					return false;
-				return !(backgroundColor != null && other.backgroundColor != null && !backgroundColor.equals(other.backgroundColor));
+				return !(backgroundColor != null && other.backgroundColor != null &&
+				         !backgroundColor.equals(other.backgroundColor));
 			}
 			return super.equals(obj);
 		}
@@ -127,11 +128,18 @@ public class TBufferedView extends TComponent
 	{
 		for (int y = 0; y < getHeight(); y++)
 			for (int x = 0; x < getWidth(); x++)
-				if (backBuffer[x][y] != null && (frameBuffer[x][y] == null || !frameBuffer[x][y].equals(backBuffer[x][y])))
+				if (backBuffer[x][y] != null &&
+				    (frameBuffer[x][y] == null || !frameBuffer[x][y].equals(backBuffer[x][y])))
 				{
 					frameBuffer[x][y] = backBuffer[x][y];
-					graphics.setPoint(x, y, backBuffer[x][y].color, backBuffer[x][y].backgroundColor, backBuffer[x][y].character);
-				} else if (backBuffer[x][y] == null && frameBuffer[x][y] != null)
+					graphics.setPoint(
+							x,
+							y,
+							backBuffer[x][y].color,
+							backBuffer[x][y].backgroundColor,
+							backBuffer[x][y].character);
+				}
+				else if (backBuffer[x][y] == null && frameBuffer[x][y] != null)
 				{
 					frameBuffer[x][y] = backBuffer[x][y];
 					graphics.setPoint(x, y, getBackgroundColor(), getBackgroundColor(), ' ');
@@ -145,7 +153,8 @@ public class TBufferedView extends TComponent
 		{
 			backBuffer = new TChar[frame.width][frame.height];
 			bufferUpdated = true;
-		} else if (backBuffer.length != frame.width || backBuffer[0].length != frame.height)
+		}
+		else if (backBuffer.length != frame.width || backBuffer[0].length != frame.height)
 		{
 			backBuffer = new TChar[frame.width][frame.height];
 			bufferUpdated = true;
@@ -154,7 +163,8 @@ public class TBufferedView extends TComponent
 		{
 			frameBuffer = new TChar[frame.width][frame.height];
 			bufferUpdated = true;
-		} else if (frameBuffer.length != frame.width || frameBuffer[0].length != frame.height)
+		}
+		else if (frameBuffer.length != frame.width || frameBuffer[0].length != frame.height)
 		{
 			frameBuffer = new TChar[getWidth()][getHeight()];
 			bufferUpdated = true;

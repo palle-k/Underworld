@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
  *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
@@ -31,10 +31,10 @@ import java.util.List;
 
 public class SelectableGroup extends TResponder implements Selectable
 {
-	private char backwardsKey;
-	private int currentIndex;
-	private char forwardsKey;
-	private SelectableGroup parent;
+	private char             backwardsKey;
+	private int              currentIndex;
+	private char             forwardsKey;
+	private SelectableGroup  parent;
 	private List<Selectable> selectables;
 
 	public SelectableGroup()

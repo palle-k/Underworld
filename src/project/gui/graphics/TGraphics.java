@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.graphics;
@@ -35,14 +35,14 @@ public class TGraphics
 {
 	private class TGraphicsState
 	{
-		private Color fillBackground;
-		private char fillChar;
-		private Color fillColor;
+		private Color          fillBackground;
+		private char           fillChar;
+		private Color          fillColor;
 		private TGraphicsState parentState;
-		private GeneralPath path;
-		private Color strokeBackground;
-		private char strokeChar;
-		private Color strokeColor;
+		private GeneralPath    path;
+		private Color          strokeBackground;
+		private char           strokeChar;
+		private Color          strokeColor;
 
 		private TGraphicsState(
 				Color fillColor,
@@ -76,15 +76,15 @@ public class TGraphics
 	}
 
 	private TBufferedView.TChar[][] buffer;
-	private TGraphicsState currentState;
-	private Rectangle dirtyRect;
-	private int height;
-	private boolean maskToBounds;
-	private int offsetX;
-	private int offsetY;
-	private TGraphics parent;
-	private Terminal target;
-	private int width;
+	private TGraphicsState          currentState;
+	private Rectangle               dirtyRect;
+	private int                     height;
+	private boolean                 maskToBounds;
+	private int                     offsetX;
+	private int                     offsetY;
+	private TGraphics               parent;
+	private Terminal                target;
+	private int                     width;
 
 	public TGraphics(Terminal target, Rectangle dirtyRect)
 	{
@@ -128,7 +128,7 @@ public class TGraphics
 	{
 		if (text == null)
 			return;
-		int baseX = x;
+		int    baseX      = x;
 		char[] characters = text.toCharArray();
 		for (char c : characters)
 		{
@@ -136,7 +136,8 @@ public class TGraphics
 			{
 				y++;
 				x = baseX;
-			} else if (c == '\t')
+			}
+			else if (c == '\t')
 				x += 4 - (x % 4);
 			else
 			{
@@ -265,7 +266,10 @@ public class TGraphics
 				else
 					target.applyForegroundColor(Terminal.Color.DEFAULT);
 				if (backgroundColor != null)
-					target.applyBackgroundColor(backgroundColor.getRed(), backgroundColor.getGreen(), backgroundColor.getBlue());
+					target.applyBackgroundColor(
+							backgroundColor.getRed(),
+							backgroundColor.getGreen(),
+							backgroundColor.getBlue());
 				else
 					target.applyBackgroundColor(Terminal.Color.DEFAULT);
 				target.putCharacter(c);
@@ -295,7 +299,7 @@ public class TGraphics
 	public void stroke(char c)
 	{
 		Rectangle bounds = currentState.path.getBounds();
-		boolean inside = false;
+		boolean   inside = false;
 		for (int y = (int) bounds.getMinY(); y < bounds.getMaxY(); y++)
 		{
 			for (int x = (int) bounds.getMinX(); x < bounds.getMaxX(); x++)
@@ -304,7 +308,12 @@ public class TGraphics
 				if (currentState.path.contains(x, y))
 					inside = true;
 				if (previous ^ inside)
-					setPoint(x - (inside ? 0 : 1), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+					setPoint(
+							x - (inside ? 0 : 1),
+							y,
+							currentState.strokeColor,
+							currentState.strokeBackground,
+							currentState.strokeChar);
 			}
 		}
 		currentState.path.reset();
@@ -314,13 +323,33 @@ public class TGraphics
 	{
 		for (int x = (int) rect.getMinX(); x < rect.getMaxX(); x++)
 		{
-			setPoint(x, (int) rect.getMinY(), currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-			setPoint(x, (int) rect.getMaxY() - 1, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+			setPoint(
+					x,
+					(int) rect.getMinY(),
+					currentState.strokeColor,
+					currentState.strokeBackground,
+					currentState.strokeChar);
+			setPoint(
+					x,
+					(int) rect.getMaxY() - 1,
+					currentState.strokeColor,
+					currentState.strokeBackground,
+					currentState.strokeChar);
 		}
 		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
 		{
-			setPoint((int) rect.getMinX(), y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
-			setPoint((int) rect.getMaxX() - 1, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+			setPoint(
+					(int) rect.getMinX(),
+					y,
+					currentState.strokeColor,
+					currentState.strokeBackground,
+					currentState.strokeChar);
+			setPoint(
+					(int) rect.getMaxX() - 1,
+					y,
+					currentState.strokeColor,
+					currentState.strokeBackground,
+					currentState.strokeChar);
 		}
 	}
 
@@ -333,7 +362,7 @@ public class TGraphics
 		else
 		{
 			return x >= 0 && x < width &&
-					y >= 0 && y < height;
+			       y >= 0 && y < height;
 		}
 	}
 }

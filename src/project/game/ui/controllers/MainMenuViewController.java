@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.game.ui.controllers;
@@ -50,13 +50,13 @@ public class MainMenuViewController extends ViewController
 		TLabel label = new TLabel();
 		label.setSize(64, 8);
 		label.setText("           )  (           (                 )   (    (    (     \n" +
-				"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
-				"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
-				"    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
-				" _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
-				"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-				"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-				" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+		              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
+		              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
+		              "    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
+		              " _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
+		              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+		              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+		              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
 		label.setVisible(true);
 		label.setColor(new Color(255, 100, 0));
 		getView().add(label);
@@ -68,22 +68,22 @@ public class MainMenuViewController extends ViewController
 			{
 				if (value < 0.5)
 					label.setText("           )  (           (                 )   (    (    (     \n" +
-							"        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
-							"    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
-							"    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
-							" _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
-							"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-							"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-							" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+					              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
+					              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
+					              "    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
+					              " _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
+					              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+					              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+					              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
 				else
 					label.setText("           (  )           )                 (   )    )    )     \n" +
-							"        ) \\)  (/ (        (/ (  )  )     ) \\)   (/ ( (/ ( (/ (  \n" +
-							"    )   (/)(())(\\)   )   ))(\\)  (/(()   '(/)(( ))(\\)))(\\)))(\\)  \n" +
-							"    (/ ))_(/  \\)_((  (/   \\)_(())_()(/ ())_(/   \\)_((\\)_((\\)_(( \n" +
-							" _ ))_( _))_()_((_  ))_( )_((  _))((/_()( ))_( )_(( )_(( )_((_  \n" +
-							"| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-							"| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-							" \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+					              "        ) \\)  (/ (        (/ (  )  )     ) \\)   (/ ( (/ ( (/ (  \n" +
+					              "    )   (/)(())(\\)   )   ))(\\)  (/(()   '(/)(( ))(\\)))(\\)))(\\)  \n" +
+					              "    (/ ))_(/  \\)_((  (/   \\)_(())_()(/ ())_(/   \\)_((\\)_((\\)_(( \n" +
+					              " _ ))_( _))_()_((_  ))_( )_((  _))((/_()( ))_( )_(( )_(( )_((_  \n" +
+					              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+					              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+					              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
 			}
 		});
 		fireAnimation.setDuration(0.5);
@@ -116,6 +116,11 @@ public class MainMenuViewController extends ViewController
 		introduction.setText(LocalizedString("main_menu_tutorial"));
 		getView().add(introduction);
 
+		TButton showProgress = new TButton();
+		showProgress.setSize(20, 1);
+		showProgress.setText(LocalizedString("settings_menu_show_progress"));
+		getView().add(showProgress);
+
 		TButton settings = new TButton();
 		settings.setSize(20, 1);
 		settings.setText(LocalizedString("main_menu_settings"));
@@ -144,6 +149,7 @@ public class MainMenuViewController extends ViewController
 		SelectableGroup buttonGroup = new SelectableGroup();
 		buttonGroup.addResponder(play);
 		buttonGroup.addResponder(introduction);
+		buttonGroup.addResponder(showProgress);
 		buttonGroup.addResponder(settings);
 		buttonGroup.addResponder(quit);
 		getView().addResponder(buttonGroup);

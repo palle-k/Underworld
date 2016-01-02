@@ -25,25 +25,25 @@
 
 package project.game.data;
 
-public class Enemy extends GameActor
+public interface PlayerDelegate extends GameActorDelegate
 {
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int speed; //Speed of the enemy (0 for static enemy)
+	void playerShouldShowAttackPotionOverlay(Player player);
 
-	protected Enemy()
-	{
-		super(null);
-	}
+	void playerShouldShowHealthPotionOverlay(Player player);
 
-	public int getEarnedExperience()
-	{
-		return earnedExperience;
-	}
+	void playerShouldShowSkill1Overlay(Player player, GameActor target);
 
-	public int getFollowRange()
-	{
-		return follow_range;
-	}
+	void playerShouldShowSkill1State(Player player);
 
+	void playerShouldShowSkill2Overlay(Player player, GameActor target);
+
+	void playerShouldShowSkill2State(Player player);
+
+	void playerShouldShowSkill3Overlay(Player player, GameActor target);
+
+	void playerShouldShowSkill3State(Player player);
+
+	void playerShouldShowSkill4Overlay(Player player, GameActor target);
+
+	void playerShouldShowSkill4State(Player player);
 }

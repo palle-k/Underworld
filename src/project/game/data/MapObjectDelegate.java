@@ -25,25 +25,7 @@
 
 package project.game.data;
 
-public class Enemy extends GameActor
+public interface MapObjectDelegate
 {
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int speed; //Speed of the enemy (0 for static enemy)
-
-	protected Enemy()
-	{
-		super(null);
-	}
-
-	public int getEarnedExperience()
-	{
-		return earnedExperience;
-	}
-
-	public int getFollowRange()
-	{
-		return follow_range;
-	}
-
+	void mapObjectDidMove(MapObject mapObject);
 }

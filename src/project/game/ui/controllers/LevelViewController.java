@@ -1,31 +1,31 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.game.ui.controllers;
 
-import project.game.data.Level;
+import project.game.data.*;
 import project.game.data.state.SavedGameState;
 import project.game.ui.views.MapView;
 import project.gui.components.TLabel;
@@ -35,20 +35,28 @@ import project.gui.dynamics.animation.Animation;
 import project.gui.dynamics.animation.AnimationHandler;
 import project.gui.event.TEvent;
 import project.gui.event.TEventHandler;
+import project.gui.layout.FullSizeSubviewLayout;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 
-public class LevelViewController extends ViewController
+public class LevelViewController extends ViewController implements PlayerDelegate, GameActorDelegate, MapObjectDelegate
 {
-	private long    lastMoveTime;
-	private Level   level;
-	private MapView mapView;
-	private boolean moveDownKeyPressed;
-	private boolean moveLeftKeyPressed;
-	private boolean moveRightKeyPressed;
-	private boolean moveUpKeyPressed;
+	private EnemyController[] enemyControllers;
+	private Level             level;
+	private MapView           mapView;
+	private boolean           moveDownKeyPressed;
+	private boolean           moveLeftKeyPressed;
+	private boolean           moveRightKeyPressed;
+	private boolean           moveUpKeyPressed;
+	private PlayerController  playerController;
+
+	@Override
+	public void actorDidChangeState(final GameActor actor)
+	{
+
+	}
 
 	@Override
 	public void initializeView()
@@ -57,11 +65,16 @@ public class LevelViewController extends ViewController
 		try
 		{
 			level = new Level(Level.class.getResource("levels/level_big_sparse.properties"));
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 			return;
 		}
+
+		getView().setOnAnimationUpdate((double time, double timeDelta) -> updateViews(time, timeDelta));
+
+		playerController = new PlayerController(level.getPlayer(), level.getMap(), null);
 
 		TLabel playerHealthLabel = new TLabel();
 		playerHealthLabel.setSize(10, 1);
@@ -76,10 +89,12 @@ public class LevelViewController extends ViewController
 		//getView().add(playerHealth);
 
 		mapView = new MapView();
-		mapView.setSize(level.getWidth(), level.getHeight());
+		//mapView.setSize(level.getWidth(), level.getHeight());
 		mapView.setLevel(level);
 		mapView.setMaskToBounds(true);
 		getView().add(mapView);
+
+		getView().setLayoutManager(new FullSizeSubviewLayout());
 
 		Animation scrollAnimation = new Animation(new AnimationHandler()
 		{
@@ -141,140 +156,105 @@ public class LevelViewController extends ViewController
 			public void keyUp(final TEvent event)
 			{
 				if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveUpKey())
-				{
 					moveUpKeyPressed = false;
-					lastMoveTime = 0;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveLeftKey())
-				{
 					moveLeftKeyPressed = false;
-					lastMoveTime = 0;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveRightKey())
-				{
 					moveRightKeyPressed = false;
-					lastMoveTime = 0;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveDownKey())
-				{
 					moveDownKeyPressed = false;
-					lastMoveTime = 0;
-				}
 			}
 		});
 		getView().requestFirstResponder();
 	}
 
 	@Override
+	public void mapObjectDidMove(final MapObject mapObject)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowAttackPotionOverlay(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowHealthPotionOverlay(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill1Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill1State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill2Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill2State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill3Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill3State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill4Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill4State(final Player player)
+	{
+
+	}
+
+	@Override
 	protected void updateViews(final double time, final double timeDelta)
 	{
 		super.updateViews(time, timeDelta);
+		playerController.update(time);
 
 		if (level == null)
 			return;
 
 		if (moveUpKeyPressed)
-		{
-			if (lastMoveTime == 0)
-				lastMoveTime = (long) (level.getPlayer().getSpeed() * time);
-			long moveTime = (long) (level.getPlayer().getSpeed() * time);
-			long steps    = moveTime - lastMoveTime;
-
-			for (int i = 0; i < steps; i++)
-			{
-				Point     topLeft      = new Point(
-						(int) level.getPlayer().getBounds().getMinX(),
-						level.getPlayer().getBounds().y - 1);
-				Point     topRight     = new Point(
-						(int) level.getPlayer().getBounds().getMaxX(),
-						level.getPlayer().getBounds().y - 1);
-				Rectangle playerBounds = level.getPlayer().getBounds();
-				if (level.getMap().canMoveTo(topLeft))
-				{
-					playerBounds.translate(0, -1);
-					level.getPlayer().setBounds(playerBounds);
-				}
-			}
-			lastMoveTime = moveTime;
-		}
+			playerController.moveUp();
 		else if (moveLeftKeyPressed)
-		{
-			if (lastMoveTime == 0)
-				lastMoveTime = (long) (level.getPlayer().getSpeed() * time);
-			long moveTime = (long) (level.getPlayer().getSpeed() * time);
-			long steps    = moveTime - lastMoveTime;
-
-			for (int i = 0; i < steps; i++)
-			{
-				Point topLeft    = new Point(
-						(int) level.getPlayer().getBounds().getMinX() - 1,
-						level.getPlayer().getBounds().y);
-				Point bottomLeft = new Point(
-						(int) level.getPlayer().getBounds().getMinX() - 1,
-						(int) level.getPlayer().getBounds().getMaxY());
-				if (level.getMap().canMoveTo(topLeft) && level.getMap().canMoveTo(bottomLeft))
-				{
-					Rectangle playerBounds = level.getPlayer().getBounds();
-					playerBounds.translate(-1, 0);
-					level.getPlayer().setBounds(playerBounds);
-					System.out.printf("move player left\n");
-				}
-			}
-			lastMoveTime = moveTime;
-		}
+			playerController.moveLeft();
 		else if (moveRightKeyPressed)
-		{
-			if (lastMoveTime == 0)
-				lastMoveTime = (long) (level.getPlayer().getSpeed() * time);
-			long moveTime = (long) (level.getPlayer().getSpeed() * time);
-			long steps    = moveTime - lastMoveTime;
-
-			for (int i = 0; i < steps; i++)
-			{
-				Point topRight    = new Point(
-						(int) level.getPlayer().getBounds().getMaxX() + 1,
-						level.getPlayer().getBounds().y);
-				Point bottomRight = new Point(
-						(int) level.getPlayer().getBounds().getMaxX() + 1,
-						(int) level.getPlayer().getBounds().getMaxY());
-				if (level.getMap().canMoveTo(bottomRight) && level.getMap().canMoveTo(topRight))
-				{
-					Rectangle playerBounds = level.getPlayer().getBounds();
-					playerBounds.translate(1, 0);
-					level.getPlayer().setBounds(playerBounds);
-					System.out.printf("move player right\n");
-				}
-			}
-			lastMoveTime = moveTime;
-		}
+			playerController.moveRight();
 		else if (moveDownKeyPressed)
-		{
-			if (lastMoveTime == 0)
-				lastMoveTime = (long) (level.getPlayer().getSpeed() * time);
-			long moveTime = (long) (level.getPlayer().getSpeed() * time);
-			long steps    = moveTime - lastMoveTime;
-
-			for (int i = 0; i < steps; i++)
-			{
-				Point bottomLeft  = new Point(
-						(int) level.getPlayer().getBounds().getMinX(),
-						(int) level.getPlayer().getBounds().getMaxY() + 1);
-				Point bottomRight = new Point(
-						(int) level.getPlayer().getBounds().getMaxX(),
-						(int) level.getPlayer().getBounds().getMaxY() + 1);
-				if (level.getMap().canMoveTo(bottomLeft) && level.getMap().canMoveTo(bottomRight))
-				{
-					Rectangle playerBounds = level.getPlayer().getBounds();
-					playerBounds.translate(0, 1);
-					level.getPlayer().setBounds(playerBounds);
-				}
-			}
-			lastMoveTime = moveTime;
-		}
+			playerController.moveDown();
 
 		Point scrollCenter = level.getPlayer().getBounds().getLocation();
-		scrollCenter.translate(getView().getWidth() / 2, getView().getHeight() / 2);
+		scrollCenter.translate(-getView().getWidth() / 2, -getView().getHeight() / 2);
 		mapView.setOffset(scrollCenter);
-		mapView.setPointOfVision(level.getPlayer().getBounds().getLocation());
+		mapView.setPointOfVision(level.getPlayer().getCenter());
 	}
 }

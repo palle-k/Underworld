@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.components;
@@ -91,7 +91,8 @@ public class TFrame extends TBufferedView
 					if (nextResponder != null)
 						nextResponder.requestFirstResponder();
 				}
-			} else
+			}
+			else
 			{
 				TResponder firstResponder = getFirstResponder();
 				if (firstResponder == null)
@@ -127,10 +128,10 @@ public class TFrame extends TBufferedView
 		return new Font("Monospaced", 0, 14);
 	}
 
-	private boolean addedListener;
-	private GameLoop gameLoop;
+	private boolean          addedListener;
+	private GameLoop         gameLoop;
 	private Stack<Rectangle> repaintStack;
-	private SwingTerminal terminal;
+	private SwingTerminal    terminal;
 
 	public TFrame()
 	{
@@ -164,7 +165,9 @@ public class TFrame extends TBufferedView
 		if (underlyingFrame != null)
 		{
 			FontMetrics fontMetrics = underlyingFrame.getGraphics().getFontMetrics(createDefaultNormalFont());
-			underlyingFrame.setSize(fontMetrics.charWidth(' ') * frame.getSize().width, fontMetrics.getHeight() * frame.getSize().height + 22);
+			underlyingFrame.setSize(
+					fontMetrics.charWidth(' ') * frame.getSize().width,
+					fontMetrics.getHeight() * frame.getSize().height + 22);
 		}
 	}
 
@@ -227,7 +230,7 @@ public class TFrame extends TBufferedView
 				while (!repaintStack.isEmpty())
 				{
 					Rectangle dirtyRect = repaintStack.pop();
-					TGraphics g = new TGraphics(terminal, dirtyRect);
+					TGraphics g         = new TGraphics(terminal, dirtyRect);
 					dispatchRepaint(g, dirtyRect);
 					terminal.moveCursor(getWidth(), getHeight());
 				}
@@ -286,7 +289,9 @@ public class TFrame extends TBufferedView
 					@Override
 					protected void paintChildren(final Graphics g)
 					{
-						((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+						((Graphics2D) g).setRenderingHint(
+								RenderingHints.KEY_TEXT_ANTIALIASING,
+								RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 						super.paintChildren(g);
 					}
 				};
@@ -305,7 +310,8 @@ public class TFrame extends TBufferedView
 				@SuppressWarnings("unchecked")
 				Method method = util.getMethod("setWindowCanFullScreen", params);
 				method.invoke(util, getUnderlyingFrame(), true);
-			} catch (Exception e)
+			}
+			catch (Exception e)
 			{
 				//Don't care about exception (fullscreen not supported)
 			}
@@ -315,7 +321,8 @@ public class TFrame extends TBufferedView
 			TResponder nextResponder = getNextResponder();
 			if (nextResponder != null)
 				nextResponder.requestFirstResponder();
-		} else
+		}
+		else
 		{
 			gameLoop.stop();
 		}

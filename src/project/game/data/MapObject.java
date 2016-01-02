@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.game.data;
@@ -32,11 +32,10 @@ import java.util.Properties;
 
 public abstract class MapObject
 {
-	protected Rectangle bounds;
-	protected Color     color;
-	protected String    restingState;
-	private   Runnable  onContact;
-	private   Level     owner;
+	protected Rectangle         bounds;
+	protected Color             color;
+	protected MapObjectDelegate delegate;
+	protected String            restingState;
 
 	protected MapObject(Properties properties)
 	{
@@ -61,26 +60,17 @@ public abstract class MapObject
 	public void setBounds(final Rectangle bounds)
 	{
 		this.bounds = bounds;
+		if (delegate != null)
+			delegate.mapObjectDidMove(this);
 	}
 
-	protected Runnable getOnPlayerContact()
+	protected MapObjectDelegate getDelegate()
 	{
-		return onContact;
+		return delegate;
 	}
 
-	protected Level getOwner()
+	protected void setDelegate(final MapObjectDelegate delegate)
 	{
-		return owner;
+		this.delegate = delegate;
 	}
-
-	protected void setOnPlayerContact(final Runnable onContact)
-	{
-		this.onContact = onContact;
-	}
-
-	protected void setOwner(final Level owner)
-	{
-		this.owner = owner;
-	}
-
 }

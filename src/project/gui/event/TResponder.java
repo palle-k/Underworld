@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
  *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
@@ -31,11 +31,11 @@ import java.util.List;
 public abstract class TResponder
 {
 	private final List<TResponder> subresponders;
-	private boolean allowsFirstResponder;
-	private TEventHandler eventHandler;
-	private boolean isFirstResponder;
-	private boolean isSingleFirstResponder;
-	private TResponder parentResponder;
+	private       boolean          allowsFirstResponder;
+	private       TEventHandler    eventHandler;
+	private       boolean          isFirstResponder;
+	private       boolean          isSingleFirstResponder;
+	private       TResponder       parentResponder;
 
 	protected TResponder()
 	{
@@ -211,7 +211,8 @@ public abstract class TResponder
 		if (parentResponder != null)
 		{
 			parentResponder.childRequestsFirstResponder(child);
-		} else
+		}
+		else
 		{
 			TResponder firstResponder = getFirstResponder();
 			if (firstResponder != null)
