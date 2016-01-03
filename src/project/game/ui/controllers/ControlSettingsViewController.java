@@ -144,10 +144,7 @@ public class ControlSettingsViewController extends ViewController
 
 		TLabel label = new TLabel();
 		label.setSize(54, 7);
-		label.setText("  ___ ___  _  _ _____ ___  ___  _    ___ \n" +
-		              " / __/ _ \\| \\| |_   _| _ \\/ _ \\| |  / __|\n" +
-		              "| (_| (_) | .` | | | |   / (_) | |__\\__ \\\n" +
-		              " \\___\\___/|_|\\_| |_| |_|_\\\\___/|____|___/\n");
+		label.setText(LocalizedString("control_settings_title"));
 		getView().add(label);
 
 		final SettingsState settingsState = SavedGameState.getSavedGameState().getSettingsState();
@@ -217,11 +214,9 @@ public class ControlSettingsViewController extends ViewController
 		buttonGroup.addResponder(back);
 		getView().addResponder(buttonGroup);
 
-		ControlSettingsUpdate labelUpdate = new ControlSettingsUpdate()
+		Runnable labelUpdate = () ->
 		{
-			@Override
-			public void updateKey(final int newValue)
-			{
+
 				moveUp.setText(LocalizedString("control_settings_up") + " (" +
 				               keycodeDescriptions[settingsState.getMoveUpKey() - 32] + ")");
 				moveLeft.setText(LocalizedString("control_settings_left") + " (" +
@@ -244,56 +239,78 @@ public class ControlSettingsViewController extends ViewController
 				                     keycodeDescriptions[settingsState.getHealthPotionKey() - 32] + ")");
 				attackPotion.setText(LocalizedString("control_settings_attack_potion") + " (" +
 				                     keycodeDescriptions[settingsState.getAttackPotionKey() - 32] + ")");
-			}
+
 		};
-		labelUpdate.updateKey(0);
+		labelUpdate.run();
 
 		moveUp.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setMoveUpKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setMoveUpKey(newKey);
+					labelUpdate.run();
+				}));
 		moveLeft.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setMoveLeftKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setMoveLeftKey(newKey);
+					labelUpdate.run();
+				}));
 		moveRight.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setMoveRightKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setMoveRightKey(newKey);
+					labelUpdate.run();
+				}));
 		moveDown.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setMoveDownKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setMoveDownKey(newKey);
+					labelUpdate.run();
+				}));
 
 		baseAttack.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setBaseAttackKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setBaseAttackKey(newKey);
+					labelUpdate.run();
+				}));
 		skill1.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setSkill1Key(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setSkill1Key(newKey);
+					labelUpdate.run();
+				}));
 		skill2.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setSkill2Key(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setSkill2Key(newKey);
+					labelUpdate.run();
+				}));
 		skill3.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setSkill3Key(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setSkill3Key(newKey);
+					labelUpdate.run();
+				}));
 		skill4.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setSkill4Key(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setSkill4Key(newKey);
+					labelUpdate.run();
+				}));
 
 		healthPotion.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setHealthPotionKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setHealthPotionKey(newKey);
+					labelUpdate.run();
+				}));
 		attackPotion.setActionHandler(new ControlSettingsChange(
 				getNavigationController(),
-				(int newKey) -> settingsState.setAttackPotionKey(newKey),
-				labelUpdate));
+				(int newKey) -> {
+					settingsState.setAttackPotionKey(newKey);
+					labelUpdate.run();
+				}));
 
 		VerticalFlowLayout layout = new VerticalFlowLayout();
 		layout.setSpacing(1);

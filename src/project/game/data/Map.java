@@ -25,7 +25,8 @@
 
 package project.game.data;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,10 +145,10 @@ public class Map
 		 */
 		private int distance(Point p1, Point p2)
 		{
-			return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
-			//int dx = p1.x - p2.x;
-			//int dy = p1.y - p2.y;
-			//return (int)Math.sqrt(dx*dx + dy*dy);
+			//return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+			int dx = p1.x - p2.x;
+			int dy = p1.y - p2.y;
+			return (int) Math.sqrt(dx * dx + dy * dy);
 		}
 
 		private Point[] findPath()
@@ -237,6 +238,7 @@ public class Map
 			boolean blockedRight  = false;
 			boolean blockedTop    = false;
 			boolean blockedBottom = false;
+			/*
 			for (int i = 1; i <= width; i++)
 			{
 				if (!blockedLeft && (x - i < 0 || points[x - i][y] > 0))
@@ -259,6 +261,27 @@ public class Map
 				neighbours.add(new Point(x, y - 1));
 			if (!blockedBottom)
 				neighbours.add(new Point(x, y + 1));
+*/
+
+			for (int x2 = 0; x2 < width; x2++)
+				for (int y2 = 0; y2 < height; y2++)
+				{
+					int dx = x - width / 2 + x2;
+					int dy = y - height / 2 + y2;
+					blockedLeft = blockedLeft || dx - 1 < 0 || dx - 1 >= getWidth() || points[dx - 1][y] > 0;
+					blockedRight = blockedRight || dx + 1 < 0 || dx + 1 >= getWidth() || points[dx + 1][y] > 0;
+					blockedTop = blockedTop || dy - 1 < 0 || dy - 1 >= getHeight() || points[x][dy - 1] > 0;
+					blockedBottom = blockedBottom || dy + 1 < 0 || dy + 1 >= getHeight() || points[x][dy + 1] > 0;
+				}
+
+			if (!blockedLeft)
+				neighbours.add(new Point(x - 1, y));
+			if (!blockedRight)
+				neighbours.add(new Point(x + 1, y));
+			if (!blockedTop)
+				neighbours.add(new Point(x, y - 1));
+			if (!blockedBottom)
+				neighbours.add(new Point(x, y + 1));
 
 			return neighbours.toArray(new Point[0]);
 		}
@@ -270,12 +293,12 @@ public class Map
 
 		private void setActorHeight(final int height)
 		{
-			this.height = (Math.max(height, 1) - 1) / 2 + 1;
+			this.height = Math.max(height - 1, 1);
 		}
 
 		private void setActorWidth(final int width)
 		{
-			this.width = (Math.max(width, 1) - 1) / 2 + 1;
+			this.width = Math.max(width - 1, 1);
 		}
 	}
 

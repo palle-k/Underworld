@@ -32,7 +32,8 @@ import project.gui.components.TFrame;
 import project.gui.controller.NavigationController;
 import project.gui.graphics.Appearance;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 public class Underworld
 {

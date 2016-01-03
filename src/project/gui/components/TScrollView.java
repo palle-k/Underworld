@@ -25,7 +25,9 @@
 
 package project.gui.components;
 
-import java.awt.*;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 public class TScrollView extends TComponent
 {

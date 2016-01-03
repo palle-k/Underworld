@@ -30,7 +30,8 @@ import project.game.data.Map;
 import project.game.data.Player;
 import project.gui.dynamics.StepController;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 public class PlayerController
 {

@@ -34,8 +34,20 @@ import project.gui.event.TResponder;
 import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -202,42 +214,37 @@ public class TFrame extends TBufferedView
 				return;
 		}
 		repaintStack.push(dirtyRect);
-		SwingUtilities.invokeLater(new Runnable()
-		{
-			@Override
-			public void run()
+		SwingUtilities.invokeLater(() -> {
+			if (repaintStack.isEmpty())
+				return;
+			//Rectangle dirtyRect = bridge_DirtyRect;
+			//long startTime = System.currentTimeMillis();
+			boolean needsLayout = false;
+			if (frame.width != terminal.getTerminalSize().getColumns())
 			{
-				if (repaintStack.isEmpty())
-					return;
-				//Rectangle dirtyRect = bridge_DirtyRect;
-				//long startTime = System.currentTimeMillis();
-				boolean needsLayout = false;
-				if (frame.width != terminal.getTerminalSize().getColumns())
-				{
-					frame.width = terminal.getTerminalSize().getColumns();
-					needsLayout = true;
-				}
-				if (frame.height != terminal.getTerminalSize().getRows())
-				{
-					frame.height = terminal.getTerminalSize().getRows();
-					needsLayout = true;
-				}
-				if (needsLayout)
-					setNeedsLayout();
-
-				if (!needsDisplay())
-					return;
-				while (!repaintStack.isEmpty())
-				{
-					Rectangle dirtyRect = repaintStack.pop();
-					TGraphics g         = new TGraphics(terminal, dirtyRect);
-					dispatchRepaint(g, dirtyRect);
-					terminal.moveCursor(getWidth(), getHeight());
-				}
-
-				//long endTime = System.currentTimeMillis();
-				//System.out.printf("Rendering time: %dms\n", endTime - startTime);
+				frame.width = terminal.getTerminalSize().getColumns();
+				needsLayout = true;
 			}
+			if (frame.height != terminal.getTerminalSize().getRows())
+			{
+				frame.height = terminal.getTerminalSize().getRows();
+				needsLayout = true;
+			}
+			if (needsLayout)
+				setNeedsLayout();
+
+			if (!needsDisplay())
+				return;
+			while (!repaintStack.isEmpty())
+			{
+				Rectangle dirtyRect1 = repaintStack.pop();
+				TGraphics g          = new TGraphics(terminal, dirtyRect1);
+				dispatchRepaint(g, dirtyRect1);
+				terminal.moveCursor(getWidth(), getHeight());
+			}
+
+			//long endTime = System.currentTimeMillis();
+			//System.out.printf("Rendering time: %dms\n", endTime - startTime);
 		});
 	}
 

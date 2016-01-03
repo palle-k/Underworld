@@ -32,10 +32,10 @@ import project.gui.controller.dialog.SingleKeyInputDialog;
 
 public class ControlSettingsChange implements DialogDelegate, Runnable
 {
-	private NavigationController    navigationController;
-	private ControlSettingsUpdate[] onReturn;
+	private NavigationController  navigationController;
+	private ControlSettingsUpdate onReturn;
 
-	public ControlSettingsChange(NavigationController navigationController, final ControlSettingsUpdate... onReturn)
+	public ControlSettingsChange(NavigationController navigationController, final ControlSettingsUpdate onReturn)
 	{
 		this.navigationController = navigationController;
 		this.onReturn = onReturn;
@@ -52,8 +52,7 @@ public class ControlSettingsChange implements DialogDelegate, Runnable
 	{
 		if (onReturn == null)
 			return;
-		for (ControlSettingsUpdate action : onReturn)
-			action.updateKey(((SingleKeyInputDialog) dialog).getChosenKey());
+		onReturn.updateKey(((SingleKeyInputDialog) dialog).getChosenKey());
 	}
 
 	@Override

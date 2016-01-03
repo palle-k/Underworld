@@ -25,7 +25,7 @@
 
 package project.gui.graphics;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class Appearance
 {

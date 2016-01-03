@@ -25,8 +25,6 @@
 
 package project.gui.dynamics;
 
-import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,23 +63,13 @@ public class GameLoop implements Runnable
 			time = newTime;
 			double updateTime      = time * 0.001;
 			double updateTimeDelta = timeDelta * 0.001;
-			try
-			{
-				SwingUtilities.invokeAndWait(() -> invokeActions(updateTime, updateTimeDelta));
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-			catch (InvocationTargetException e)
-			{
-				e.printStackTrace();
-			}
+			//SwingUtilities.invokeAndWait(() -> invokeActions(updateTime, updateTimeDelta));
+			invokeActions(updateTime, updateTimeDelta);
 			long executionTime = System.currentTimeMillis() - baseTime - time;
-			if (executionTime < 16)
+			if (executionTime < 33)
 				try
 				{
-					Thread.sleep(16 - executionTime);
+					Thread.sleep(33 - executionTime);
 				}
 				catch (InterruptedException e)
 				{
@@ -102,7 +90,7 @@ public class GameLoop implements Runnable
 		running = false;
 	}
 
-	private synchronized void invokeActions(double time, double timeDelta)
+	private void invokeActions(double time, double timeDelta)
 	{
 		for (GameloopAction action : actionList)
 			action.update(time, timeDelta);

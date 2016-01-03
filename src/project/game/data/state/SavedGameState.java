@@ -84,7 +84,7 @@ public class SavedGameState
 		Preferences preferences = Preferences.userRoot().node("com.palleklewitz.Underworld");
 		levelState = new LevelState(preferences);
 		playerState = new PlayerState(preferences);
-		settingsState = new SettingsState(preferences);
+		//not resetting settings state
 	}
 
 	public void save()

@@ -29,6 +29,9 @@ import project.game.data.state.SavedGameState;
 import project.gui.components.TButton;
 import project.gui.components.TLabel;
 import project.gui.controller.ViewController;
+import project.gui.controller.dialog.ConfirmDialog;
+import project.gui.controller.dialog.Dialog;
+import project.gui.controller.dialog.DialogDelegate;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
@@ -53,7 +56,27 @@ public class SettingsViewController extends ViewController
 		TButton resetState = new TButton();
 		resetState.setSize(20, 1);
 		resetState.setText(LocalizedString("settings_menu_reset_game_state"));
-		resetState.setActionHandler(() -> SavedGameState.getSavedGameState().reset());
+		resetState.setActionHandler(() ->
+		                            {
+			                            ConfirmDialog resetConfirmDialog = new ConfirmDialog();
+			                            resetConfirmDialog.setMessage(LocalizedString(
+					                            "settings_menu_reset_game_state_confirmation"));
+			                            resetConfirmDialog.setDelegate(new DialogDelegate()
+			                            {
+				                            @Override
+				                            public void dialogDidCancel(final Dialog dialog)
+				                            {
+
+				                            }
+
+				                            @Override
+				                            public void dialogDidReturn(final Dialog dialog)
+				                            {
+					                            SavedGameState.getSavedGameState().reset();
+				                            }
+			                            });
+			                            getNavigationController().push(resetConfirmDialog);
+		                            });
 		getView().add(resetState);
 
 		TButton setControls = new TButton();

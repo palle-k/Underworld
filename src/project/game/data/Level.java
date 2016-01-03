@@ -25,7 +25,9 @@
 
 package project.game.data;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
@@ -62,7 +64,7 @@ public class Level
 		Point end   = map.getFinish()[0];
 		map.removeFinish();
 		map.removeStart();
-		Point[] path = map.findPath(start, end);
+		Point[] path = map.findPath(start, end, 1, 1);
 		if (path != null)
 		{
 			for (Point p : path)

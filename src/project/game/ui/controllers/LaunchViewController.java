@@ -31,7 +31,7 @@ import project.gui.event.TEvent;
 import project.gui.event.TEventHandler;
 import project.gui.layout.VerticalFlowLayout;
 
-import java.awt.*;
+import java.awt.Color;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 

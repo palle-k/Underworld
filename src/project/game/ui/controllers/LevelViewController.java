@@ -25,25 +25,31 @@
 
 package project.game.ui.controllers;
 
-import project.game.data.*;
+import project.game.data.GameActor;
+import project.game.data.GameActorDelegate;
+import project.game.data.Level;
+import project.game.data.MapObject;
+import project.game.data.MapObjectDelegate;
+import project.game.data.Player;
+import project.game.data.PlayerDelegate;
 import project.game.data.state.SavedGameState;
 import project.game.ui.views.MapView;
+import project.gui.components.TComponent;
 import project.gui.components.TLabel;
 import project.gui.components.TProgressBar;
 import project.gui.controller.ViewController;
-import project.gui.dynamics.animation.Animation;
-import project.gui.dynamics.animation.AnimationHandler;
 import project.gui.event.TEvent;
 import project.gui.event.TEventHandler;
-import project.gui.layout.FullSizeSubviewLayout;
+import project.gui.layout.TLayoutManager;
 
-import java.awt.*;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 public class LevelViewController extends ViewController implements PlayerDelegate, GameActorDelegate, MapObjectDelegate
 {
 	private EnemyController[] enemyControllers;
+	private boolean           initialized;
 	private Level             level;
 	private MapView           mapView;
 	private boolean           moveDownKeyPressed;
@@ -51,6 +57,7 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 	private boolean           moveRightKeyPressed;
 	private boolean           moveUpKeyPressed;
 	private PlayerController  playerController;
+	private TProgressBar      playerHealth;
 
 	@Override
 	public void actorDidChangeState(final GameActor actor)
@@ -64,7 +71,7 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 		super.initializeView();
 		try
 		{
-			level = new Level(Level.class.getResource("levels/level_big_sparse.properties"));
+			level = new Level(Level.class.getResource("levels/level.properties"));
 		}
 		catch (IOException e)
 		{
@@ -72,46 +79,50 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 			return;
 		}
 
-		getView().setOnAnimationUpdate((double time, double timeDelta) -> updateViews(time, timeDelta));
-
 		playerController = new PlayerController(level.getPlayer(), level.getMap(), null);
+
+		TComponent topBar = new TComponent();
+		getView().add(topBar);
 
 		TLabel playerHealthLabel = new TLabel();
 		playerHealthLabel.setSize(10, 1);
 		playerHealthLabel.setText("Health:");
-		//getView().add(playerHealthLabel);
+		topBar.add(playerHealthLabel);
 
-		TProgressBar playerHealth = new TProgressBar();
+		playerHealth = new TProgressBar();
 		playerHealth.setLocation(10, 0);
 		playerHealth.setSize(30, 1);
 		playerHealth.setValue(6.0);
 		playerHealth.setMaxValue(10.0);
-		//getView().add(playerHealth);
+		topBar.add(playerHealth);
 
 		mapView = new MapView();
-		//mapView.setSize(level.getWidth(), level.getHeight());
 		mapView.setLevel(level);
 		mapView.setMaskToBounds(true);
 		getView().add(mapView);
 
-		getView().setLayoutManager(new FullSizeSubviewLayout());
+		TComponent bottomBar = new TComponent();
+		getView().add(bottomBar);
 
-		Animation scrollAnimation = new Animation(new AnimationHandler()
+		getView().setLayoutManager(new TLayoutManager()
 		{
 			@Override
-			public void updateAnimation(final double value)
+			public void layoutComponent(final TComponent component)
 			{
-				mapView.setOffset(new Point(
-						level.getPath()[(int) value].x - getView().getWidth() / 2,
-						level.getPath()[(int) value].y - getView().getHeight() / 2));
-				mapView.setPointOfVision(level.getPath()[(int) value]);
+				TComponent[] children = component.getChildren();
+				if (children.length != 3)
+					throw new RuntimeException("Layout must have 3 children.");
+				int height    = component.getHeight();
+				int width     = component.getWidth();
+				int barHeight = height / 10;
+				children[0].setLocation(0, 0);
+				children[0].setSize(width, barHeight);
+				children[1].setLocation(0, barHeight);
+				children[1].setSize(width, height - 2 * barHeight - 1);
+				children[2].setLocation(0, height - barHeight - 1);
+				children[2].setSize(width, barHeight);
 			}
 		});
-		scrollAnimation.setFromValue(0);
-		scrollAnimation.setToValue(level.getPath().length - 1);
-		scrollAnimation.setDuration(300);
-		scrollAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
-		//levelView.addAnimation(scrollAnimation);
 
 		getView().setAllowsFirstResponder(true);
 		getView().setEventHandler(new TEventHandler()
@@ -124,29 +135,17 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveUpKey())
 				{
 					moveUpKeyPressed = true;
-					moveLeftKeyPressed = false;
-					moveRightKeyPressed = false;
-					moveDownKeyPressed = false;
 				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveLeftKey())
 				{
-					moveUpKeyPressed = false;
 					moveLeftKeyPressed = true;
-					moveRightKeyPressed = false;
-					moveDownKeyPressed = false;
 				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveRightKey())
 				{
-					moveUpKeyPressed = false;
-					moveLeftKeyPressed = false;
 					moveRightKeyPressed = true;
-					moveDownKeyPressed = false;
 				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveDownKey())
 				{
-					moveUpKeyPressed = false;
-					moveLeftKeyPressed = false;
-					moveRightKeyPressed = false;
 					moveDownKeyPressed = true;
 				}
 
@@ -166,6 +165,8 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 			}
 		});
 		getView().requestFirstResponder();
+		//getView().setOnAnimationUpdate((double time, double timeDelta) -> updateViews(time, timeDelta));
+		initialized = true;
 	}
 
 	@Override
@@ -238,6 +239,8 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 	protected void updateViews(final double time, final double timeDelta)
 	{
 		super.updateViews(time, timeDelta);
+		if (!initialized)
+			return;
 		playerController.update(time);
 
 		if (level == null)
@@ -245,15 +248,15 @@ public class LevelViewController extends ViewController implements PlayerDelegat
 
 		if (moveUpKeyPressed)
 			playerController.moveUp();
-		else if (moveLeftKeyPressed)
+		if (moveLeftKeyPressed)
 			playerController.moveLeft();
-		else if (moveRightKeyPressed)
+		if (moveRightKeyPressed)
 			playerController.moveRight();
-		else if (moveDownKeyPressed)
+		if (moveDownKeyPressed)
 			playerController.moveDown();
 
 		Point scrollCenter = level.getPlayer().getBounds().getLocation();
-		scrollCenter.translate(-getView().getWidth() / 2, -getView().getHeight() / 2);
+		scrollCenter.translate(-mapView.getWidth() / 2, -mapView.getHeight() / 2);
 		mapView.setOffset(scrollCenter);
 		mapView.setPointOfVision(level.getPlayer().getCenter());
 	}

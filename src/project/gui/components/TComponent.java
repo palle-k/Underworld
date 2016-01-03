@@ -32,7 +32,10 @@ import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 import project.gui.layout.TLayoutManager;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 

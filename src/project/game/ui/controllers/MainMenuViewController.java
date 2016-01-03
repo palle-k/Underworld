@@ -36,7 +36,7 @@ import project.gui.dynamics.animation.AnimationHandler;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
-import java.awt.*;
+import java.awt.Color;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 

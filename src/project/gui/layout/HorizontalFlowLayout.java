@@ -27,7 +27,7 @@ package project.gui.layout;
 
 import project.gui.components.TComponent;
 
-import java.awt.*;
+import java.awt.Insets;
 
 /**
  * Created by Palle on 25.12.15.

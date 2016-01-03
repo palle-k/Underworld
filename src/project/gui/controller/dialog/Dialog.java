@@ -29,7 +29,7 @@ import project.gui.components.TComponent;
 import project.gui.controller.ViewController;
 import project.gui.layout.VerticalFlowLayout;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class Dialog extends ViewController
 {

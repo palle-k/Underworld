@@ -27,8 +27,8 @@ package project.game.data;
 
 import project.gui.components.TComponent;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Properties;
 
 public class GameActor extends MapObject
@@ -87,31 +87,17 @@ public class GameActor extends MapObject
 		//TODO load attack states and projectiles
 	}
 
+	public void attack(GameActor actor)
+	{
+		makeStateChange(ActorState.ATTACKING);
+	}
+
 	public void decreaseHealth(int damage)
 	{
 		currentHealth -= damage;
 		if (currentHealth < 0)
 			currentHealth = 0;
-		if (delegate != null && delegate instanceof GameActorDelegate)
-		{
-			((GameActorDelegate) delegate).actorDidChangeState(this);
-			GameActor self = this;
-			new Thread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					try
-					{
-						Thread.sleep(200);
-					}
-					catch (InterruptedException e)
-					{
-					}
-					SwingUtilities.invokeLater(() -> ((GameActorDelegate) delegate).actorDidChangeState(self));
-				}
-			}).start();
-		}
+		makeStateChange(ActorState.DEFENDING);
 	}
 
 	public int getAttackDamage()

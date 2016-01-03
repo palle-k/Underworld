@@ -27,7 +27,8 @@ package project.game.data;
 
 import project.gui.components.TComponent;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.util.Properties;
 
 public abstract class MapObject

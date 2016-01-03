@@ -30,12 +30,15 @@ import project.gui.components.TComponent;
 import project.gui.components.TScrollView;
 import project.gui.graphics.TGraphics;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 public class MapView extends TScrollView
 {
-	private Level level;
-	private Point visionPoint;
+	private Level       level;
+	private boolean[][] visibility;
+	private Point       visionPoint;
 
 	public void addOverlay(TComponent component)
 	{
@@ -55,24 +58,23 @@ public class MapView extends TScrollView
 	public void setLevel(final Level level)
 	{
 		this.level = level;
+		setNeedsDisplay();
 	}
 
 	public void setPointOfVision(Point point)
 	{
 		this.visionPoint = point;
-		//setNeedsDisplay();
+		if (visionPoint != null)
+			visibility = level.getMap()
+					.getVisiblePoints(
+							new Rectangle(getOffset().x, getOffset().y, getWidth(), getHeight()),
+							visionPoint);
 	}
 
 	@Override
 	protected void paintComponent(final TGraphics graphics, Rectangle dirtyRect)
 	{
 		super.paintComponent(graphics, dirtyRect);
-		boolean[][] visibility = null;
-		if (visionPoint != null)
-			visibility = level.getMap()
-					.getVisiblePoints(
-							new Rectangle(getOffset().x, getOffset().y, getWidth(), getHeight()),
-							visionPoint);
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++)
 			{
@@ -84,18 +86,18 @@ public class MapView extends TScrollView
 				else
 				{
 					int pixel = level.getPixel(x + getOffset().x, y + getOffset().y);
-					/*if (pixel == -1)
-						graphics.setPoint(x, y, null, Color.GREEN, ' ');
-					*/
-					if (pixel < 1 && (visibility == null || visibility[x][y]))
+					if (pixel < 1 &&
+					    (visibility == null || (visibility.length > x && visibility[x].length > y && visibility[x][y])))
 					{
-						graphics.setPoint(x, y, null, Color.WHITE, ' ');
+						if (pixel == -1)
+							graphics.setPoint(x, y, null, Color.GREEN, ' ');
+						else
+							graphics.setPoint(x, y, null, Color.WHITE, ' ');
 					}
 				}
 			}
 		Rectangle playerBounds = new Rectangle(level.getPlayer().getBounds());
 		playerBounds.translate(-getOffset().x, -getOffset().y);
-		graphics.setFillColor(Color.GREEN);
 		graphics.setFillBackground(Color.GREEN);
 		graphics.fillRect(playerBounds);
 	}

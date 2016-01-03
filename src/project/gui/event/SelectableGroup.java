@@ -158,8 +158,11 @@ public class SelectableGroup extends TResponder implements Selectable
 	@Override
 	protected void becomeFirstResponder()
 	{
-		super.becomeFirstResponder();
-		selectNext();
+		if (!isFirstResponder())
+		{
+			super.becomeFirstResponder();
+			selectNext();
+		}
 	}
 
 	@Override

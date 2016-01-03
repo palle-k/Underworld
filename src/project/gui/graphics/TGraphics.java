@@ -28,7 +28,8 @@ package project.gui.graphics;
 import com.googlecode.lanterna.terminal.Terminal;
 import project.gui.components.TBufferedView;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.geom.GeneralPath;
 
 public class TGraphics

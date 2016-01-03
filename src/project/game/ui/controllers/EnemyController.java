@@ -30,7 +30,7 @@ import project.game.data.Map;
 import project.game.data.Player;
 import project.gui.dynamics.StepController;
 
-import java.awt.*;
+import java.awt.Point;
 
 public class EnemyController
 {
@@ -141,6 +141,7 @@ public class EnemyController
 					int damage = enemy.getAttackDamage() +
 					             (int) (Math.random() * enemy.getAttackDamageVariation() -
 					                    0.5 * enemy.getAttackDamageVariation());
+					enemy.attack(player);
 					player.decreaseHealth(damage);
 				}
 		}

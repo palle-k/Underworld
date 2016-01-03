@@ -30,7 +30,8 @@ import project.gui.components.TTextField;
 import project.gui.event.TEvent;
 import project.gui.event.TEventHandler;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
 public class InputDialog extends Dialog
@@ -48,7 +49,6 @@ public class InputDialog extends Dialog
 	public void initializeView()
 	{
 		super.initializeView();
-
 
 		inputMessageLabel = new TLabel();
 		inputMessageLabel.setFrame(new Rectangle(2, 2, 46, 2));
@@ -79,14 +79,12 @@ public class InputDialog extends Dialog
 			{
 				if (event.getKey() == KeyEvent.VK_ENTER)
 				{
-					System.out.printf("Enter\n");
 					getNavigationController().pop();
 					if (getDelegate() != null)
 						getDelegate().dialogDidReturn(self);
 				}
 				else if (event.getKey() == KeyEvent.VK_ESCAPE)
 				{
-					System.out.printf("Escape\n");
 					getNavigationController().pop();
 					if (getDelegate() != null)
 						getDelegate().dialogDidCancel(self);

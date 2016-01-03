@@ -27,7 +27,9 @@ package project.gui.components;
 
 import project.gui.graphics.TGraphics;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 public class TBufferedView extends TComponent
 {

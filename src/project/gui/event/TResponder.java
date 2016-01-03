@@ -174,6 +174,8 @@ public abstract class TResponder
 	public void setSingleFirstResponder(final boolean singleFirstResponder)
 	{
 		isSingleFirstResponder = singleFirstResponder;
+		if (isFirstResponder)
+			requestFirstResponder();
 	}
 
 	protected void becomeFirstResponder()
