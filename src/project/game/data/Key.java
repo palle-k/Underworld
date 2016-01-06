@@ -27,21 +27,22 @@ package project.game.data;
 
 import project.gui.components.TComponent;
 
-import java.awt.Rectangle;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Properties;
 
-public class Key extends MapObject
+public class Key extends MapObject implements Serializable
 {
-
-	protected Key()
+	public static Key makeKey() throws IOException
 	{
-		super(null);
-		//super(new String[]{ "/^\\____\n\\_>-vvv" });
+		Properties properties = new Properties();
+		properties.load(Key.class.getResourceAsStream("objects/Key.properties"));
+		return new Key(properties);
 	}
 
-	@Override
-	public Rectangle getBounds()
+	protected Key(Properties properties)
 	{
-		return null;
+		super(properties);
 	}
 
 	@Override

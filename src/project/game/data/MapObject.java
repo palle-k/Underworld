@@ -29,13 +29,14 @@ import project.gui.components.TComponent;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.Properties;
 
-public abstract class MapObject
+public abstract class MapObject implements Serializable
 {
 	protected Rectangle         bounds;
 	protected Color             color;
-	protected MapObjectDelegate delegate;
+	protected transient MapObjectDelegate delegate;
 	protected String            restingState;
 
 	protected MapObject(Properties properties)
@@ -53,24 +54,36 @@ public abstract class MapObject
 
 	public Rectangle getBounds()
 	{
-		return bounds;
+		return new Rectangle(bounds);
+	}
+
+	public Color getColor()
+	{
+		return color;
+	}
+
+	public MapObjectDelegate getDelegate()
+	{
+		return delegate;
+	}
+
+	public String getRestingState()
+	{
+		return restingState;
 	}
 
 	public abstract TComponent getView();
 
 	public void setBounds(final Rectangle bounds)
 	{
+		if (this.bounds.equals(bounds))
+			return;
 		this.bounds = bounds;
 		if (delegate != null)
 			delegate.mapObjectDidMove(this);
 	}
 
-	protected MapObjectDelegate getDelegate()
-	{
-		return delegate;
-	}
-
-	protected void setDelegate(final MapObjectDelegate delegate)
+	public void setDelegate(final MapObjectDelegate delegate)
 	{
 		this.delegate = delegate;
 	}

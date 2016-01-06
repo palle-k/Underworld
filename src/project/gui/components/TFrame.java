@@ -53,7 +53,6 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Stack;
 
 public class TFrame extends TBufferedView
@@ -75,14 +74,7 @@ public class TFrame extends TBufferedView
 		@Override
 		public void componentResized(ComponentEvent e)
 		{
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					setNeedsDisplay(null);
-				}
-			});
+			SwingUtilities.invokeLater(() -> setNeedsDisplay(null));
 		}
 
 		@Override
@@ -133,17 +125,17 @@ public class TFrame extends TBufferedView
 
 	private static Font createDefaultNormalFont()
 	{
-		if (System.getProperty("os.name", "").toLowerCase().indexOf("win") >= 0)
+		if (System.getProperty("os.name", "").toLowerCase().contains("win"))
 		{
 			return new Font("Courier New", 0, 14);
 		}
 		return new Font("Monospaced", 0, 14);
 	}
 
-	private boolean          addedListener;
-	private GameLoop         gameLoop;
+	private boolean         addedListener;
+	private GameLoop        gameLoop;
 	private Stack<Rectangle> repaintStack;
-	private SwingTerminal    terminal;
+	private SwingTerminal   terminal;
 
 	public TFrame()
 	{
@@ -195,6 +187,8 @@ public class TFrame extends TBufferedView
 	{
 		if (terminal == null || getUnderlyingFrame() == null)
 			return;
+		if (dirtyRect != null && dirtyRect.isEmpty())
+			return;
 		super.setNeedsDisplay(dirtyRect);
 		if (dirtyRect == null)
 		{
@@ -202,7 +196,7 @@ public class TFrame extends TBufferedView
 			//clearFramebuffer();
 			dirtyRect = new Rectangle(0, 0, getWidth(), getHeight());
 		}
-		Iterator<Rectangle> dirtyRectIterator = repaintStack.iterator();
+		/*Iterator<Rectangle> dirtyRectIterator = repaintStack.iterator();
 		while (dirtyRectIterator.hasNext())
 		{
 			Rectangle next = dirtyRectIterator.next();
@@ -212,8 +206,22 @@ public class TFrame extends TBufferedView
 				return;
 			else if (next.equals(dirtyRect))
 				return;
+		}*/
+		for (int i = 0; i < repaintStack.size(); i++)
+		{
+			Rectangle next = repaintStack.get(i);
+			if (dirtyRect.contains(next))
+			{
+				repaintStack.remove(i);
+				i--;
+			}
+			else if (next.contains(dirtyRect))
+				return;
+			else if (next.equals(dirtyRect))
+				return;
 		}
-		repaintStack.push(dirtyRect);
+
+		repaintStack.add(dirtyRect);
 		SwingUtilities.invokeLater(() -> {
 			if (repaintStack.isEmpty())
 				return;
@@ -284,7 +292,7 @@ public class TFrame extends TBufferedView
 				getUnderlyingFrame().addComponentListener(listener);
 				getUnderlyingFrame().addKeyListener(listener);
 				gameLoop = new GameLoop();
-				gameLoop.addAction((double time, double timeDelta) -> updateAnimations(time, timeDelta));
+				gameLoop.addAction(this::updateAnimations);
 				gameLoop.start();
 				addedListener = true;
 

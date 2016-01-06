@@ -39,7 +39,7 @@ public class LaunchViewController extends ViewController
 {
 
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -47,8 +47,6 @@ public class LaunchViewController extends ViewController
 		layout.setSpacing(5);
 		layout.setLayoutInsets(10, 0, 0, 0);
 		getView().setLayoutManager(layout);
-
-		Color backgroundColor = new Color(30, 30, 30);
 
 		TLabel label = new TLabel();
 		label.setSize(64, 8);

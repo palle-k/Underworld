@@ -26,16 +26,21 @@
 package project.game.ui.controllers;
 
 import project.game.data.Enemy;
+import project.game.data.GameActor;
+import project.game.data.GameActorDelegate;
 import project.game.data.Map;
+import project.game.data.MapObject;
 import project.game.data.Player;
+import project.gui.components.TLabel;
 import project.gui.dynamics.StepController;
 
 import java.awt.Point;
 
-public class EnemyController
+public class EnemyController implements GameActorDelegate
 {
 	private StepController attackController;
 	private Enemy          enemy;
+	private TLabel         enemyLabel;
 	private boolean        following;
 	private Point          lastCheckPoint;
 	/*
@@ -49,19 +54,52 @@ public class EnemyController
 	private long           requiredDistance;
 	//private long    requiredTravelDistance;
 
-	public EnemyController(final Enemy enemy, final Map map, final Player player)
+	public EnemyController(final Enemy enemy, final Map map, final Player player, final TLabel enemyLabel)
 	{
 		this.enemy = enemy;
 		this.map = map;
 		this.player = player;
+		this.enemyLabel = enemyLabel;
+		enemy.setDelegate(this);
 		movementController = new StepController(enemy.getSpeed());
 		attackController = new StepController(enemy.getAttackRate());
+		movementController.start();
+		attackController.start();
+	}
+
+	@Override
+	public void actorDidChangeHealth(final GameActor actor)
+	{
+
+	}
+
+	@Override
+	public void actorDidChangeState(final GameActor actor)
+	{
+		if (actor.getState() == GameActor.RESTING)
+			enemyLabel.setText(actor.getRestingState());
+		else if (actor.getState() == GameActor.DEAD)
+			enemyLabel.setText(actor.getDeadState());
+		else if (actor.getState() == GameActor.ATTACKING)
+			enemyLabel.setText(actor.getAttackStates()[0]);
+		else if (actor.getState() == GameActor.DEFENDING)
+			enemyLabel.setText(actor.getDefenseStates()[0]);
+	}
+
+	@Override
+	public void mapObjectDidMove(final MapObject mapObject)
+	{
+		enemyLabel.setFrame(mapObject.getBounds());
 	}
 
 	public void update(double time)
 	{
+		if (!enemy.isAlive())
+			return;
+
 		Point playerCenter = player.getCenter();
 		Point enemyCenter  = enemy.getCenter();
+
 		int   playerDist   = Math.abs(enemyCenter.x - playerCenter.x) + Math.abs(enemyCenter.y - playerCenter.y);
 
 		if (enemy.getSpeed() > 0)
@@ -73,9 +111,9 @@ public class EnemyController
 				boolean recalculateFlag = false;
 				if (path == null)
 				{
-					int travelled = Math.abs(playerCenter.x - lastCheckPoint.x) +
-					                Math.abs(playerCenter.y - lastCheckPoint.y);
-					if (travelled >= requiredDistance)
+					if (lastCheckPoint == null ||
+					    Math.abs(playerCenter.x - lastCheckPoint.x) + Math.abs(playerCenter.y - lastCheckPoint.y) >=
+					    requiredDistance)
 					{
 						if (playerDist > enemy.getVisionRange())
 						{
@@ -88,6 +126,9 @@ public class EnemyController
 				}
 				else if (!pathContains(playerCenter))
 					recalculateFlag = true;
+
+				if (playerDist == 0)
+					recalculateFlag = false;
 
 				if (recalculateFlag)
 				{
@@ -113,7 +154,8 @@ public class EnemyController
 				if (path != null)
 				{
 					int playerIndex = pathIndex(playerCenter);
-					if (playerIndex > enemy.getAttackRange() || !map.canSee(enemyCenter, playerCenter))
+					if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
+					    !map.canSee(enemyCenter, playerCenter))
 					{
 						if (playerIndex > pathIndex)
 						{
@@ -127,6 +169,8 @@ public class EnemyController
 							if (pathIndex < playerIndex)
 								pathIndex = playerIndex;
 						}
+
+						enemy.setCenter(path[pathIndex]);
 					}
 				}
 

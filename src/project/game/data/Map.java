@@ -28,7 +28,6 @@ package project.game.data;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -219,7 +218,7 @@ public class Map
 		{
 			if (isOutOfBounds(point))
 				return new Point[0];
-			List<Point> neighbours = new ArrayList<Point>(4);
+			List<Point> neighbours = new ArrayList<>(4);
 			int         x          = point.x;
 			int         y          = point.y;
 
@@ -322,6 +321,8 @@ public class Map
 
 		private void calculateVisibilty(Point toPoint)
 		{
+			//double dx   = pointOfVision.x - toPoint.x;
+			//double dy   = pointOfVision.y - toPoint.y;
 			double dx   = toPoint.x - pointOfVision.x;
 			double dy   = toPoint.y - pointOfVision.y;
 			double dist = Math.sqrt(dx * dx + dy * dy);
@@ -336,6 +337,8 @@ public class Map
 
 			for (int i = 0; i < dist; i++)
 			{
+				//int x      = (int) (unitDx * i + toPoint.x);
+				//int y      = (int) (unitDy * i + toPoint.y);
 				int x      = (int) (unitDx * i + pointOfVision.x);
 				int y      = (int) (unitDy * i + pointOfVision.y);
 				int arrayX = x - calculationBounds.x;
@@ -347,6 +350,11 @@ public class Map
 				}
 				else
 					visibilityData[arrayX][arrayY] = 2;
+				/*if ((getPoint(x, y) > 0 || visibilityData[arrayX][arrayY] == 1))
+				{
+					interrupted = true;
+					break;
+				}*/
 			}
 			visibilityData[toPoint.x - calculationBounds.x][toPoint.y - calculationBounds.y] = interrupted ? 1 : 2;
 		}
@@ -368,8 +376,9 @@ public class Map
 			return output;
 		}
 	}
-
+	private int horizontalScale;
 	private int[][] points;
+	private int verticalScale;
 
 	public Map(int width, int height)
 	{
@@ -378,14 +387,19 @@ public class Map
 
 	public Map(final int[][] points)
 	{
+		this(points, 1, 1);
+	}
+
+	public Map(final int[][] points, int horizontalScale, int verticalScale)
+	{
 		this.points = points;
+		this.horizontalScale = horizontalScale;
+		this.verticalScale = verticalScale;
 	}
 
 	public boolean canMoveTo(Point point)
 	{
-		if (isOutOfBounds(point))
-			return false;
-		return points[point.x][point.y] <= 0;
+		return !isOutOfBounds(point) && points[point.x][point.y] <= 0;
 	}
 
 	public boolean canMoveTo(Rectangle rectangle)
@@ -396,9 +410,7 @@ public class Map
 		if (!canMoveTo(new Point(right, rectangle.y)))
 			return false;
 		int bottom = rectangle.y + rectangle.height - 1;
-		if (!canMoveTo(new Point(rectangle.x, bottom)))
-			return false;
-		return canMoveTo(new Point(right, bottom));
+		return canMoveTo(new Point(rectangle.x, bottom)) && canMoveTo(new Point(right, bottom));
 	}
 
 	public boolean canSee(Point fromPoint, Point toPoint)
@@ -437,18 +449,14 @@ public class Map
 		return pathFinder.findPath();
 	}
 
-	public Point[] getFinish()
+	public Rectangle[] getDynamicEnemies()
 	{
-		List<Point> ends = new LinkedList<>();
-		for (int x = 0; x < getWidth(); x++)
-		{
-			for (int y = 0; y < getHeight(); y++)
-			{
-				if (points[x][y] == 3)
-					ends.add(new Point(x, y));
-			}
-		}
-		return ends.toArray(new Point[0]);
+		return findFeatures(5);
+	}
+
+	public Rectangle[] getFinish()
+	{
+		return findFeatures(3);
 	}
 
 	public int getHeight()
@@ -459,6 +467,16 @@ public class Map
 			return points[0].length;
 	}
 
+	public int getHorizontalScale()
+	{
+		return horizontalScale;
+	}
+
+	public Rectangle[] getKeys()
+	{
+		return findFeatures(6);
+	}
+
 	public int getPoint(int x, int y)
 	{
 		if (isOutOfBounds(new Point(x, y)))
@@ -467,17 +485,27 @@ public class Map
 			return points[x][y];
 	}
 
-	public Point getStart()
+	public Rectangle getStart()
 	{
-		for (int x = 0; x < getWidth(); x++)
+		for (int x = 0; x < getWidth(); x+=horizontalScale)
 		{
-			for (int y = 0; y < getHeight(); y++)
+			for (int y = 0; y < getHeight(); y+=verticalScale)
 			{
 				if (points[x][y] == 2)
-					return new Point(x, y);
+					return new Rectangle(x, y, horizontalScale, verticalScale);
 			}
 		}
 		return null;
+	}
+
+	public Rectangle[] getStaticEnemies()
+	{
+		return findFeatures(4);
+	}
+
+	public int getVerticalScale()
+	{
+		return verticalScale;
 	}
 
 	public boolean[][] getVisiblePoints(Rectangle inRect, Point fromVisionPoint)
@@ -490,12 +518,7 @@ public class Map
 	{
 		return points.length;
 	}
-
-	public boolean isOutOfBounds(Point p)
-	{
-		return p.x < 0 || p.y < 0 || p.x >= getWidth() || p.y >= getHeight();
-	}
-
+/*
 	public void removeFinish()
 	{
 		for (int x = 0; x < getWidth(); x++)
@@ -519,6 +542,24 @@ public class Map
 			}
 		}
 	}
+*/
+
+	public boolean isOutOfBounds(Point p)
+	{
+		return p.x < 0 || p.y < 0 || p.x >= getWidth() || p.y >= getHeight();
+	}
+
+	public void removeFeatures()
+	{
+		for (int x = 0; x < getWidth(); x++)
+		{
+			for (int y = 0; y < getHeight(); y++)
+			{
+				if (points[x][y] > 1)
+					points[x][y] = 0;
+			}
+		}
+	}
 
 	public void setPoint(int x, int y, int value)
 	{
@@ -526,4 +567,17 @@ public class Map
 			points[x][y] = value;
 	}
 
+	private Rectangle[] findFeatures(int identifier)
+	{
+		List<Rectangle> features = new ArrayList<>();
+		for (int x = 0; x < getWidth(); x+=horizontalScale)
+		{
+			for (int y = 0; y < getHeight(); y+=verticalScale)
+			{
+				if (points[x][y] == identifier)
+					features.add(new Rectangle(x, y, horizontalScale, verticalScale));
+			}
+		}
+		return features.toArray(new Rectangle[features.size()]);
+	}
 }

@@ -54,22 +54,28 @@ public class TBufferedView extends TComponent
 			if (obj instanceof TChar)
 			{
 				TChar other = (TChar) obj;
-				if (character != other.character)
-					return false;
-				if (color == null && other.color != null)
-					return false;
-				if (color != null && other.color == null)
-					return false;
-				if (color != null && other.color != null && !color.equals(other.color))
-					return false;
-				if (backgroundColor == null && other.backgroundColor != null)
-					return false;
-				if (backgroundColor != null && other.backgroundColor == null)
-					return false;
-				return !(backgroundColor != null && other.backgroundColor != null &&
-				         !backgroundColor.equals(other.backgroundColor));
+				return character == other.character && !(color == null && other.color != null) &&
+				       !(color != null && other.color == null) && !(color != null && !color.equals(other.color)) &&
+				       !(backgroundColor == null && other.backgroundColor != null) &&
+				       !(backgroundColor != null && other.backgroundColor == null) &&
+				       !(backgroundColor != null && !backgroundColor.equals(other.backgroundColor));
 			}
 			return super.equals(obj);
+		}
+
+		public Color getBackgroundColor()
+		{
+			return backgroundColor;
+		}
+
+		public char getCharacter()
+		{
+			return character;
+		}
+
+		public Color getColor()
+		{
+			return color;
 		}
 
 		@Override
@@ -109,20 +115,7 @@ public class TBufferedView extends TComponent
 		TGraphics bufferedGraphics = new TGraphics(backBuffer, dirtyRect, getWidth(), getHeight());
 		paintComponent(bufferedGraphics, dirtyRect);
 		resetNeedsDisplay();
-		for (TComponent child : getChildren())
-		{
-			//if (!redrawAll && !child.needsDisplay() && !child.childrenNeedDisplay())
-			//	continue;
-			Rectangle r = new Rectangle(dirtyRect);
-			if (child.masksToBounds())
-			{
-				//if (!r.intersects(child.getFrame()))
-				//	continue;
-				r = r.intersection(child.getFrame());
-			}
-			r.translate(-child.getLocation().x, -child.getLocation().y);
-			child.dispatchRepaint(bufferedGraphics.getChildContext(child.getFrame(), child.masksToBounds()), r);
-		}
+		paintChildren(bufferedGraphics, dirtyRect);
 		updateFramebuffer(graphics);
 	}
 

@@ -26,7 +26,6 @@
 package project.game.ui.views;
 
 import project.game.data.Level;
-import project.gui.components.TComponent;
 import project.gui.components.TScrollView;
 import project.gui.graphics.TGraphics;
 
@@ -38,21 +37,11 @@ public class MapView extends TScrollView
 {
 	private Level       level;
 	private boolean[][] visibility;
-	private Point       visionPoint;
-
-	public void addOverlay(TComponent component)
-	{
-		getContentView().add(component);
-	}
+	private Point visionPoint;
 
 	public Level getLevel()
 	{
 		return level;
-	}
-
-	public void removeOverlay(TComponent component)
-	{
-		getContentView().remove(component);
 	}
 
 	public void setLevel(final Level level)
@@ -63,12 +52,22 @@ public class MapView extends TScrollView
 
 	public void setPointOfVision(Point point)
 	{
-		this.visionPoint = point;
-		if (visionPoint != null)
+		if (point != null)
+		{
 			visibility = level.getMap()
 					.getVisiblePoints(
 							new Rectangle(getOffset().x, getOffset().y, getWidth(), getHeight()),
-							visionPoint);
+							point);
+			visionPoint = point;
+		}
+	}
+
+	@Override
+	protected void paintChildren(final TGraphics graphics, final Rectangle dirtyRect)
+	{
+		graphics.setMask(visibility);
+		super.paintChildren(graphics, dirtyRect);
+		graphics.setMask(null);
 	}
 
 	@Override
@@ -78,12 +77,8 @@ public class MapView extends TScrollView
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++)
 			{
-				if (x + getOffset().x < 0 || x + getOffset().x >= level.getWidth() || y + getOffset().y < 0 ||
-				    y + getOffset().y >= level.getHeight())
-				{
-					//graphics.setPoint(x, y, null, getBackgroundColor(), ' ');
-				}
-				else
+				if (x + getOffset().x >= 0 && x + getOffset().x < level.getWidth() && y + getOffset().y >= 0 &&
+				    y + getOffset().y < level.getHeight())
 				{
 					int pixel = level.getPixel(x + getOffset().x, y + getOffset().y);
 					if (pixel < 1 &&
@@ -92,13 +87,28 @@ public class MapView extends TScrollView
 						if (pixel == -1)
 							graphics.setPoint(x, y, null, Color.GREEN, ' ');
 						else
-							graphics.setPoint(x, y, null, Color.WHITE, ' ');
+						{
+							Color color;
+							if (visionPoint != null)
+							{
+								int dx = visionPoint.x - (x + getOffset().x);
+								int dy = visionPoint.y - (y + getOffset().y);
+								int value = Math.max(255 - (int) (Math.sqrt(dx * dx / 2 + dy * dy * 9) * 6), 0);
+								color = Color.getHSBColor(0.18f, 0.35f, value / 255.0f);
+							}
+							else
+							{
+								color = Color.BLACK;
+							}
+
+							graphics.setPoint(x, y, null, color, ' ');
+						}
 					}
 				}
+				/*else
+				{
+					//graphics.setPoint(x, y, null, getBackgroundColor(), ' ');
+				}*/
 			}
-		Rectangle playerBounds = new Rectangle(level.getPlayer().getBounds());
-		playerBounds.translate(-getOffset().x, -getOffset().y);
-		graphics.setFillBackground(Color.GREEN);
-		graphics.fillRect(playerBounds);
 	}
 }

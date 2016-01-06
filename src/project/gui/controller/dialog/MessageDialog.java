@@ -23,19 +23,61 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.gui.controller.dialog;
 
-import project.gui.components.TComponent;
+import project.gui.components.TButton;
+import project.gui.components.TLabel;
+import project.gui.event.SelectableGroup;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+
+import static project.game.localization.LocalizedString.LocalizedString;
+
+public class MessageDialog extends Dialog
 {
-	@Override
-	public void layoutComponent(final TComponent component)
+	private String message = "";
+	private TLabel messageLabel;
+
+	public String getMessage()
 	{
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
-		}
+		return message;
+	}
+
+	public void setMessage(final String message)
+	{
+		this.message = message;
+		if (messageLabel != null)
+			messageLabel.setText(message);
+	}
+
+	@Override
+	protected void initializeView()
+	{
+		super.initializeView();
+
+		messageLabel = new TLabel();
+		messageLabel.setFrame(new Rectangle(2, 2, 46, 2));
+		messageLabel.setColor(Color.BLACK);
+		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
+		messageLabel.setText(getMessage());
+		getDialogView().add(messageLabel);
+
+		TButton confirmButton = new TButton();
+		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
+		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
+		confirmButton.setActionHandler(() -> returnDialog());
+		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
+		confirmButton.setDrawsBackground(true);
+		confirmButton.setColor(Color.BLACK);
+		getDialogView().add(confirmButton);
+
+		SelectableGroup buttonGroup = new SelectableGroup();
+		buttonGroup.addResponder(confirmButton);
+		buttonGroup.setBackwardsKey((char) KeyEvent.VK_LEFT);
+		buttonGroup.setForwardsKey((char) KeyEvent.VK_RIGHT);
+		getDialogView().addResponder(buttonGroup);
+		buttonGroup.setSingleFirstResponder(true);
 	}
 }

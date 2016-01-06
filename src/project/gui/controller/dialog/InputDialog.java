@@ -45,8 +45,20 @@ public class InputDialog extends Dialog
 		return inputMessage;
 	}
 
+	public String getResponse()
+	{
+		return response;
+	}
+
+	public void setInputMessage(final String inputMessage)
+	{
+		this.inputMessage = inputMessage;
+		if (inputMessageLabel != null)
+			inputMessageLabel.setText(inputMessage);
+	}
+
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -64,8 +76,6 @@ public class InputDialog extends Dialog
 		inputField.setColor(Color.BLACK);
 		inputField.setSingleFirstResponder(true);
 
-		final InputDialog self = this;
-
 		inputField.setEventHandler(new TEventHandler()
 		{
 			@Override
@@ -79,26 +89,14 @@ public class InputDialog extends Dialog
 			{
 				if (event.getKey() == KeyEvent.VK_ENTER)
 				{
-					getNavigationController().pop();
-					if (getDelegate() != null)
-						getDelegate().dialogDidReturn(self);
+					response = inputField.getText();
+					returnDialog();
 				}
 				else if (event.getKey() == KeyEvent.VK_ESCAPE)
-				{
-					getNavigationController().pop();
-					if (getDelegate() != null)
-						getDelegate().dialogDidCancel(self);
-				}
+					cancelDialog();
 			}
 		});
 		getDialogView().add(inputField);
 		inputField.requestFirstResponder();
-	}
-
-	public void setInputMessage(final String inputMessage)
-	{
-		this.inputMessage = inputMessage;
-		if (inputMessageLabel != null)
-			inputMessageLabel.setText(inputMessage);
 	}
 }

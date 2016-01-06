@@ -1,26 +1,26 @@
 /******************************************************************************
- * Copyright (c) 2015 Palle Klewitz.                                          *
- * *
+ * Copyright (c) 2016 Palle Klewitz.                                          *
+ *                                                                            *
  * Permission is hereby granted, free of charge, to any person obtaining      *
  * a copy of this software and associated documentation files                 *
  * (the "Software"), to deal in the Software without restriction,             *
- * including without limitation the rights to use, copy, modify,             *
- * merge, publish, distribute, sublicense, and/or sell copies of             *
- * the Software, and to permit persons to whom the Software                  *
- * is furnished to do so, subject to the following conditions:               *
- * *
+ *  including without limitation the rights to use, copy, modify,             *
+ *  merge, publish, distribute, sublicense, and/or sell copies of             *
+ *  the Software, and to permit persons to whom the Software                  *
+ *  is furnished to do so, subject to the following conditions:               *
+ *                                                                            *
  * The above copyright notice and this permission notice shall                *
  * be included in all copies or substantial portions of the Software.         *
- * *
+ *                                                                            *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY                         *
- * OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
+ *  OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT                        *
+ *  LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS                     *
+ *  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.                             *
+ *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                        *
+ *  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,                      *
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
+ *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.gui.controller;
@@ -37,6 +37,7 @@ import java.util.List;
 public class PageController extends ViewController
 {
 	private final List<ViewController> viewControllerList;
+	private ViewController currentController;
 	private int currentControllerIndex = 0;
 
 	public PageController(final ViewController parent, final TComponent view)
@@ -65,19 +66,37 @@ public class PageController extends ViewController
 		controller.setParent(this);
 	}
 
+	public boolean hasNext()
+	{
+		return true;
+	}
+
+	public boolean hasPrevious()
+	{
+		return true;
+	}
+
 	public void next()
 	{
+		if (!hasNext())
+		{
+			System.err.printf("Warning: %s has no next page. Ignoring next()-call.\n", this.toString());
+			return;
+		}
 		hideCurrentPage();
-		currentControllerIndex = (currentControllerIndex + 1) % viewControllerList.size();
+		currentController = getNextPage();
 		showCurrentPage();
 	}
 
 	public void previous()
 	{
+		if (!hasPrevious())
+		{
+			System.err.printf("Warning: %s has no previous page. Ignoring previous()-call.\n", this.toString());
+			return;
+		}
 		hideCurrentPage();
-		if (currentControllerIndex <= 0)
-			currentControllerIndex = viewControllerList.size();
-		currentControllerIndex--;
+		currentController = getPreviousPage();
 		showCurrentPage();
 	}
 
@@ -91,6 +110,8 @@ public class PageController extends ViewController
 	public void viewDidAppear()
 	{
 		super.viewDidAppear();
+		if (currentController == null)
+			currentController = getNextPage();
 		showCurrentPage();
 	}
 
@@ -101,21 +122,35 @@ public class PageController extends ViewController
 		hideCurrentPage();
 	}
 
+	protected ViewController getNextPage()
+	{
+		if (currentController == null)
+			currentControllerIndex--;
+		currentControllerIndex = (currentControllerIndex + 1) % viewControllerList.size();
+		return viewControllerList.get(currentControllerIndex);
+	}
+
+	protected ViewController getPreviousPage()
+	{
+		if (currentControllerIndex <= 0)
+			currentControllerIndex = viewControllerList.size();
+		currentControllerIndex--;
+		return viewControllerList.get(currentControllerIndex);
+	}
+
 	private void hideCurrentPage()
 	{
-		if (currentControllerIndex >= 0 && currentControllerIndex < viewControllerList.size())
-		{
-			getView().remove(viewControllerList.get(currentControllerIndex).getView());
-			viewControllerList.get(currentControllerIndex).viewDidDisappear();
-		}
+		if (currentController == null)
+			return;
+		getView().remove(currentController.getView());
+		currentController.viewDidDisappear();
 	}
 
 	private void showCurrentPage()
 	{
-		if (currentControllerIndex >= 0 && currentControllerIndex < viewControllerList.size())
-		{
-			getView().add(viewControllerList.get(currentControllerIndex).getView());
-			viewControllerList.get(currentControllerIndex).viewDidAppear();
-		}
+		if (currentController == null)
+			return;
+		getView().add(currentController.getView());
+		currentController.viewDidAppear();
 	}
 }

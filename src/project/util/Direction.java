@@ -23,19 +23,12 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.util;
 
-import project.gui.components.TComponent;
-
-public class FullSizeSubviewLayout implements TLayoutManager
+public enum Direction
 {
-	@Override
-	public void layoutComponent(final TComponent component)
-	{
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
-		}
-	}
+	UP,
+	LEFT,
+	DOWN,
+	RIGHT
 }

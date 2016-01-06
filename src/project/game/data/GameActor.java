@@ -26,12 +26,14 @@
 package project.game.data;
 
 import project.gui.components.TComponent;
+import project.util.Direction;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.Properties;
 
-public class GameActor extends MapObject
+public abstract class GameActor extends MapObject implements Serializable
 {
 	private enum ActorState
 	{
@@ -45,23 +47,25 @@ public class GameActor extends MapObject
 	public static final ActorState DEAD      = ActorState.DEAD;
 	public static final ActorState DEFENDING = ActorState.DEFENDING;
 	public static final ActorState RESTING   = ActorState.RESTING;
-	protected int        attackDamage;
-	protected String[]   attackLayers;
-	protected String[]   attackProjectiles;
-	protected int        attackRate;
-	protected String[]   attackStates;
-	protected int        currentHealth;
-	protected String     deadState;
-	protected String[]   defenseStates;
-	protected int        healthRegeneration;
-	protected int        maxHealth;
-	protected String[]   movingStates;
-	protected int        speed;
-	private   int        attackDamageVariation;
-	private   int        attackRange;
-	private   ActorState state;
-	private   long       stateCounter;
-	private   int        visionRange;
+
+	protected         int        attackDamage;
+	protected         String[]   attackLayers;
+	protected         String[]   attackProjectiles;
+	protected         int        attackRate;
+	protected         String[]   attackStates;
+	protected         int        currentHealth;
+	protected         String     deadState;
+	protected         String[]   defenseStates;
+	protected         int        healthRegeneration;
+	protected         int        maxHealth;
+	protected         String[]   movingStates;
+	protected         int        speed;
+	private           int        attackDamageVariation;
+	private           int        attackRange;
+	private           boolean    directionDependentProjectiles;
+	private           int        projectilesPerDirection;
+	private           ActorState state;
+	private transient long       stateCounter;
 
 	protected GameActor(Properties properties)
 	{
@@ -81,8 +85,52 @@ public class GameActor extends MapObject
 
 		attackRate = Integer.parseInt(properties.getProperty("attack_rate"));
 		attackDamage = Integer.parseInt(properties.getProperty("attack_damage"));
+		attackRange = Integer.parseInt(properties.getProperty("attack_range"));
 		maxHealth = Integer.parseInt(properties.getProperty("max_health"));
+		currentHealth = maxHealth;
 		healthRegeneration = Integer.parseInt(properties.getProperty("health_regeneration"));
+		attackDamageVariation = Integer.parseInt(properties.getProperty("attack_damage_variation"));
+		
+		boolean useProjectiles = Boolean.parseBoolean(properties.getProperty("base_attack_objects", "false"));
+		if (useProjectiles)
+		{
+			directionDependentProjectiles = Boolean.parseBoolean(properties.getProperty(
+					"base_attack_direction_dependent",
+					"false"));
+			projectilesPerDirection = Integer.parseInt(properties.getProperty(
+					"base_attack_objects_per_direction",
+					"1"));
+
+			attackProjectiles = new String[projectilesPerDirection * (directionDependentProjectiles ? 4 : 1)];
+
+			if (directionDependentProjectiles)
+			{
+				for (int i = 0; i < projectilesPerDirection; i++)
+				{
+					String upName     = "base_attack_obj_up_" + (i + 1);
+					String leftName   = "base_attack_obj_left_" + (i + 1);
+					String downName   = "base_attack_obj_down_" + (i + 1);
+					String rightName  = "base_attack_obj_right_" + (i + 1);
+					String upValue    = properties.getProperty(upName);
+					String leftValue  = properties.getProperty(leftName);
+					String downValue  = properties.getProperty(downName);
+					String rightValue = properties.getProperty(rightName);
+					attackProjectiles[i] = upValue;
+					attackProjectiles[i + projectilesPerDirection] = leftValue;
+					attackProjectiles[i + projectilesPerDirection * 2] = downValue;
+					attackProjectiles[i + projectilesPerDirection * 3] = rightValue;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < projectilesPerDirection; i++)
+				{
+					String pName  = "base_attack_obj_" + (i + 1);
+					String pValue = properties.getProperty(pName);
+					attackProjectiles[i] = pValue;
+				}
+			}
+		}
 
 		//TODO load attack states and projectiles
 	}
@@ -98,6 +146,8 @@ public class GameActor extends MapObject
 		if (currentHealth < 0)
 			currentHealth = 0;
 		makeStateChange(ActorState.DEFENDING);
+		if (delegate instanceof GameActorDelegate)
+			((GameActorDelegate) delegate).actorDidChangeHealth(this);
 	}
 
 	public int getAttackDamage()
@@ -115,9 +165,16 @@ public class GameActor extends MapObject
 		return attackLayers;
 	}
 
-	public String[] getAttackProjectiles()
+	public String[] getAttackProjectilesForDirection(Direction direction)
 	{
-		return attackProjectiles;
+		String[] projectiles = new String[projectilesPerDirection];
+		System.arraycopy(
+				attackProjectiles,
+				directionDependentProjectiles ? direction.ordinal() * projectilesPerDirection : 0,
+				projectiles,
+				0,
+				projectilesPerDirection);
+		return projectiles;
 	}
 
 	public int getAttackRange()
@@ -145,6 +202,23 @@ public class GameActor extends MapObject
 		return currentHealth;
 	}
 
+	public String getDeadState()
+	{
+		return deadState;
+	}
+
+	public String[] getDefenseStates()
+	{
+		return defenseStates;
+	}
+
+	public abstract int getLevel();
+
+	public int getMaxHealth()
+	{
+		return maxHealth;
+	}
+
 	public int getSpeed()
 	{
 		return speed;
@@ -161,11 +235,6 @@ public class GameActor extends MapObject
 		return null;
 	}
 
-	public int getVisionRange()
-	{
-		return visionRange;
-	}
-
 	public boolean isAlive()
 	{
 		return currentHealth > 0;
@@ -176,6 +245,8 @@ public class GameActor extends MapObject
 		currentHealth += additionalHealth;
 		if (currentHealth > maxHealth)
 			currentHealth = maxHealth;
+		if (delegate instanceof GameActorDelegate)
+			((GameActorDelegate) delegate).actorDidChangeHealth(this);
 	}
 
 	public void setCenter(Point newCenter)

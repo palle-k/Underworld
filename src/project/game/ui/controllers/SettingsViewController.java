@@ -40,7 +40,7 @@ import static project.game.localization.LocalizedString.LocalizedString;
 public class SettingsViewController extends ViewController
 {
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -73,6 +73,7 @@ public class SettingsViewController extends ViewController
 				                            public void dialogDidReturn(final Dialog dialog)
 				                            {
 					                            SavedGameState.getSavedGameState().reset();
+					                            getNavigationController().pop();
 				                            }
 			                            });
 			                            getNavigationController().push(resetConfirmDialog);

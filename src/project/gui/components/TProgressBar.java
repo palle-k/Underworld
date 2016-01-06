@@ -36,6 +36,7 @@ public class TProgressBar extends TComponent
 {
 	private Color  color;
 	private double maxValue;
+	private double minValue;
 	private double value;
 
 	public TProgressBar()
@@ -55,6 +56,11 @@ public class TProgressBar extends TComponent
 		return maxValue;
 	}
 
+	public double getMinValue()
+	{
+		return minValue;
+	}
+
 	public double getValue()
 	{
 		return value;
@@ -68,12 +74,24 @@ public class TProgressBar extends TComponent
 
 	public void setMaxValue(final double maxValue)
 	{
+		if (this.maxValue == maxValue)
+			return;
 		this.maxValue = maxValue;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+	}
+
+	public void setMinValue(final double minValue)
+	{
+		if (this.minValue == minValue)
+			return;
+		this.minValue = minValue;
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void setValue(final double value)
 	{
+		if (this.value == value)
+			return;
 		this.value = value;
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
@@ -87,7 +105,7 @@ public class TProgressBar extends TComponent
 			graphics.setPoint(0, y, getColor(), getBackgroundColor(), '[');
 			graphics.setPoint(getWidth() - 1, y, getColor(), getBackgroundColor(), ']');
 
-			for (int x = 1; x < value / maxValue * (getWidth() - 3); x++)
+			for (int x = 1; x < (value - minValue) / (maxValue - minValue) * (getWidth() - 3); x++)
 			{
 				graphics.setPoint(x, y, getColor(), getBackgroundColor(), '#');
 			}

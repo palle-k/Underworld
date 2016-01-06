@@ -86,12 +86,12 @@ public abstract class TResponder
 	public TResponder getNextResponder()
 	{
 		boolean foundFirstResponder = false;
-		for (int i = 0; i < subresponders.size(); i++)
+		for (TResponder subresponder : subresponders)
 		{
-			foundFirstResponder |= subresponders.get(i).hasFirstResponder();
+			foundFirstResponder |= subresponder.hasFirstResponder();
 			if (foundFirstResponder)
 			{
-				TResponder nextResponder = subresponders.get(i).getNextResponder();
+				TResponder nextResponder = subresponder.getNextResponder();
 				if (nextResponder != null)
 				{
 					return nextResponder;
@@ -102,9 +102,9 @@ public abstract class TResponder
 			return this;
 		if (!foundFirstResponder)
 		{
-			for (int i = 0; i < subresponders.size(); i++)
+			for (TResponder subresponder : subresponders)
 			{
-				TResponder nextResponder = subresponders.get(i).getNextResponder();
+				TResponder nextResponder = subresponder.getNextResponder();
 				if (nextResponder != null)
 				{
 					return nextResponder;

@@ -26,30 +26,61 @@
 package project.game.ui.controllers;
 
 import project.game.data.Enemy;
+import project.game.data.GameActor;
 import project.game.data.Map;
+import project.game.data.MapObject;
 import project.game.data.Player;
+import project.game.data.PlayerDelegate;
+import project.gui.components.TLabel;
 import project.gui.dynamics.StepController;
 
 import java.awt.Point;
 import java.awt.Rectangle;
 
-public class PlayerController
+public class PlayerController implements PlayerDelegate
 {
-	private StepController attackController;
-	private Enemy[]        enemies;
-	private Map            map;
-	private StepController movementController;
-	private Player         player;
+	private StepController      attackController;
+	private Enemy[]             enemies;
+	private StepController      horizontalMovementController;
+	private LevelViewController mainController;
+	private Map                 map;
+	private Player              player;
+	private TLabel              playerLabel;
+	private StepController      verticalMovementController;
 
-	public PlayerController(final Player player, final Map map, final Enemy[] enemies)
+	public PlayerController(final Player player, final Map map, final Enemy[] enemies, TLabel playerLabel, LevelViewController mainController)
 	{
 		this.player = player;
 		this.map = map;
 		this.enemies = enemies;
-		movementController = new StepController(player.getSpeed());
+		this.playerLabel = playerLabel;
+		this.mainController = mainController;
+		this.player.setDelegate(this);
+		horizontalMovementController = new StepController(player.getSpeed() * 2);
+		verticalMovementController = new StepController(player.getSpeed());
 		attackController = new StepController(player.getAttackRate());
-		movementController.start();
+		horizontalMovementController.start();
+		verticalMovementController.start();
 		attackController.start();
+	}
+
+	@Override
+	public void actorDidChangeHealth(final GameActor actor)
+	{
+		mainController.updatePlayerHealth();
+	}
+
+	@Override
+	public void actorDidChangeState(final GameActor actor)
+	{
+		if (actor.getState() == GameActor.RESTING)
+			playerLabel.setText(actor.getRestingState());
+		else if (actor.getState() == GameActor.DEAD)
+			playerLabel.setText(actor.getDeadState());
+		else if (actor.getState() == GameActor.ATTACKING)
+			playerLabel.setText(actor.getAttackStates()[0]);
+		else if (actor.getState() == GameActor.DEFENDING)
+			playerLabel.setText(actor.getDefenseStates()[0]);
 	}
 
 	public Enemy attackEnemy()
@@ -95,6 +126,12 @@ public class PlayerController
 		return false;
 	}
 
+	@Override
+	public void mapObjectDidMove(final MapObject mapObject)
+	{
+
+	}
+
 	public void moveDown()
 	{
 		move(0, 1);
@@ -115,9 +152,88 @@ public class PlayerController
 		move(0, -1);
 	}
 
+	@Override
+	public void playerDidEarnExperience(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerDidFocusOnEnemy(final Player player, final Enemy enemy)
+	{
+
+	}
+
+	@Override
+	public void playerLevelDidChange(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowAttackPotionOverlay(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowHealthPotionOverlay(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill1Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill1State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill2Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill2State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill3Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill3State(final Player player)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill4Overlay(final Player player, final GameActor target)
+	{
+
+	}
+
+	@Override
+	public void playerShouldShowSkill4State(final Player player)
+	{
+
+	}
+
 	public void update(double time)
 	{
-		movementController.updateTime(time);
+		horizontalMovementController.updateTime(time);
+		verticalMovementController.updateTime(time);
 		attackController.updateTime(time);
 	}
 
@@ -129,17 +245,43 @@ public class PlayerController
 
 	private void move(int dx, int dy)
 	{
-		if (movementController.requiresUpdate())
+		if (horizontalMovementController.requiresUpdate() || verticalMovementController.requiresUpdate())
 		{
-			int       steps        = movementController.getNumberOfSteps();
-			Rectangle playerBounds = new Rectangle(player.getBounds());
-			for (int i = 0; i < steps; i++)
+			int       horizontalSteps = horizontalMovementController.getNumberOfSteps();
+			int       verticalSteps   = verticalMovementController.getNumberOfSteps();
+			Rectangle playerBounds    = new Rectangle(player.getBounds());
+
+			for (int i = 0; i < Math.min(horizontalSteps, verticalSteps); i++)
 			{
 				playerBounds.translate(dx, dy);
 				if (!map.canMoveTo(playerBounds))
 				{
 					playerBounds.translate(-dx, -dy);
 					break;
+				}
+			}
+			if (horizontalSteps > verticalSteps)
+			{
+				for (int i = 0; i < horizontalSteps - verticalSteps; i++)
+				{
+					playerBounds.translate(dx, 0);
+					if (!map.canMoveTo(playerBounds))
+					{
+						playerBounds.translate(-dx, 0);
+						break;
+					}
+				}
+			}
+			else if (verticalSteps > horizontalSteps)
+			{
+				for (int i = 0; i < verticalSteps - horizontalSteps; i++)
+				{
+					playerBounds.translate(0, dy);
+					if (!map.canMoveTo(playerBounds))
+					{
+						playerBounds.translate(0, -dy);
+						break;
+					}
 				}
 			}
 			if (!playerBounds.equals(player.getBounds()))

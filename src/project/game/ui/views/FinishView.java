@@ -23,19 +23,22 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.ui.views;
 
 import project.gui.components.TComponent;
+import project.gui.graphics.TGraphics;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+import java.awt.Color;
+import java.awt.Rectangle;
+
+public class FinishView extends TComponent
 {
 	@Override
-	public void layoutComponent(final TComponent component)
+	protected void paintComponent(final TGraphics graphics, final Rectangle dirtyRect)
 	{
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
-		}
+		super.paintComponent(graphics, dirtyRect);
+		for (int x = 0; x < getWidth(); x++)
+			for (int y = 0; y < getHeight(); y++)
+				graphics.setPoint(x, y, null, (x + y) % 2 == 0 ? Color.GRAY : Color.DARK_GRAY, ' ');
 	}
 }

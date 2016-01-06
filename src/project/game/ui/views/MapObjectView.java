@@ -23,19 +23,11 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.ui.views;
 
-import project.gui.components.TComponent;
+import project.gui.components.TLabel;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+public class MapObjectView extends TLabel
 {
-	@Override
-	public void layoutComponent(final TComponent component)
-	{
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
-		}
-	}
+
 }

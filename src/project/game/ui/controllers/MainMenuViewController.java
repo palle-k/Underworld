@@ -43,7 +43,7 @@ import static project.game.localization.LocalizedString.LocalizedString;
 public class MainMenuViewController extends ViewController
 {
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -61,30 +61,25 @@ public class MainMenuViewController extends ViewController
 		label.setColor(new Color(255, 100, 0));
 		getView().add(label);
 
-		final Animation fireAnimation = new Animation(new AnimationHandler()
-		{
-			@Override
-			public void updateAnimation(final double value)
-			{
-				if (value < 0.5)
-					label.setText("           )  (           (                 )   (    (    (     \n" +
-					              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
-					              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
-					              "    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
-					              " _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
-					              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-					              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-					              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
-				else
-					label.setText("           (  )           )                 (   )    )    )     \n" +
-					              "        ) \\)  (/ (        (/ (  )  )     ) \\)   (/ ( (/ ( (/ (  \n" +
-					              "    )   (/)(())(\\)   )   ))(\\)  (/(()   '(/)(( ))(\\)))(\\)))(\\)  \n" +
-					              "    (/ ))_(/  \\)_((  (/   \\)_(())_()(/ ())_(/   \\)_((\\)_((\\)_(( \n" +
-					              " _ ))_( _))_()_((_  ))_( )_((  _))((/_()( ))_( )_(( )_(( )_((_  \n" +
-					              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-					              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-					              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
-			}
+		final Animation fireAnimation = new Animation((AnimationHandler) value -> {
+			if (value < 0.5)
+				label.setText("           )  (           (                 )   (    (    (     \n" +
+				              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
+				              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
+				              "    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
+				              " _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
+				              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+				              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+				              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
+			else
+				label.setText("           (  )           )                 (   )    )    )     \n" +
+				              "        ) \\)  (/ (        (/ (  )  )     ) \\)   (/ ( (/ ( (/ (  \n" +
+				              "    )   (/)(())(\\)   )   ))(\\)  (/(()   '(/)(( ))(\\)))(\\)))(\\)  \n" +
+				              "    (/ ))_(/  \\)_((  (/   \\)_(())_()(/ ())_(/   \\)_((\\)_((\\)_(( \n" +
+				              " _ ))_( _))_()_((_  ))_( )_((  _))((/_()( ))_( )_(( )_(( )_((_  \n" +
+				              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
+				              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
+				              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
 		});
 		fireAnimation.setDuration(0.5);
 		fireAnimation.setFromValue(0);
@@ -95,19 +90,16 @@ public class MainMenuViewController extends ViewController
 		TButton play = new TButton();
 		play.setSize(20, 1);
 		play.setText(LocalizedString("main_menu_play"));
-		play.setActionHandler(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				PageController gamePages = new PageController(new TComponent());
-				if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
-					gamePages.addController(new ClassChooserController());
-				//if (!SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
-				//	gamePages.addController(new TutorialViewController());
-				gamePages.addController(new LevelViewController());
-				getNavigationController().push(gamePages);
-			}
+		play.setActionHandler(() -> {
+			PageController gamePages = new PageController(new TComponent());
+			if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
+				gamePages.addController(new ClassChooserController());
+			//if (!SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
+			//	gamePages.addController(new TutorialViewController());
+			gamePages.addController(new LevelViewController());
+			getNavigationController().push(gamePages);
+			//LevelCoordinator coordinator = new LevelCoordinator(new TComponent());
+			//getNavigationController().push(coordinator);
 		});
 		getView().add(play);
 
@@ -130,14 +122,7 @@ public class MainMenuViewController extends ViewController
 		TButton quit = new TButton();
 		quit.setSize(20, 1);
 		quit.setText(LocalizedString("main_menu_quit"));
-		quit.setActionHandler(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				getNavigationController().getView().setVisible(false);
-			}
-		});
+		quit.setActionHandler(() -> getNavigationController().getView().setVisible(false));
 		getView().add(quit);
 
 		TLabel navigationHelpLabel = new TLabel();

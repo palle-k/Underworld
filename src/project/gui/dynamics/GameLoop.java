@@ -31,15 +31,12 @@ import java.util.List;
 public class GameLoop implements Runnable
 {
 	private List<GameloopAction> actionList;
-	private long                 baseTime;
-	private Thread               gameloopThread;
 	private boolean              running;
 	private long                 time;
 
 	public GameLoop()
 	{
 		actionList = new ArrayList<>();
-		Class<GameLoop> clazz = GameLoop.class;
 	}
 
 	public synchronized void addAction(GameloopAction action)
@@ -55,7 +52,7 @@ public class GameLoop implements Runnable
 	@Override
 	public void run()
 	{
-		baseTime = System.currentTimeMillis();
+		long baseTime = System.currentTimeMillis();
 		while (running)
 		{
 			long newTime   = System.currentTimeMillis() - baseTime;
@@ -81,7 +78,7 @@ public class GameLoop implements Runnable
 	public void start()
 	{
 		running = true;
-		gameloopThread = new Thread(this);
+		Thread gameloopThread = new Thread(this);
 		gameloopThread.start();
 	}
 

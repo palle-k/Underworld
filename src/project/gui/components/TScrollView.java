@@ -25,6 +25,8 @@
 
 package project.gui.components;
 
+import project.gui.layout.TLayoutManager;
+
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -38,21 +40,43 @@ public class TScrollView extends TComponent
 	public TScrollView()
 	{
 		offset = new Point();
-		contentView = new TBufferedView();
+		contentView = new TComponent();
 		scrollInsets = new Insets(0, 0, 0, 0);
-		add(contentView);
+		super.add(contentView);
 	}
 
 	public TScrollView(TComponent contentView)
 	{
 		this.contentView = contentView;
 		scrollInsets = new Insets(0, 0, 0, 0);
-		add(contentView);
+		super.add(contentView);
 	}
 
-	public TComponent getContentView()
+	@Override
+	public void add(final TComponent child)
 	{
-		return contentView;
+		contentView.add(child);
+		resizeContentView();
+	}
+
+	@Override
+	public void add(final TComponent child, final int index)
+	{
+		contentView.add(child, index);
+		resizeContentView();
+	}
+
+/*
+	@Override
+	public TComponent[] getChildren()
+	{
+		return contentView.getChildren();
+	}
+*/
+	@Override
+	public TLayoutManager getLayoutManager()
+	{
+		return contentView.getLayoutManager();
 	}
 
 	public Point getOffset()
@@ -63,6 +87,26 @@ public class TScrollView extends TComponent
 	public Insets getScrollInsets()
 	{
 		return scrollInsets;
+	}
+
+	@Override
+	public void remove(final TComponent child)
+	{
+		contentView.remove(child);
+		resizeContentView();
+	}
+
+	@Override
+	public void removeAll()
+	{
+		contentView.removeAll();
+		resizeContentView();
+	}
+
+	@Override
+	public void setLayoutManager(final TLayoutManager layoutManager)
+	{
+		contentView.setLayoutManager(layoutManager);
 	}
 
 	public void setOffset(final Point offset)
@@ -81,6 +125,26 @@ public class TScrollView extends TComponent
 
 	public void setScrollInsets(int top, int left, int bottom, int right)
 	{
-		this.scrollInsets = new Insets(top, left, bottom, right);
+		scrollInsets = new Insets(top, left, bottom, right);
+	}
+
+	@Override
+	public void updateAnimations(final double time, final double timeDelta)
+	{
+		super.updateAnimations(time, timeDelta);
+		if (contentView.childrenNeedDisplay())
+			resizeContentView();
+	}
+
+	private void resizeContentView()
+	{
+		int maxX = 0;
+		int maxY = 0;
+		for (TComponent component : contentView.getChildren())
+		{
+			maxX = Math.max(component.getPosX() + component.getWidth(), maxX);
+			maxY = Math.max(component.getPosY() + component.getHeight(), maxY);
+		}
+		contentView.setSize(maxX, maxY);
 	}
 }

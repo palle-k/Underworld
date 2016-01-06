@@ -31,6 +31,7 @@ import project.gui.components.TBufferedView;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
 
 public class TGraphics
 {
@@ -80,6 +81,7 @@ public class TGraphics
 	private TGraphicsState          currentState;
 	private Rectangle               dirtyRect;
 	private int                     height;
+	private boolean[][] mask;
 	private boolean                 maskToBounds;
 	private int                     offsetX;
 	private int                     offsetY;
@@ -188,6 +190,11 @@ public class TGraphics
 		return currentState.fillColor;
 	}
 
+	public boolean[][] getMask()
+	{
+		return mask;
+	}
+
 	public Color getStrokeBackground()
 	{
 		return currentState.strokeBackground;
@@ -229,6 +236,15 @@ public class TGraphics
 				currentState);
 	}
 
+	public TBufferedView.TChar queryPoint(int x, int y)
+	{
+		if (buffer != null)
+			return buffer[x][y];
+		if (parent != null)
+			return parent.queryPoint(x + offsetX, y + offsetY);
+		return null;
+	}
+
 	public void resetState()
 	{
 		currentState.path.reset();
@@ -251,6 +267,11 @@ public class TGraphics
 	public void setFillColor(Color fillColor)
 	{
 		this.currentState.fillColor = fillColor;
+	}
+
+	public void setMask(final boolean[][] mask)
+	{
+		this.mask = mask;
 	}
 
 	public void setPoint(int x, int y, Color color, Color backgroundColor, char c)
@@ -277,6 +298,9 @@ public class TGraphics
 			}
 			if (buffer != null)
 			{
+				TBufferedView.TChar current = queryPoint(x, y);
+				if (backgroundColor == null)
+					backgroundColor = current.getBackgroundColor();
 				buffer[x][y] = new TBufferedView.TChar(c, color, backgroundColor);
 			}
 		}
@@ -299,15 +323,14 @@ public class TGraphics
 
 	public void stroke(char c)
 	{
-		Rectangle bounds = currentState.path.getBounds();
-		boolean   inside = false;
+		/*Rectangle bounds = currentState.path.getBounds();
+		boolean previous = false;
 		for (int y = (int) bounds.getMinY(); y < bounds.getMaxY(); y++)
 		{
 			for (int x = (int) bounds.getMinX(); x < bounds.getMaxX(); x++)
 			{
-				boolean previous = inside;
-				if (currentState.path.contains(x, y))
-					inside = true;
+				//TODO: algorithm false: only horizontal border points are drawn
+				boolean   inside = currentState.path.contains(x, y);
 				if (previous ^ inside)
 					setPoint(
 							x - (inside ? 0 : 1),
@@ -315,6 +338,65 @@ public class TGraphics
 							currentState.strokeColor,
 							currentState.strokeBackground,
 							currentState.strokeChar);
+				previous = inside;
+			}
+		}*/
+		double[] previousCords = null;
+		double[] firstCords = null;
+		loop: for (PathIterator iterator = currentState.path.getPathIterator(null); !iterator.isDone(); iterator.next())
+		{
+			double[] cords = new double[6];
+			int type = iterator.currentSegment(cords);
+			switch (type)
+			{
+				case PathIterator.SEG_MOVETO:
+					previousCords = cords;
+					if (firstCords == null)
+						firstCords = cords;
+					break;
+				case PathIterator.SEG_LINETO:
+					if (previousCords != null)
+					{
+						double dx = previousCords[0] - cords[0];
+						double dy = previousCords[1] - cords[1];
+						double dist = Math.sqrt(dx * dx + dy * dy);
+						dx /= dist;
+						dy /= dist;
+						for (int i = 0; i <= dist; i++)
+						{
+							int x = (int)(dx * i + cords[0]);
+							int y = (int)(dy * i + cords[1]);
+							setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+						}
+					}
+					previousCords = cords;
+					if (firstCords == null)
+						firstCords = cords;
+					break;
+				case PathIterator.SEG_CUBICTO:
+					throw new RuntimeException("Cubic bezier curves not yet implemented");
+				case PathIterator.SEG_QUADTO:
+					throw new RuntimeException("quad bezier curves not yet implemented.");
+				case PathIterator.SEG_CLOSE:
+					if (previousCords != null && firstCords != null)
+					{
+						double dx = previousCords[0] - firstCords[0];
+						double dy = previousCords[1] - firstCords[1];
+						double dist = Math.sqrt(dx * dx + dy * dy);
+						dx /= dist;
+						dy /= dist;
+						for (int i = 0; i <= dist; i++)
+						{
+							int x = (int)(dx * i + firstCords[0]);
+							int y = (int)(dy * i + firstCords[1]);
+							setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+						}
+					}
+					firstCords = null;
+					previousCords = null;
+					break;
+				default:
+					break;
 			}
 		}
 		currentState.path.reset();
@@ -356,14 +438,7 @@ public class TGraphics
 
 	private boolean canDrawAtPoint(int x, int y)
 	{
-		if (dirtyRect != null && !dirtyRect.contains(x, y))
-			return false;
-		if (!maskToBounds)
-			return true;
-		else
-		{
-			return x >= 0 && x < width &&
-			       y >= 0 && y < height;
-		}
+		return !(dirtyRect != null && !dirtyRect.contains(x, y)) &&
+		       (!maskToBounds || x >= 0 && x < width && y >= 0 && y < height) && (mask == null || mask.length <= x || mask[x].length <= y || mask[x][y]);
 	}
 }

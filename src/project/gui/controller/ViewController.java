@@ -82,11 +82,6 @@ public class ViewController
 		return view;
 	}
 
-	public void initializeView()
-	{
-		getView().setOnAnimationUpdate((double time, double timeDelta) -> updateViews(time, timeDelta));
-	}
-
 	public boolean replacesParentViewController()
 	{
 		return replacesParentViewController;
@@ -109,6 +104,11 @@ public class ViewController
 	public void viewDidDisappear()
 	{
 
+	}
+
+	protected void initializeView()
+	{
+		getView().setOnAnimationUpdate(this::updateViews);
 	}
 
 	protected void setParent(final ViewController parent)

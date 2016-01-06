@@ -25,15 +25,38 @@
 
 package project.game.data;
 
-public class Enemy extends GameActor
-{
-	private int earnedExperience; //Earned experience when killing the enemy
-	private int follow_range; //Maximum distance to continue following the player
-	private int speed; //Speed of the enemy (0 for static enemy)
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Properties;
 
-	protected Enemy()
+public class Enemy extends GameActor implements Serializable
+{
+	public static Enemy createDynamic() throws IOException
 	{
-		super(null);
+		Properties properties = new Properties();
+		properties.load(Enemy.class.getResourceAsStream("objects/DynamicEnemy.properties"));
+		return new Enemy(properties);
+	}
+
+	public static Enemy createStatic() throws IOException
+	{
+		Properties properties = new Properties();
+		properties.load(Enemy.class.getResourceAsStream("objects/StaticEnemy.properties"));
+		return new Enemy(properties);
+	}
+	private int    earnedExperience; //Earned experience when killing the enemy
+	private int    follow_range; //Maximum distance to continue following the player
+	private int    level;
+	private String name;
+	private int    visionRange;
+
+	protected Enemy(Properties properties)
+	{
+		super(properties);
+		earnedExperience = Integer.parseInt(properties.getProperty("earned_experience"));
+		follow_range = Integer.parseInt(properties.getProperty("follow_range"));
+		visionRange = Integer.parseInt(properties.getProperty("vision_range"));
+		name = properties.getProperty("name");
 	}
 
 	public int getEarnedExperience()
@@ -46,4 +69,19 @@ public class Enemy extends GameActor
 		return follow_range;
 	}
 
+	@Override
+	public int getLevel()
+	{
+		return level;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public int getVisionRange()
+	{
+		return visionRange;
+	}
 }

@@ -27,6 +27,7 @@ package project.gui.components;
 
 import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
+import project.util.StringUtils;
 
 import java.awt.Color;
 import java.awt.Insets;
@@ -42,7 +43,7 @@ public class TLabel extends TComponent
 	public TLabel()
 	{
 		super();
-		setDrawsBackground(true);
+		setDrawsBackground(false);
 		text = "";
 		textColor = Appearance.defaultTextColor;
 		textInsets = new Insets(0, 0, 0, 0);
@@ -72,8 +73,10 @@ public class TLabel extends TComponent
 	{
 		if (this.text.equals(text))
 			return;
+		Rectangle previous = new Rectangle(new Point(), StringUtils.getStringDimensions(this.text));
 		this.text = text;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		setNeedsDisplay(new Rectangle(new Point(), StringUtils.getStringDimensions(this.text)).union(previous));
+		//setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void setTextInsets(Insets textInsets)

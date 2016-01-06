@@ -35,10 +35,12 @@ public class Dialog extends ViewController
 {
 	private DialogDelegate delegate;
 	private TComponent     dialogView;
+	private boolean popOnEnd;
 
 	public Dialog()
 	{
 		super();
+		popOnEnd = true;
 		setReplacesParentViewController(false);
 	}
 
@@ -47,8 +49,36 @@ public class Dialog extends ViewController
 		return delegate;
 	}
 
+	public boolean popsOnEnd()
+	{
+		return popOnEnd;
+	}
+
+	public void setDelegate(final DialogDelegate delegate)
+	{
+		this.delegate = delegate;
+	}
+
+	public void setPopOnEnd(final boolean popOnEnd)
+	{
+		this.popOnEnd = popOnEnd;
+	}
+
+	protected void cancelDialog()
+	{
+		if (popOnEnd)
+			getNavigationController().pop();
+		if (getDelegate() != null)
+			getDelegate().dialogDidCancel(this);
+	}
+
+	protected TComponent getDialogView()
+	{
+		return dialogView;
+	}
+
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 		dialogView = new TComponent();
@@ -62,13 +92,10 @@ public class Dialog extends ViewController
 		getView().setLayoutManager(new VerticalFlowLayout());
 	}
 
-	public void setDelegate(final DialogDelegate delegate)
+	protected void returnDialog()
 	{
-		this.delegate = delegate;
-	}
-
-	protected TComponent getDialogView()
-	{
-		return dialogView;
+		getNavigationController().pop();
+		if (getDelegate() != null)
+			getDelegate().dialogDidReturn(this);
 	}
 }

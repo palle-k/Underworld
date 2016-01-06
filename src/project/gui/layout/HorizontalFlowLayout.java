@@ -29,9 +29,6 @@ import project.gui.components.TComponent;
 
 import java.awt.Insets;
 
-/**
- * Created by Palle on 25.12.15.
- */
 public class HorizontalFlowLayout implements TLayoutManager
 {
 	private enum HorizontalAlignment

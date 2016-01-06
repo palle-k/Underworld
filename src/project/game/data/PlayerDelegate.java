@@ -27,6 +27,12 @@ package project.game.data;
 
 public interface PlayerDelegate extends GameActorDelegate
 {
+	void playerDidEarnExperience(Player player);
+
+	void playerDidFocusOnEnemy(Player player, Enemy enemy);
+
+	void playerLevelDidChange(Player player);
+
 	void playerShouldShowAttackPotionOverlay(Player player);
 
 	void playerShouldShowHealthPotionOverlay(Player player);

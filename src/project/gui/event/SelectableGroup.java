@@ -94,10 +94,10 @@ public class SelectableGroup extends TResponder implements Selectable
 	@Override
 	public boolean isSelected()
 	{
-		boolean selected = false;
 		for (Selectable selectable : selectables)
-			selected |= selectable.isSelected();
-		return selected;
+			if (selectable.isSelected())
+				return true;
+		return false;
 	}
 
 	@Override
@@ -175,9 +175,9 @@ public class SelectableGroup extends TResponder implements Selectable
 		else
 		{
 			super.keyDown(event);
-			for (Selectable selectable : selectables)
-				if (selectable instanceof SelectableGroup)
-					((SelectableGroup) selectable).keyDown(event);
+			selectables.stream()
+					.filter(selectable -> selectable instanceof SelectableGroup)
+					.forEach(selectable -> ((SelectableGroup) selectable).keyDown(event));
 		}
 	}
 
@@ -192,9 +192,7 @@ public class SelectableGroup extends TResponder implements Selectable
 
 	private void deselectAll()
 	{
-		for (Selectable sel : selectables)
-			if (sel.isSelected())
-				sel.deselect();
+		selectables.stream().filter(Selectable::isSelected).forEach(Selectable::deselect);
 	}
 
 	private int getSelectedIndex()

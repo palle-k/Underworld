@@ -49,8 +49,15 @@ public class SingleKeyInputDialog extends Dialog
 		return inputMessage;
 	}
 
+	public void setInputMessage(final String inputMessage)
+	{
+		this.inputMessage = inputMessage;
+		if (messageLabel != null)
+			messageLabel.setText(inputMessage);
+	}
+
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -59,8 +66,6 @@ public class SingleKeyInputDialog extends Dialog
 		messageLabel.setFrame(new Rectangle(2, 2, 46, 4));
 		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
 		getDialogView().add(messageLabel);
-
-		SingleKeyInputDialog self = this;
 
 		getDialogView().setAllowsFirstResponder(true);
 		getDialogView().requestFirstResponder();
@@ -77,26 +82,13 @@ public class SingleKeyInputDialog extends Dialog
 			public void keyUp(final TEvent event)
 			{
 				if (event.getKey() == KeyEvent.VK_ESCAPE)
-				{
-					getNavigationController().pop();
-					if (getDelegate() != null)
-						getDelegate().dialogDidCancel(self);
-				}
+					cancelDialog();
 				else if (event.getKey() != KeyEvent.VK_ENTER && event.getKey() >= 0x20 && event.getKey() < 128)
 				{
 					chosenKey = event.getKey();
-					getNavigationController().pop();
-					if (getDelegate() != null)
-						getDelegate().dialogDidReturn(self);
+					returnDialog();
 				}
 			}
 		});
-	}
-
-	public void setInputMessage(final String inputMessage)
-	{
-		this.inputMessage = inputMessage;
-		if (messageLabel != null)
-			messageLabel.setText(inputMessage);
 	}
 }

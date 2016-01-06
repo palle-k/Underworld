@@ -40,7 +40,7 @@ import java.awt.event.KeyEvent;
 public class ClassChooserController extends ViewController
 {
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 
@@ -69,14 +69,9 @@ public class ClassChooserController extends ViewController
 		TButton swordButton = new TButton();
 		swordButton.setText("Knight");
 		swordButton.setSize(10, 1);
-		swordButton.setActionHandler(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.KNIGHT);
-				getPageController().next();
-			}
+		swordButton.setActionHandler(() -> {
+			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.KNIGHT);
+			getPageController().next();
 		});
 
 		TComponent swordContainer = new TComponent();
@@ -99,14 +94,9 @@ public class ClassChooserController extends ViewController
 		TButton bowButton = new TButton();
 		bowButton.setText("Hunter");
 		bowButton.setSize(10, 1);
-		bowButton.setActionHandler(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.HUNTER);
-				getPageController().next();
-			}
+		bowButton.setActionHandler(() -> {
+			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.HUNTER);
+			getPageController().next();
 		});
 
 		TComponent bowContainer = new TComponent();
@@ -130,14 +120,9 @@ public class ClassChooserController extends ViewController
 		TButton wandButton = new TButton();
 		wandButton.setText("Wizard");
 		wandButton.setSize(10, 1);
-		wandButton.setActionHandler(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.WIZARD);
-				getPageController().next();
-			}
+		wandButton.setActionHandler(() -> {
+			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.WIZARD);
+			getPageController().next();
 		});
 
 		TComponent wandContainer = new TComponent();

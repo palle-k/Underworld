@@ -27,5 +27,7 @@ package project.game.data;
 
 public interface GameActorDelegate extends MapObjectDelegate
 {
+	void actorDidChangeHealth(GameActor actor);
+
 	void actorDidChangeState(GameActor actor);
 }

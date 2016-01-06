@@ -39,107 +39,7 @@ public class ConfirmDialog extends Dialog
 {
 	private String message = "";
 	private TLabel messageLabel;
-
-	@Override
-	public void initializeView()
-	{
-		super.initializeView();
-		Dialog self = this;
-
-		messageLabel = new TLabel();
-		messageLabel.setFrame(new Rectangle(2, 2, 46, 2));
-		messageLabel.setColor(Color.BLACK);
-		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
-		messageLabel.setText(getMessage());
-		getDialogView().add(messageLabel);
-
-		TButton confirmButton = new TButton();
-		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
-		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
-		confirmButton.setActionHandler(() ->
-		                               {
-			                               getNavigationController().pop();
-			                               if (getDelegate() != null)
-				                               getDelegate().dialogDidReturn(self);
-		                               });
-		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
-		confirmButton.setDrawsBackground(true);
-		confirmButton.setColor(Color.BLACK);
-		getDialogView().add(confirmButton);
-
-		TButton cancelButton = new TButton();
-		cancelButton.setText(LocalizedString("confirm_dialog_decline"));
-		cancelButton.setFrame(new Rectangle(26, 5, 22, 1));
-		cancelButton.setActionHandler(() ->
-		                              {
-			                              getNavigationController().pop();
-			                              if (getDelegate() != null)
-				                              getDelegate().dialogDidCancel(self);
-		                              });
-		cancelButton.setBackgroundColor(Color.LIGHT_GRAY);
-		cancelButton.setDrawsBackground(true);
-		cancelButton.setColor(Color.BLACK);
-		getDialogView().add(cancelButton);
-
-		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addResponder(confirmButton);
-		buttonGroup.addResponder(cancelButton);
-		buttonGroup.setBackwardsKey((char) KeyEvent.VK_LEFT);
-		buttonGroup.setForwardsKey((char) KeyEvent.VK_RIGHT);
-		getDialogView().addResponder(buttonGroup);
-		buttonGroup.setSingleFirstResponder(true);
-	}
-
-	@Override
-	public void initializeView()
-	{
-		super.initializeView();
-		Dialog self = this;
-
-		messageLabel = new TLabel();
-		messageLabel.setFrame(new Rectangle(2, 2, 46, 2));
-		messageLabel.setColor(Color.BLACK);
-		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
-		messageLabel.setText(getMessage());
-		getDialogView().add(messageLabel);
-
-		TButton confirmButton = new TButton();
-		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
-		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
-		confirmButton.setActionHandler(() ->
-		                               {
-			                               getNavigationController().pop();
-			                               if (getDelegate() != null)
-				                               getDelegate().dialogDidReturn(self);
-		                               });
-		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
-		confirmButton.setDrawsBackground(true);
-		confirmButton.setColor(Color.BLACK);
-		getDialogView().add(confirmButton);
-
-		TButton cancelButton = new TButton();
-		cancelButton.setText(LocalizedString("confirm_dialog_decline"));
-		cancelButton.setFrame(new Rectangle(26, 5, 22, 1));
-		cancelButton.setActionHandler(() ->
-		                              {
-			                              getNavigationController().pop();
-			                              if (getDelegate() != null)
-				                              getDelegate().dialogDidCancel(self);
-		                              });
-		cancelButton.setBackgroundColor(Color.LIGHT_GRAY);
-		cancelButton.setDrawsBackground(true);
-		cancelButton.setColor(Color.BLACK);
-		getDialogView().add(cancelButton);
-
-		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addResponder(confirmButton);
-		buttonGroup.addResponder(cancelButton);
-		buttonGroup.setBackwardsKey((char) KeyEvent.VK_LEFT);
-		buttonGroup.setForwardsKey((char) KeyEvent.VK_RIGHT);
-		getDialogView().addResponder(buttonGroup);
-		buttonGroup.setSingleFirstResponder(true);
-	}
-
+	
 	public String getMessage()
 	{
 		return message;
@@ -150,5 +50,45 @@ public class ConfirmDialog extends Dialog
 		this.message = message;
 		if (messageLabel != null)
 			messageLabel.setText(message);
+	}
+
+	@Override
+	protected void initializeView()
+	{
+		super.initializeView();
+		Dialog self = this;
+
+		messageLabel = new TLabel();
+		messageLabel.setFrame(new Rectangle(2, 2, 46, 2));
+		messageLabel.setColor(Color.BLACK);
+		messageLabel.setBackgroundColor(Color.LIGHT_GRAY);
+		messageLabel.setText(getMessage());
+		getDialogView().add(messageLabel);
+
+		TButton confirmButton = new TButton();
+		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
+		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
+		confirmButton.setActionHandler(() -> returnDialog());
+		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
+		confirmButton.setDrawsBackground(true);
+		confirmButton.setColor(Color.BLACK);
+		getDialogView().add(confirmButton);
+
+		TButton cancelButton = new TButton();
+		cancelButton.setText(LocalizedString("confirm_dialog_decline"));
+		cancelButton.setFrame(new Rectangle(26, 5, 22, 1));
+		cancelButton.setActionHandler(() -> cancelDialog());
+		cancelButton.setBackgroundColor(Color.LIGHT_GRAY);
+		cancelButton.setDrawsBackground(true);
+		cancelButton.setColor(Color.BLACK);
+		getDialogView().add(cancelButton);
+
+		SelectableGroup buttonGroup = new SelectableGroup();
+		buttonGroup.addResponder(confirmButton);
+		buttonGroup.addResponder(cancelButton);
+		buttonGroup.setBackwardsKey((char) KeyEvent.VK_LEFT);
+		buttonGroup.setForwardsKey((char) KeyEvent.VK_RIGHT);
+		getDialogView().addResponder(buttonGroup);
+		buttonGroup.setSingleFirstResponder(true);
 	}
 }

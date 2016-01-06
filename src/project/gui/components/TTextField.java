@@ -35,6 +35,7 @@ public class TTextField extends TLabel
 	{
 		super();
 		setAllowsFirstResponder(true);
+		setDrawsBackground(true);
 	}
 
 	@Override

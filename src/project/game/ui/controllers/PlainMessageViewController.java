@@ -23,19 +23,52 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.ui.controllers;
 
-import project.gui.components.TComponent;
+import project.gui.components.TLabel;
+import project.gui.controller.ViewController;
+import project.gui.layout.VerticalFlowLayout;
+import project.util.StringUtils;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+import java.awt.Color;
+
+public class PlainMessageViewController extends ViewController
 {
-	@Override
-	public void layoutComponent(final TComponent component)
+	private TLabel continuationLabel;
+	private String message;
+	private TLabel messageLabel;
+
+	public String getMessage()
 	{
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
-		}
+		return message;
+	}
+
+	public void setMessage(final String message)
+	{
+		this.message = message;
+		messageLabel.setText(message);
+		messageLabel.setSize(StringUtils.getStringDimensions(message));
+		getView().setNeedsLayout();
+	}
+
+	@Override
+	protected void initializeView()
+	{
+		super.initializeView();
+
+		messageLabel = new TLabel();
+		messageLabel.setText(message);
+		messageLabel.setSize(StringUtils.getStringDimensions(message));
+		getView().add(messageLabel);
+
+		continuationLabel = new TLabel();
+		continuationLabel.setText("Press any key to continue");
+		continuationLabel.setSize(StringUtils.getStringDimensions("Press any key to continue"));
+		continuationLabel.setColor(Color.GRAY);
+		getView().add(continuationLabel);
+
+		VerticalFlowLayout layout = new VerticalFlowLayout();
+		layout.setSpacing(4);
+		getView().setLayoutManager(layout);
 	}
 }

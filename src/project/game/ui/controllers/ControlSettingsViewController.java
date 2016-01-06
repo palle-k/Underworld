@@ -138,7 +138,7 @@ public class ControlSettingsViewController extends ViewController
 			};
 
 	@Override
-	public void initializeView()
+	protected void initializeView()
 	{
 		super.initializeView();
 

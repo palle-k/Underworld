@@ -23,19 +23,30 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.util;
 
-import project.gui.components.TComponent;
+import java.awt.Dimension;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+public class StringUtils
 {
-	@Override
-	public void layoutComponent(final TComponent component)
+	public static Dimension getStringDimensions(String string)
 	{
-		for (TComponent child : component.getChildren())
+		int x    = 0;
+		int y    = 1;
+		int maxX = 0;
+		for (char c : string.toCharArray())
 		{
-			child.setLocation(0, 0);
-			child.setSize(component.getSize());
+			if (c == '\n')
+			{
+				y++;
+				x = 0;
+			}
+			else if (c == '\t')
+				x += x + 4 - x % 4;
+			else
+				x++;
+			maxX = Math.max(maxX, x);
 		}
+		return new Dimension(maxX, y);
 	}
 }

@@ -86,15 +86,4 @@ public class NavigationController extends ViewController
 		controller.viewDidAppear();
 	}
 
-	@Override
-	public void viewDidAppear()
-	{
-
-	}
-
-	@Override
-	public void viewDidDisappear()
-	{
-
-	}
 }
