@@ -30,12 +30,14 @@ import project.gui.graphics.TGraphics;
 import project.util.StringUtils;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 
 public class TLabel extends TComponent
 {
+	private boolean modifiedBounds;
 	private String text;
 	private Color  textColor;
 	private Insets textInsets;
@@ -47,6 +49,7 @@ public class TLabel extends TComponent
 		text = "";
 		textColor = Appearance.defaultTextColor;
 		textInsets = new Insets(0, 0, 0, 0);
+		modifiedBounds = false;
 	}
 
 	public Color getColor()
@@ -69,13 +72,30 @@ public class TLabel extends TComponent
 		this.textColor = textColor;
 	}
 
+	@Override
+	public void setFrame(final Rectangle frame)
+	{
+		super.setFrame(frame);
+		modifiedBounds = true;
+	}
+
+	@Override
+	public void setSize(final Dimension size)
+	{
+		super.setSize(size);
+		modifiedBounds = true;
+	}
+
 	public void setText(String text)
 	{
 		if (this.text.equals(text))
 			return;
 		Rectangle previous = new Rectangle(new Point(), StringUtils.getStringDimensions(this.text));
 		this.text = text;
-		setNeedsDisplay(new Rectangle(new Point(), StringUtils.getStringDimensions(this.text)).union(previous));
+		Dimension newSize = StringUtils.getStringDimensions(this.text);
+		if (!modifiedBounds)
+			setSize(newSize);
+		setNeedsDisplay(new Rectangle(new Point(), newSize).union(previous));
 		//setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
@@ -95,7 +115,6 @@ public class TLabel extends TComponent
 				getText(),
 				(drawsBorder() ? 1 : 0) + getTextInsets().left,
 				(drawsBorder() ? 1 : 0) + getTextInsets().top);
-		//TODO advanced text layout
-		//TODO automatic size calculation
 	}
+
 }

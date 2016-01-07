@@ -142,6 +142,7 @@ public class PageController extends ViewController
 	{
 		if (currentController == null)
 			return;
+		currentController.setParent(null);
 		getView().remove(currentController.getView());
 		currentController.viewDidDisappear();
 	}
@@ -150,6 +151,7 @@ public class PageController extends ViewController
 	{
 		if (currentController == null)
 			return;
+		currentController.setParent(this);
 		getView().add(currentController.getView());
 		currentController.viewDidAppear();
 	}

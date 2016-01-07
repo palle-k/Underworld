@@ -39,6 +39,29 @@ import java.awt.event.KeyEvent;
 
 public class ClassChooserController extends ViewController
 {
+	private Runnable onCancel;
+	private Runnable onClassChoose;
+
+	public Runnable getOnCancel()
+	{
+		return onCancel;
+	}
+
+	public Runnable getOnClassChoose()
+	{
+		return onClassChoose;
+	}
+
+	public void setOnCancel(final Runnable onCancel)
+	{
+		this.onCancel = onCancel;
+	}
+
+	public void setOnClassChoose(final Runnable onClassChoose)
+	{
+		this.onClassChoose = onClassChoose;
+	}
+
 	@Override
 	protected void initializeView()
 	{
@@ -71,7 +94,8 @@ public class ClassChooserController extends ViewController
 		swordButton.setSize(10, 1);
 		swordButton.setActionHandler(() -> {
 			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.KNIGHT);
-			getPageController().next();
+			if (onClassChoose != null)
+				onClassChoose.run();
 		});
 
 		TComponent swordContainer = new TComponent();
@@ -96,7 +120,8 @@ public class ClassChooserController extends ViewController
 		bowButton.setSize(10, 1);
 		bowButton.setActionHandler(() -> {
 			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.HUNTER);
-			getPageController().next();
+			if (onClassChoose != null)
+				onClassChoose.run();
 		});
 
 		TComponent bowContainer = new TComponent();
@@ -122,7 +147,8 @@ public class ClassChooserController extends ViewController
 		wandButton.setSize(10, 1);
 		wandButton.setActionHandler(() -> {
 			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.WIZARD);
-			getPageController().next();
+			if (onClassChoose != null)
+				onClassChoose.run();
 		});
 
 		TComponent wandContainer = new TComponent();
@@ -142,7 +168,9 @@ public class ClassChooserController extends ViewController
 		TButton back = new TButton();
 		back.setText("Zur\u00fcck");
 		back.setSize(20, 1);
-		back.setActionHandler(() -> getNavigationController().pop());
+		back.setActionHandler(() -> {
+			if (onCancel != null) onCancel.run();
+		});
 		getView().add(back);
 
 		TLabel classDescription = new TLabel();

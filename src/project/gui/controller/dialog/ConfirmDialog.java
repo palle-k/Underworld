@@ -56,7 +56,6 @@ public class ConfirmDialog extends Dialog
 	protected void initializeView()
 	{
 		super.initializeView();
-		Dialog self = this;
 
 		messageLabel = new TLabel();
 		messageLabel.setFrame(new Rectangle(2, 2, 46, 2));
@@ -68,7 +67,7 @@ public class ConfirmDialog extends Dialog
 		TButton confirmButton = new TButton();
 		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
 		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
-		confirmButton.setActionHandler(() -> returnDialog());
+		confirmButton.setActionHandler(this::returnDialog);
 		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
 		confirmButton.setDrawsBackground(true);
 		confirmButton.setColor(Color.BLACK);
@@ -77,7 +76,7 @@ public class ConfirmDialog extends Dialog
 		TButton cancelButton = new TButton();
 		cancelButton.setText(LocalizedString("confirm_dialog_decline"));
 		cancelButton.setFrame(new Rectangle(26, 5, 22, 1));
-		cancelButton.setActionHandler(() -> cancelDialog());
+		cancelButton.setActionHandler(this::cancelDialog);
 		cancelButton.setBackgroundColor(Color.LIGHT_GRAY);
 		cancelButton.setDrawsBackground(true);
 		cancelButton.setColor(Color.BLACK);

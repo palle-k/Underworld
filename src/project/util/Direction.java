@@ -25,10 +25,22 @@
 
 package project.util;
 
+import java.awt.Point;
+
 public enum Direction
 {
 	UP,
 	LEFT,
 	DOWN,
-	RIGHT
+	RIGHT;
+
+	public static Direction direction(Point fromPoint, Point toPoint)
+	{
+		int dx = toPoint.x - fromPoint.x;
+		int dy = toPoint.y - fromPoint.y;
+		if (Math.abs(dx) >= Math.abs(dy))
+			return dx > 0 ? RIGHT : LEFT;
+		else
+			return dy > 0 ? DOWN : UP;
+	}
 }

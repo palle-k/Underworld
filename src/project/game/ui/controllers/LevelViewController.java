@@ -47,41 +47,109 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class LevelViewController extends ViewController
 {
-	private TLabel            collectedKeys;
-	private EnemyController[] enemyControllers;
-	private TProgressBar      enemyHealth;
-	private TLabel            enemyLevel;
-	private TLabel            enemyName;
-	private boolean           initialized;
-	private Level             level;
-	private MapView           mapView;
-	private boolean           moveDownKeyPressed;
-	private boolean           moveLeftKeyPressed;
-	private boolean           moveRightKeyPressed;
-	private boolean           moveUpKeyPressed;
-	private PlayerController  playerController;
-	private TProgressBar      playerExperience;
-	private TProgressBar      playerHealth;
-	private TLabel            playerLabel;
-	private TLabel            playerLevel;
+	private boolean                        attacksEnabled;
+	private TLabel                         collectedKeys;
+	private boolean                        damageEnabled;
+	private EnemyController[]              enemyControllers;
+	private TProgressBar                   enemyHealth;
+	private TLabel                         enemyLevel;
+	private TLabel                         enemyName;
+	private boolean                        finished;
+	private boolean                        initialized;
+	private java.util.Map<Key, TComponent> keyViews;
+	private Level                          level;
+	private MapView                        mapView;
+	private boolean                        moveDownKeyPressed;
+	private boolean                        moveLeftKeyPressed;
+	private boolean                        moveRightKeyPressed;
+	private boolean                        moveUpKeyPressed;
+	private Runnable                       onLevelCancel;
+	private Runnable                       onLevelFailure;
+	private Runnable                       onLevelFinish;
+	private PlayerController               playerController;
+	private TProgressBar                   playerExperience;
+	private TProgressBar                   playerHealth;
+	private TLabel                         playerLabel;
+	private TLabel                         playerLevel;
+	private boolean                        skillsEnabled;
+
+	public LevelViewController(Level level)
+	{
+		this.level = level;
+		attacksEnabled = true;
+		skillsEnabled = true;
+		damageEnabled = true;
+	}
+
+	public boolean attacksEnabled()
+	{
+		return attacksEnabled;
+	}
+
+	public boolean damageEnabled()
+	{
+		return damageEnabled;
+	}
+
+	public Runnable getOnLevelCancel()
+	{
+		return onLevelCancel;
+	}
+
+	public Runnable getOnLevelFailure()
+	{
+		return onLevelFailure;
+	}
+
+	public Runnable getOnLevelFinish()
+	{
+		return onLevelFinish;
+	}
+
+	public void setAttacksEnabled(final boolean attacksEnabled)
+	{
+		this.attacksEnabled = attacksEnabled;
+	}
+
+	public void setDamageEnabled(final boolean damageEnabled)
+	{
+		this.damageEnabled = damageEnabled;
+	}
+
+	public void setOnLevelCancel(final Runnable onLevelCancel)
+	{
+		this.onLevelCancel = onLevelCancel;
+	}
+
+	public void setOnLevelFailure(final Runnable onLevelFailure)
+	{
+		this.onLevelFailure = onLevelFailure;
+	}
+
+	public void setOnLevelFinish(final Runnable onLevelFinish)
+	{
+		this.onLevelFinish = onLevelFinish;
+	}
+
+	public void setSkillsEnabled(final boolean skillsEnabled)
+	{
+		this.skillsEnabled = skillsEnabled;
+	}
+
+	public boolean skillsEnabled()
+	{
+		return skillsEnabled;
+	}
 
 	@Override
 	protected void initializeView()
 	{
 		super.initializeView();
-		try
-		{
-			level = new Level(Level.class.getResource("levels/tutorial_4.properties"));
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			return;
-		}
 
 		TComponent topBar = new TComponent();
 		getView().add(topBar);
@@ -98,7 +166,7 @@ public class LevelViewController extends ViewController
 		playerHealth.setMaxValue(10.0);
 		playerHealth.setColor(Color.RED);
 		topBar.add(playerHealth);
-		
+
 		TLabel playerExperienceLabel = new TLabel();
 		playerExperienceLabel.setSize(10, 1);
 		playerExperienceLabel.setLocation(0, 1);
@@ -116,10 +184,10 @@ public class LevelViewController extends ViewController
 		collectedKeys = new TLabel();
 		collectedKeys.setLocation(52, 0);
 		collectedKeys.setSize(30, 1);
-		collectedKeys.setText(String.format("Collected Keys: %d", 42));
+		collectedKeys.setText(String.format("Collected Keys: %d of %d", 0, level.getKeys().length));
 		topBar.add(collectedKeys);
 
-		TLabel playerLevel = new TLabel();
+		playerLevel = new TLabel();
 		playerLevel.setLocation(52, 1);
 		playerLevel.setSize(20, 1);
 		playerLevel.setText(String.format("Level %d", 42));
@@ -169,6 +237,7 @@ public class LevelViewController extends ViewController
 		}
 
 		Key[] keys = level.getKeys();
+		keyViews = new HashMap<>();
 		for (Key key : keys)
 		{
 			TLabel keyLabel = new TLabel();
@@ -177,6 +246,7 @@ public class LevelViewController extends ViewController
 			keyLabel.setColor(key.getColor());
 			keyLabel.setText(key.getRestingState());
 			mapView.add(keyLabel);
+			keyViews.put(key, keyLabel);
 		}
 
 		Enemy[] enemies = level.getEnemies();
@@ -201,26 +271,27 @@ public class LevelViewController extends ViewController
 		playerLabel.setColor(level.getPlayer().getColor());
 		mapView.add(playerLabel);
 
-		playerController = new PlayerController(level.getPlayer(), level.getMap(), enemies, playerLabel, this);
+		playerController = new PlayerController(level, playerLabel, this);
 
 		TComponent bottomBar = new TComponent();
 		getView().add(bottomBar);
 
 		getView().setLayoutManager(component ->
-		{
-			TComponent[] children = component.getChildren();
-			if (children.length != 3)
-				throw new RuntimeException("View managed by level view controller layout must have 3 children.");
-			int height    = component.getHeight();
-			int width     = component.getWidth();
-			int barHeight = 4;
-			children[0].setLocation(0, 0);
-			children[0].setSize(width, barHeight);
-			children[1].setLocation(0, barHeight);
-			children[1].setSize(width, height - 2 * barHeight - 1);
-			children[2].setLocation(0, height - barHeight - 1);
-			children[2].setSize(width, barHeight);
-		});
+		                           {
+			                           TComponent[] children = component.getChildren();
+			                           if (children.length != 3)
+				                           throw new RuntimeException(
+						                           "View managed by level view controller layout must have 3 children.");
+			                           int height    = component.getHeight();
+			                           int width     = component.getWidth();
+			                           int barHeight = 4;
+			                           children[0].setLocation(0, 0);
+			                           children[0].setSize(width, barHeight);
+			                           children[1].setLocation(0, barHeight);
+			                           children[1].setSize(width, height - 2 * barHeight - 1);
+			                           children[2].setLocation(0, height - barHeight - 1);
+			                           children[2].setSize(width, barHeight);
+		                           });
 
 		getView().setAllowsFirstResponder(true);
 		getView().setEventHandler(new TEventHandler()
@@ -229,23 +300,31 @@ public class LevelViewController extends ViewController
 			public void keyDown(final TEvent event)
 			{
 				if (event.getKey() == KeyEvent.VK_ESCAPE)
-					getNavigationController().pop();
+				{
+					if (onLevelCancel != null)
+						onLevelCancel.run();
+				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveUpKey())
-				{
 					moveUpKeyPressed = true;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveLeftKey())
-				{
 					moveLeftKeyPressed = true;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveRightKey())
-				{
 					moveRightKeyPressed = true;
-				}
 				else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getMoveDownKey())
-				{
 					moveDownKeyPressed = true;
-				}
+				else if (attacksEnabled &&
+				         event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getBaseAttackKey())
+					playerController.attackEnemy();
+				else if (skillsEnabled)
+					if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getSkill1Key())
+						playerController.attackSkill1();
+					else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getSkill2Key())
+						playerController.attackSkill2();
+					else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getSkill3Key())
+						playerController.attackSkill3();
+					else if (event.getKey() == SavedGameState.getSavedGameState().getSettingsState().getSkill4Key())
+						playerController.attackSkill4();
+
 			}
 
 			@Override
@@ -265,9 +344,39 @@ public class LevelViewController extends ViewController
 		initialized = true;
 	}
 
+	protected void playerDidReachEntrance()
+	{
+		//TODO implement going to previous level
+	}
+
+	protected void playerDidReachExit()
+	{
+		if (onLevelFinish == null)
+			return;
+		//prevent comodification of getView().updateAnimations()
+		//by scheduling the execution of the message dialog on
+		//the swing thread.
+		SwingUtilities.invokeLater(onLevelFinish);
+	}
+
 	protected void updateCollectedKeys()
 	{
-
+		collectedKeys.setText(String.format(
+				"Collected keys: %d of %d",
+				level.getCollectedKeyCount(),
+				level.getKeys().length));
+		if (level.getCollectedKeyCount() == level.getKeys().length)
+			collectedKeys.setColor(Color.GREEN);
+		else
+			collectedKeys.setColor(Color.WHITE);
+		Arrays.stream(level.getKeys())
+				.filter(Key::isCollected)
+				.filter(key -> keyViews.containsKey(key))
+				.forEach(key ->
+				         {
+					         mapView.remove(keyViews.get(key));
+					         keyViews.remove(key);
+				         });
 	}
 
 	protected void updateFocussedEnemy(Enemy enemy)
@@ -323,11 +432,15 @@ public class LevelViewController extends ViewController
 				@Override
 				public void dialogDidReturn(final Dialog dialog)
 				{
-					getNavigationController().pop();
+					if (onLevelFailure != null)
+						onLevelFailure.run();
 				}
 			});
 			getNavigationController().push(deathNotification);
 		};
+		//prevent comodification of getView().updateAnimations()
+		//by scheduling the execution of the message dialog on
+		//the swing thread.
 		SwingUtilities.invokeLater(r);
 	}
 
@@ -335,17 +448,16 @@ public class LevelViewController extends ViewController
 	protected void updateViews(final double time, final double timeDelta)
 	{
 		super.updateViews(time, timeDelta);
-		if (!initialized)
+		if (!initialized || finished)
 			return;
 		playerController.update(time);
 
 		if (!level.getPlayer().isAlive())
 			return;
 
-		for (EnemyController enemyController : enemyControllers)
-		{
-			enemyController.update(time);
-		}
+		if (damageEnabled)
+			for (EnemyController enemyController : enemyControllers)
+				enemyController.update(time);
 
 		if (moveUpKeyPressed)
 			playerController.moveUp();

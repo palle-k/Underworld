@@ -138,8 +138,8 @@ public class Map
 		/**
 		 * Distance estimation (result:=deltaX+deltaY as the navigation takes place on a grid)
 		 * Estimation must always be less than or equal to the actual distance.
-		 * @param p1
-		 * @param p2
+		 * @param p1 first point (x1; y1)
+		 * @param p2 second point (x2; y2)
 		 * @return abs(x1 - x2) + abs(y1 - y2)
 		 */
 		private int distance(Point p1, Point p2)
@@ -171,7 +171,7 @@ public class Map
 					List<Point> nodes = new ArrayList<>();
 					while (!inverseNodes.isEmpty())
 						nodes.add(inverseNodes.pop().getPoint());
-					return nodes.toArray(new Point[0]);
+					return nodes.toArray(new Point[nodes.size()]);
 				}
 
 				removeOpen(current);
@@ -282,7 +282,7 @@ public class Map
 			if (!blockedBottom)
 				neighbours.add(new Point(x, y + 1));
 
-			return neighbours.toArray(new Point[0]);
+			return neighbours.toArray(new Point[neighbours.size()]);
 		}
 
 		private void removeOpen(PathFindingNode node)

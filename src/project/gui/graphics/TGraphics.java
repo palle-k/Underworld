@@ -329,7 +329,6 @@ public class TGraphics
 		{
 			for (int x = (int) bounds.getMinX(); x < bounds.getMaxX(); x++)
 			{
-				//TODO: algorithm false: only horizontal border points are drawn
 				boolean   inside = currentState.path.contains(x, y);
 				if (previous ^ inside)
 					setPoint(
@@ -343,10 +342,10 @@ public class TGraphics
 		}*/
 		double[] previousCords = null;
 		double[] firstCords = null;
-		loop: for (PathIterator iterator = currentState.path.getPathIterator(null); !iterator.isDone(); iterator.next())
+		for (PathIterator iterator = currentState.path.getPathIterator(null); !iterator.isDone(); iterator.next())
 		{
 			double[] cords = new double[6];
-			int type = iterator.currentSegment(cords);
+			int      type  = iterator.currentSegment(cords);
 			switch (type)
 			{
 				case PathIterator.SEG_MOVETO:
@@ -357,16 +356,21 @@ public class TGraphics
 				case PathIterator.SEG_LINETO:
 					if (previousCords != null)
 					{
-						double dx = previousCords[0] - cords[0];
-						double dy = previousCords[1] - cords[1];
+						double dx   = previousCords[0] - cords[0];
+						double dy   = previousCords[1] - cords[1];
 						double dist = Math.sqrt(dx * dx + dy * dy);
 						dx /= dist;
 						dy /= dist;
 						for (int i = 0; i <= dist; i++)
 						{
-							int x = (int)(dx * i + cords[0]);
-							int y = (int)(dy * i + cords[1]);
-							setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+							int x = (int) (dx * i + cords[0]);
+							int y = (int) (dy * i + cords[1]);
+							setPoint(
+									x,
+									y,
+									currentState.strokeColor,
+									currentState.strokeBackground,
+									currentState.strokeChar);
 						}
 					}
 					previousCords = cords;
@@ -378,18 +382,23 @@ public class TGraphics
 				case PathIterator.SEG_QUADTO:
 					throw new RuntimeException("quad bezier curves not yet implemented.");
 				case PathIterator.SEG_CLOSE:
-					if (previousCords != null && firstCords != null)
+					if (previousCords != null)
 					{
-						double dx = previousCords[0] - firstCords[0];
-						double dy = previousCords[1] - firstCords[1];
+						double dx   = previousCords[0] - firstCords[0];
+						double dy   = previousCords[1] - firstCords[1];
 						double dist = Math.sqrt(dx * dx + dy * dy);
 						dx /= dist;
 						dy /= dist;
 						for (int i = 0; i <= dist; i++)
 						{
-							int x = (int)(dx * i + firstCords[0]);
-							int y = (int)(dy * i + firstCords[1]);
-							setPoint(x, y, currentState.strokeColor, currentState.strokeBackground, currentState.strokeChar);
+							int x = (int) (dx * i + firstCords[0]);
+							int y = (int) (dy * i + firstCords[1]);
+							setPoint(
+									x,
+									y,
+									currentState.strokeColor,
+									currentState.strokeBackground,
+									currentState.strokeChar);
 						}
 					}
 					firstCords = null;

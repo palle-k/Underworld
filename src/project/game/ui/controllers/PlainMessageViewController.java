@@ -27,6 +27,8 @@ package project.game.ui.controllers;
 
 import project.gui.components.TLabel;
 import project.gui.controller.ViewController;
+import project.gui.event.TEvent;
+import project.gui.event.TEventHandler;
 import project.gui.layout.VerticalFlowLayout;
 import project.util.StringUtils;
 
@@ -34,21 +36,33 @@ import java.awt.Color;
 
 public class PlainMessageViewController extends ViewController
 {
-	private TLabel continuationLabel;
-	private String message;
-	private TLabel messageLabel;
+	private String   message;
+	private TLabel   messageLabel;
+	private Runnable onKeyPress;
 
 	public String getMessage()
 	{
 		return message;
 	}
 
+	public Runnable getOnKeyPress()
+	{
+		return onKeyPress;
+	}
+
 	public void setMessage(final String message)
 	{
 		this.message = message;
+		if (messageLabel == null)
+			return;
 		messageLabel.setText(message);
 		messageLabel.setSize(StringUtils.getStringDimensions(message));
 		getView().setNeedsLayout();
+	}
+
+	public void setOnKeyPress(final Runnable onKeyPress)
+	{
+		this.onKeyPress = onKeyPress;
 	}
 
 	@Override
@@ -61,7 +75,7 @@ public class PlainMessageViewController extends ViewController
 		messageLabel.setSize(StringUtils.getStringDimensions(message));
 		getView().add(messageLabel);
 
-		continuationLabel = new TLabel();
+		TLabel continuationLabel = new TLabel();
 		continuationLabel.setText("Press any key to continue");
 		continuationLabel.setSize(StringUtils.getStringDimensions("Press any key to continue"));
 		continuationLabel.setColor(Color.GRAY);
@@ -70,5 +84,32 @@ public class PlainMessageViewController extends ViewController
 		VerticalFlowLayout layout = new VerticalFlowLayout();
 		layout.setSpacing(4);
 		getView().setLayoutManager(layout);
+		getView().setAllowsFirstResponder(true);
+		getView().setSingleFirstResponder(true);
+		new Thread(() -> {
+			try
+			{
+				Thread.sleep(500);
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+			getView().setEventHandler(new TEventHandler()
+			{
+				@Override
+				public void keyDown(final TEvent event)
+				{
+
+				}
+
+				@Override
+				public void keyUp(final TEvent event)
+				{
+					if (onKeyPress != null)
+						onKeyPress.run();
+				}
+			});
+		}).start();
 	}
 }

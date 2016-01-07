@@ -67,7 +67,7 @@ public class MessageDialog extends Dialog
 		TButton confirmButton = new TButton();
 		confirmButton.setText(LocalizedString("confirm_dialog_confirm"));
 		confirmButton.setFrame(new Rectangle(2, 5, 22, 1));
-		confirmButton.setActionHandler(() -> returnDialog());
+		confirmButton.setActionHandler(this::returnDialog);
 		confirmButton.setBackgroundColor(Color.LIGHT_GRAY);
 		confirmButton.setDrawsBackground(true);
 		confirmButton.setColor(Color.BLACK);

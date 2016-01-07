@@ -33,6 +33,7 @@ import project.game.data.MapObject;
 import project.game.data.Player;
 import project.gui.components.TLabel;
 import project.gui.dynamics.StepController;
+import project.util.Direction;
 
 import java.awt.Point;
 
@@ -182,12 +183,26 @@ public class EnemyController implements GameActorDelegate
 			if (attackController.requiresUpdate())
 				for (int i = 0; i < attackController.getNumberOfSteps(); i++)
 				{
-					int damage = enemy.getAttackDamage() +
-					             (int) (Math.random() * enemy.getAttackDamageVariation() -
-					                    0.5 * enemy.getAttackDamageVariation());
-					enemy.attack(player);
-					player.decreaseHealth(damage);
+					attackPlayer();
 				}
+		}
+	}
+
+	private void attackPlayer()
+	{
+		int damage = enemy.getAttackDamage() +
+		             (int) (Math.random() * enemy.getAttackDamageVariation() -
+		                    0.5 * enemy.getAttackDamageVariation());
+		enemy.attack(player);
+		player.decreaseHealth(damage);
+
+		if (enemy.usesProjectiles())
+		{
+			Point playerLocation = player.getCenter();
+			Point enemyLocation = enemy.getCenter();
+
+			String[] projectiles = enemy.getAttackProjectilesForDirection(Direction.direction(enemyLocation, playerLocation));
+
 		}
 	}
 

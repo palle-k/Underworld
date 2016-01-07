@@ -48,22 +48,23 @@ public abstract class GameActor extends MapObject implements Serializable
 	public static final ActorState DEFENDING = ActorState.DEFENDING;
 	public static final ActorState RESTING   = ActorState.RESTING;
 
-	protected         int        attackDamage;
-	protected         String[]   attackLayers;
-	protected         String[]   attackProjectiles;
-	protected         int        attackRate;
-	protected         String[]   attackStates;
+	protected final        int        attackDamage;
+	protected final           int        attackDamageVariation;
+	protected final        String[]   attackLayers;
+	protected final        String[]   attackProjectiles;
+	protected final           int        attackRange;
+	protected final        int        attackRate;
+	protected final        String[]   attackStates;
+	protected final        String     deadState;
+	protected final        String[]   defenseStates;
+	protected final           boolean    directionDependentProjectiles;
+	protected final        int        healthRegeneration;
+	protected final        String[]   movingStates;
+	protected final           int        projectilesPerDirection;
+	protected final        int        speed;
+	protected final        boolean useProjectiles;
 	protected         int        currentHealth;
-	protected         String     deadState;
-	protected         String[]   defenseStates;
-	protected         int        healthRegeneration;
 	protected         int        maxHealth;
-	protected         String[]   movingStates;
-	protected         int        speed;
-	private           int        attackDamageVariation;
-	private           int        attackRange;
-	private           boolean    directionDependentProjectiles;
-	private           int        projectilesPerDirection;
 	private           ActorState state;
 	private transient long       stateCounter;
 
@@ -91,7 +92,7 @@ public abstract class GameActor extends MapObject implements Serializable
 		healthRegeneration = Integer.parseInt(properties.getProperty("health_regeneration"));
 		attackDamageVariation = Integer.parseInt(properties.getProperty("attack_damage_variation"));
 		
-		boolean useProjectiles = Boolean.parseBoolean(properties.getProperty("base_attack_objects", "false"));
+		useProjectiles = Boolean.parseBoolean(properties.getProperty("base_attack_objects", "false"));
 		if (useProjectiles)
 		{
 			directionDependentProjectiles = Boolean.parseBoolean(properties.getProperty(
@@ -131,8 +132,16 @@ public abstract class GameActor extends MapObject implements Serializable
 				}
 			}
 		}
+		else
+		{
+			attackProjectiles = new String[0];
+			directionDependentProjectiles = false;
+			projectilesPerDirection = 0;
+		}
 
 		//TODO load attack states and projectiles
+		//FIXME Important: not loading attack projectiles
+		attackLayers = new String[0];
 	}
 
 	public void attack(GameActor actor)
@@ -167,6 +176,7 @@ public abstract class GameActor extends MapObject implements Serializable
 
 	public String[] getAttackProjectilesForDirection(Direction direction)
 	{
+
 		String[] projectiles = new String[projectilesPerDirection];
 		System.arraycopy(
 				attackProjectiles,
@@ -257,6 +267,11 @@ public abstract class GameActor extends MapObject implements Serializable
 		Rectangle bounds        = getBounds();
 		bounds.translate(dx, dy);
 		setBounds(bounds);
+	}
+
+	public boolean usesProjectiles()
+	{
+		return useProjectiles;
 	}
 
 	private void makeStateChange(ActorState newState)

@@ -26,6 +26,7 @@
 package project.game.ui.controllers;
 
 import project.game.Underworld;
+import project.game.data.Level;
 import project.game.data.state.SavedGameState;
 import project.gui.components.TComponent;
 import project.gui.controller.PageController;
@@ -42,12 +43,15 @@ import static project.game.localization.LocalizedString.LocalizedString;
 
 public class LevelCoordinator extends PageController
 {
-	private int        levelIndex;
+	private boolean askedForTutorial;
+	private boolean gameFinished;
+	private int levelIndex = 1;
 	private Properties levelProperties;
-	private boolean    playingStory;
-	private boolean    playingTutorial;
 	private boolean    shouldPlayTutorial;
-	private int        tutorialIndex;
+	private boolean    shownPostLevelText;
+	private boolean    shownPreLevelText;
+	private boolean    tutorialFinished;
+	private int tutorialIndex = 1;
 
 	public LevelCoordinator(final ViewController parent, final TComponent view)
 	{
@@ -74,9 +78,16 @@ public class LevelCoordinator extends PageController
 	@Override
 	protected ViewController getNextPage()
 	{
-		int currentPageIndex = 0;
-		if (currentPageIndex == 0 && !SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
+		if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
 		{
+			ClassChooserController classChooser = new ClassChooserController();
+			classChooser.setOnCancel(() -> getNavigationController().pop());
+			classChooser.setOnClassChoose(this::next);
+			return classChooser;
+		}
+		if (!askedForTutorial && !SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
+		{
+			askedForTutorial = true;
 			ConfirmDialog tutorialDialog = new ConfirmDialog();
 			tutorialDialog.setMessage(LocalizedString("confirm_play_tutorial"));
 			tutorialDialog.setDelegate(new DialogDelegate()
@@ -84,6 +95,7 @@ public class LevelCoordinator extends PageController
 				@Override
 				public void dialogDidCancel(final Dialog dialog)
 				{
+					SavedGameState.getSavedGameState().getLevelState().setTutorialPlayed(true);
 					next();
 				}
 
@@ -95,45 +107,110 @@ public class LevelCoordinator extends PageController
 				}
 			});
 			getNavigationController().push(tutorialDialog);
+			return null;
+		}
+
+		String propertiesPrefix;
+
+		if (askedForTutorial && shouldPlayTutorial && !tutorialFinished)
+		{
+			if (shownPostLevelText)
+			{
+				int tutorialLevelCount = Integer.parseInt(getLevelProperties().getProperty("tutorial_level_count"));
+				shownPreLevelText = false;
+				shownPostLevelText = false;
+				tutorialIndex++;
+				if (tutorialIndex >= tutorialLevelCount)
+					tutorialFinished = true;
+			}
+			propertiesPrefix = "tutorial_level_" + tutorialIndex + "_";
 		}
 		else
 		{
-			try
+			if (shownPostLevelText)
 			{
-				if (shouldPlayTutorial &&
-				    tutorialIndex < Integer.parseInt(getLevelProperties().getProperty("tutorial_level_count")))
-				{
-					tutorialIndex++;
-				}
+				int levelCount = Integer.parseInt(getLevelProperties().getProperty("level_count"));
+				shownPreLevelText = false;
+				shownPostLevelText = false;
+				levelIndex++;
+				if (levelIndex >= levelCount - 1)
+					gameFinished = true;
+				//TODO handle game end
 			}
-			catch (Throwable e)
-			{
-				MessageDialog dialog = new MessageDialog();
-				dialog.setMessage(
-						LocalizedString("level_configuration_loading_fault") + "\n" + e.getLocalizedMessage());
-				dialog.setDelegate(new DialogDelegate()
-				{
-					@Override
-					public void dialogDidCancel(final Dialog dialog)
-					{
-					}
+			//FIXME level prefix calculation
+			propertiesPrefix = "level_1_";
+		}
 
-					@Override
-					public void dialogDidReturn(final Dialog dialog)
-					{
-						getNavigationController().getView().setVisible(false);
-					}
-				});
-				getNavigationController().push(dialog);
+		if (!shownPreLevelText)
+		{
+			shownPreLevelText = true;
+			String preText = getLevelProperties().getProperty(propertiesPrefix + "pre_text");
+			if (preText != null)
+			{
+				PlainMessageViewController plainMessageController = new PlainMessageViewController();
+				plainMessageController.setMessage(LocalizedString(preText));
+				plainMessageController.setOnKeyPress(this::next);
+				return plainMessageController;
 			}
 		}
-		return null;
+		if (!shownPostLevelText)
+		{
+			shownPostLevelText = true;
+			String postText = getLevelProperties().getProperty(propertiesPrefix + "post_text");
+			if (postText != null)
+			{
+				PlainMessageViewController plainMessageController = new PlainMessageViewController();
+				plainMessageController.setMessage(LocalizedString(postText));
+				plainMessageController.setOnKeyPress(this::next);
+				return plainMessageController;
+			}
+		}
+		try
+		{
+			Level               level   = new Level(Level.class.getResource(
+					"levels/" + getLevelProperties().getProperty(propertiesPrefix + "filename") + ".properties"));
+			LevelViewController levelVC = new LevelViewController(level);
+			levelVC.setAttacksEnabled(!Boolean.parseBoolean(getLevelProperties().getProperty(
+					propertiesPrefix + "attacks_disabled", "false")));
+			levelVC.setSkillsEnabled(!Boolean.parseBoolean(getLevelProperties().getProperty(
+					propertiesPrefix + "skills_disabled", "false")));
+			levelVC.setDamageEnabled(!Boolean.parseBoolean(getLevelProperties().getProperty(
+					propertiesPrefix + "damage_disabled", "false")));
+			levelVC.setOnLevelCancel(() -> {
+				//TODO save game state
+				getNavigationController().pop();
+			});
+			levelVC.setOnLevelFailure(() -> getNavigationController().pop());
+			levelVC.setOnLevelFinish(this::next);
+			return levelVC;
+		}
+		catch (Throwable e)
+		{
+			MessageDialog dialog = new MessageDialog();
+			dialog.setMessage(
+					LocalizedString("level_configuration_loading_fault") + "\n" + e.getLocalizedMessage());
+			dialog.setDelegate(new DialogDelegate()
+			{
+				@Override
+				public void dialogDidCancel(final Dialog dialog)
+				{
+				}
+
+				@Override
+				public void dialogDidReturn(final Dialog dialog)
+				{
+					getNavigationController().getView().setVisible(false);
+				}
+			});
+			getNavigationController().push(dialog);
+			return null;
+		}
 	}
 
 	@Override
 	protected ViewController getPreviousPage()
 	{
-		throw new RuntimeException("Cannot go backwards in story.");
+		throw new RuntimeException("Cannot go backwards in story yet.");
 	}
 
 	@Override
@@ -142,12 +219,20 @@ public class LevelCoordinator extends PageController
 		super.initializeView();
 	}
 
-	private Properties getLevelProperties() throws IOException, NullPointerException
+	private Properties getLevelProperties()
 	{
 		if (levelProperties == null)
 		{
 			levelProperties = new Properties();
-			levelProperties.load(Underworld.class.getResourceAsStream("data/configuration/Configuration.properties"));
+			try
+			{
+				levelProperties.load(Underworld.class.getResourceAsStream("data/configuration/Configuration.properties"));
+			}
+			catch (IOException e)
+			{
+				//do nothing
+				e.printStackTrace();
+			}
 		}
 		return levelProperties;
 	}

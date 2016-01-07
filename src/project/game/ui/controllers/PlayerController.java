@@ -27,7 +27,7 @@ package project.game.ui.controllers;
 
 import project.game.data.Enemy;
 import project.game.data.GameActor;
-import project.game.data.Map;
+import project.game.data.Level;
 import project.game.data.MapObject;
 import project.game.data.Player;
 import project.game.data.PlayerDelegate;
@@ -36,29 +36,26 @@ import project.gui.dynamics.StepController;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.Arrays;
 
 public class PlayerController implements PlayerDelegate
 {
-	private StepController      attackController;
-	private Enemy[]             enemies;
+	private final Level level;
+	private StepController attackController;
 	private StepController      horizontalMovementController;
 	private LevelViewController mainController;
-	private Map                 map;
-	private Player              player;
 	private TLabel              playerLabel;
 	private StepController      verticalMovementController;
 
-	public PlayerController(final Player player, final Map map, final Enemy[] enemies, TLabel playerLabel, LevelViewController mainController)
+	public PlayerController(final Level level, TLabel playerLabel, LevelViewController mainController)
 	{
-		this.player = player;
-		this.map = map;
-		this.enemies = enemies;
+		this.level = level;
 		this.playerLabel = playerLabel;
 		this.mainController = mainController;
-		this.player.setDelegate(this);
-		horizontalMovementController = new StepController(player.getSpeed() * 2);
-		verticalMovementController = new StepController(player.getSpeed());
-		attackController = new StepController(player.getAttackRate());
+		level.getPlayer().setDelegate(this);
+		horizontalMovementController = new StepController(level.getPlayer().getSpeed() * 2);
+		verticalMovementController = new StepController(level.getPlayer().getSpeed());
+		attackController = new StepController(level.getPlayer().getAttackRate());
 		horizontalMovementController.start();
 		verticalMovementController.start();
 		attackController.start();
@@ -90,39 +87,59 @@ public class PlayerController implements PlayerDelegate
 		{
 			Point enemyCenter = new Point((int) enemy.getBounds().getCenterX(), (int) enemy.getBounds().getCenterY());
 			Point playerCenter = new Point(
-					(int) player.getBounds().getCenterX(),
-					(int) player.getBounds().getCenterY());
+					(int) level.getPlayer().getBounds().getCenterX(),
+					(int) level.getPlayer().getBounds().getCenterY());
 			//TODO move player to enemy (with pathfinding)
-			//TODO attack enemy with basic attacks when in range
+			//attack enemy with basic attacks when in range
 		}
 		return enemy;
 	}
 
-	public boolean attackSkill1(double time)
+	public boolean attackSkill1()
 	{
-		//TODO If attack needs enemy focus, check for it
-		//execute skill
+		/*
+		TODO Check if attack is reloaded
+		If attack needs enemy focus, check for it
+		execute skill
+		handle attack overlays via animations
+		return true if success, false if failure
+		*/
 		return false;
 	}
 
-	public boolean attackSkill2(double time)
+	public boolean attackSkill2()
 	{
-		//TODO If attack needs enemy focus, check for it
-		//execute skill
+		/*
+		TODO Check if attack is reloaded
+		If attack needs enemy focus, check for it
+		execute skill
+		handle attack overlays via animations
+		return true if success, false if failure
+		*/
 		return false;
 	}
 
-	public boolean attackSkill3(double time)
+	public boolean attackSkill3()
 	{
-		//TODO If attack needs enemy focus, check for it
-		//execute skill
+		/*
+		TODO Check if attack is reloaded
+		If attack needs enemy focus, check for it
+		execute skill
+		handle attack overlays via animations
+		return true if success, false if failure
+		*/
 		return false;
 	}
 
-	public boolean attackSkill4(double time)
+	public boolean attackSkill4()
 	{
-		//TODO If attack needs enemy focus, check for it
-		//execute skill
+		/*
+		TODO Check if attack is reloaded
+		If attack needs enemy focus, check for it
+		execute skill
+		handle attack overlays via animations
+		return true if success, false if failure
+		*/
 		return false;
 	}
 
@@ -230,6 +247,18 @@ public class PlayerController implements PlayerDelegate
 
 	}
 
+	public boolean takeAttackPotion()
+	{
+		//TODO Check if attack potion exists and if yes, use it
+		return false;
+	}
+
+	public boolean takeHealthPotion()
+	{
+		//TODO Check if health potion exists and if yes, use it
+		return false;
+	}
+
 	public void update(double time)
 	{
 		horizontalMovementController.updateTime(time);
@@ -249,12 +278,12 @@ public class PlayerController implements PlayerDelegate
 		{
 			int       horizontalSteps = horizontalMovementController.getNumberOfSteps();
 			int       verticalSteps   = verticalMovementController.getNumberOfSteps();
-			Rectangle playerBounds    = new Rectangle(player.getBounds());
+			Rectangle playerBounds    = new Rectangle(level.getPlayer().getBounds());
 
 			for (int i = 0; i < Math.min(horizontalSteps, verticalSteps); i++)
 			{
 				playerBounds.translate(dx, dy);
-				if (!map.canMoveTo(playerBounds))
+				if (!level.getMap().canMoveTo(playerBounds))
 				{
 					playerBounds.translate(-dx, -dy);
 					break;
@@ -265,7 +294,7 @@ public class PlayerController implements PlayerDelegate
 				for (int i = 0; i < horizontalSteps - verticalSteps; i++)
 				{
 					playerBounds.translate(dx, 0);
-					if (!map.canMoveTo(playerBounds))
+					if (!level.getMap().canMoveTo(playerBounds))
 					{
 						playerBounds.translate(-dx, 0);
 						break;
@@ -277,15 +306,31 @@ public class PlayerController implements PlayerDelegate
 				for (int i = 0; i < verticalSteps - horizontalSteps; i++)
 				{
 					playerBounds.translate(0, dy);
-					if (!map.canMoveTo(playerBounds))
+					if (!level.getMap().canMoveTo(playerBounds))
 					{
 						playerBounds.translate(0, -dy);
 						break;
 					}
 				}
 			}
-			if (!playerBounds.equals(player.getBounds()))
-				player.setBounds(playerBounds);
+			if (!playerBounds.equals(level.getPlayer().getBounds()))
+			{
+				Rectangle previousBounds = level.getPlayer().getBounds();
+				level.getPlayer().setBounds(playerBounds);
+				if (level.getEntranceBounds().intersects(playerBounds) && !level.getEntranceBounds().intersects(previousBounds))
+					mainController.playerDidReachEntrance();
+				if (Arrays.stream(level.getExitBounds()).filter(rectangle -> rectangle.intersects(playerBounds)).count() >= 1)
+					if (level.getKeys().length == level.getCollectedKeyCount())
+						mainController.playerDidReachExit();
+				Arrays.stream(level.getKeys())
+						.filter(key -> !key.isCollected())
+						.filter(key -> key.getBounds().intersects(playerBounds))
+						.forEach(key ->
+						{
+							key.collect();
+							mainController.updateCollectedKeys();
+						});
+			}
 		}
 	}
 }

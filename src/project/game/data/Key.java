@@ -39,15 +39,26 @@ public class Key extends MapObject implements Serializable
 		properties.load(Key.class.getResourceAsStream("objects/Key.properties"));
 		return new Key(properties);
 	}
+	private boolean isCollected;
 
 	protected Key(Properties properties)
 	{
 		super(properties);
 	}
 
+	public void collect()
+	{
+		isCollected = true;
+	}
+
 	@Override
 	public TComponent getView()
 	{
 		return null;
+	}
+
+	public boolean isCollected()
+	{
+		return isCollected;
 	}
 }

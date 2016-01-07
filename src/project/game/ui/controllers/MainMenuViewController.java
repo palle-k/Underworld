@@ -25,11 +25,9 @@
 
 package project.game.ui.controllers;
 
-import project.game.data.state.SavedGameState;
 import project.gui.components.TButton;
 import project.gui.components.TComponent;
 import project.gui.components.TLabel;
-import project.gui.controller.PageController;
 import project.gui.controller.ViewController;
 import project.gui.dynamics.animation.Animation;
 import project.gui.dynamics.animation.AnimationHandler;
@@ -91,15 +89,15 @@ public class MainMenuViewController extends ViewController
 		play.setSize(20, 1);
 		play.setText(LocalizedString("main_menu_play"));
 		play.setActionHandler(() -> {
-			PageController gamePages = new PageController(new TComponent());
-			if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
-				gamePages.addController(new ClassChooserController());
+			//PageController gamePages = new PageController(new TComponent());
+			//if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
+			//	gamePages.addController(new ClassChooserController());
 			//if (!SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
 			//	gamePages.addController(new TutorialViewController());
-			gamePages.addController(new LevelViewController());
-			getNavigationController().push(gamePages);
-			//LevelCoordinator coordinator = new LevelCoordinator(new TComponent());
-			//getNavigationController().push(coordinator);
+			//gamePages.addController(new LevelViewController());
+			//getNavigationController().push(gamePages);
+			LevelCoordinator coordinator = new LevelCoordinator(new TComponent());
+			getNavigationController().push(coordinator);
 		});
 		getView().add(play);
 

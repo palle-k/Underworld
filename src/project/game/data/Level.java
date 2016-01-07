@@ -30,6 +30,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Level implements Serializable
@@ -48,28 +49,69 @@ public class Level implements Serializable
 		load();
 	}
 
+	public int getCollectedKeyCount()
+	{
+		return (int) Arrays.stream(keys).filter(Key::isCollected).count();
+	}
+
 	public Enemy[] getEnemies()
 	{
+		if (enemies == null)
+			try
+			{
+				load();
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException("Map could not be loaded.", e);
+			}
 		return enemies;
 	}
 
 	public Rectangle getEntranceBounds()
 	{
+		if (entranceBounds == null)
+			try
+			{
+				load();
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException("Map could not be loaded.", e);
+			}
 		return entranceBounds;
 	}
 
 	public Rectangle[] getExitBounds()
 	{
+		if (exitBounds == null)
+			try
+			{
+				load();
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException("Map could not be loaded.", e);
+			}
 		return exitBounds;
 	}
 
 	public int getHeight()
 	{
-		return map.getHeight();
+		return getMap().getHeight();
 	}
 
 	public Key[] getKeys()
 	{
+		if (keys == null)
+			try
+			{
+				load();
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException("Map could not be loaded.", e);
+			}
 		return keys;
 	}
 
@@ -89,17 +131,31 @@ public class Level implements Serializable
 
 	public int getPixel(int x, int y)
 	{
-		return map.getPoint(x, y);
+		return getMap().getPoint(x, y);
 	}
 
 	public Player getPlayer()
 	{
+		if (player == null)
+			try
+			{
+				load();
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException("Map could not be loaded.", e);
+			}
 		return player;
+	}
+
+	public URL getSource()
+	{
+		return source;
 	}
 
 	public int getWidth()
 	{
-		return map.getWidth();
+		return getMap().getWidth();
 	}
 
 	private void load() throws IOException
@@ -125,15 +181,6 @@ public class Level implements Serializable
 			}
 		this.map = new Map(points, 8, 4);
 		Rectangle start = map.getStart();
-		Rectangle end   = map.getFinish()[0];
-		//map.removeFinish();
-		//map.removeStart();
-		//Point[] path = map.findPath(start.getLocation(), end.getLocation(), 1, 1);
-		//if (path != null)
-		//{
-		//	for (Point p : path)
-		//		map.setPoint(p.x, p.y, -1);
-		//}
 
 		if (player == null)
 		{
