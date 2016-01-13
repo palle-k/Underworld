@@ -32,17 +32,17 @@ public class LocalizedString
 {
 	private static ResourceBundle localizedStrings;
 
-	public static void InitializeLocalizedStrings()
+	public static String LocalizedString(String key)
+	{
+		if (localizedStrings == null)
+			InitializeLocalizedStrings();
+		return localizedStrings.getString(key);
+	}
+
+	private static void InitializeLocalizedStrings()
 	{
 		Locale locale = Locale.getDefault();
 		localizedStrings = ResourceBundle.getBundle(
-				"project/game/localization/Localizable",
-				locale,
-				LocalizedString.class.getClassLoader());
-	}
-
-	public static String LocalizedString(String key)
-	{
-		return localizedStrings.getString(key);
+				"project/game/localization/Localizable", locale);
 	}
 }

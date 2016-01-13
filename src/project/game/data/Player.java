@@ -30,14 +30,25 @@ import project.game.data.state.SavedGameState;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Properties;
 
+/**
+ * Verwaltung des Spielers
+ */
 public class Player extends GameActor implements Serializable
 {
+	/**
+	 * Erstellt einen neuen Spieler
+	 * Laed automatisch die entsprechenden Ebenen fuer die gewaehlte Spielerklasse
+	 *
+	 * @return Spieler-Objekt
+	 * @throws IOException
+	 */
 	public static Player makePlayer() throws IOException
 	{
-		Properties  properties  = new Properties();
-		PlayerState playerState = SavedGameState.getSavedGameState().getPlayerState();
+		//Properties  properties  = new Properties();
+		PlayerState playerState = SavedGameState.getPlayerState();
 		if (playerState.playerClassChosen())
 		{
 			String configurationFile = "";
@@ -48,36 +59,53 @@ public class Player extends GameActor implements Serializable
 			else if (playerState.getPlayerClass() == PlayerState.WIZARD)
 				configurationFile = "Wizard";
 			configurationFile = "objects/" + configurationFile + ".properties";
-			properties.load(Player.class.getResourceAsStream(configurationFile));
-
-			return new Player(properties);
+			//properties.load(Player.class.getResourceAsStream(configurationFile));
+			URL source = Player.class.getResource(configurationFile);
+			return new Player(source);
 		}
 		else
-			return null;
-		//throw new RuntimeException("Presenting Level before player class was chosen.");
-
+			throw new RuntimeException("Presenting Level before player class was chosen.");
 	}
 
-	private int  autohit_attack_range;
-	private int  autohit_damage;
-	private int  autohit_damage_variation;
-	private long experience;
-	private int  health;
-	private int  speed;
+	private transient long experience;
 
-	protected Player(Properties playerProperties) throws IOException
+	/**
+	 * Initialisiert einen neuen Spieler und laed diesen aus den gegebenen Properties
+	 * DEPRECATED. Use new Player(URL source) instead
+	 *
+	 * @param playerProperties - Eigenschaften des Spielers und Ebenen fuer verschiedene Stati
+	 */
+	@Deprecated
+	protected Player(Properties playerProperties)
 	{
 		super(playerProperties);
 		//TODO parse attacks etc...
-
 	}
 
+	/**
+	 * Initialisiert einen neuen Spieler und laed diesen aus der Properties-File, welche sich
+	 * an der gegebenen Quell-URL befindet.
+	 *
+	 * @param source Quell-URL
+	 * @throws IOException wenn die Quelle nicht existiert oder nicht gelesen werden kann
+	 */
+	protected Player(final URL source) throws IOException
+	{
+		super(source);
+	}
+
+	/**
+	 * Der Spieler die angegebene Anzahl von Erfahrungspunkten
+	 * @param exp verdiente Erfahrungspunkte
+	 */
 	public void earnExperience(int exp)
 	{
 		boolean levelWillChange = false;
 		if ((experience + exp) >= getLevelEndExperience())
 			levelWillChange = true;
 		experience += exp;
+		SavedGameState.getPlayerState().setPlayerExperience(experience);
+		currentHealth = maxHealth;
 		if (delegate instanceof PlayerDelegate)
 		{
 			if (levelWillChange)
@@ -86,17 +114,37 @@ public class Player extends GameActor implements Serializable
 		}
 	}
 
+	/**
+	 * Erhalte die gesamte Erfahrung, welche der Spieler erhalten hat
+	 * @return erhaltene Erfahrung
+	 */
 	public long getExperience()
 	{
 		return experience;
 	}
 
 	@Override
+	public int getHealthRegeneration()
+	{
+		return (int) (super.getHealthRegeneration() * Math.sqrt(getLevel()));
+	}
+
+	/**
+	 * Gibt das Level des Spielers zurueck.
+	 * Dieses wird aus der erhaltenen Erfahrung berechnet.
+	 * @return Spielerlevel
+	 */
+	@Override
 	public int getLevel()
 	{
 		return (int) Math.sqrt(experience * 0.01) + 1;
 	}
 
+	/**
+	 * Gibt die Anzahl an Erfahrungspunkten an, die noetig ist, um das aktuelle
+	 * Spielerlevel abzuschliessen
+	 * @return Fuer das naechste Level benoetigte Erfahrung
+	 */
 	public long getLevelEndExperience()
 	{
 		long level       = getLevel();
@@ -104,10 +152,32 @@ public class Player extends GameActor implements Serializable
 		return levelSquare * 100;
 	}
 
+	/**
+	 * Gibt die Anzahl von Erfahrungspunkten an, die noetig waren,
+	 * um das vorherige Spielerlevel abzuschliessen und im Level aufzusteigen
+	 * @return Anzahl an Erfahrungspunkten, bei denen das aktuelle Level
+	 * begonnen hat
+	 */
 	public long getLevelStartExperience()
 	{
 		long level       = getLevel() - 1;
 		long levelSquare = level * level;
 		return levelSquare * 100;
+	}
+
+	@Override
+	public int getMaxHealth()
+	{
+		return (int) (super.getMaxHealth() * Math.sqrt(getLevel()));
+	}
+
+	/**
+	 * Stellt den Spieler wieder her
+	 */
+	@Override
+	protected void restore()
+	{
+		super.restore();
+		experience = SavedGameState.getPlayerState().getPlayerExperience();
 	}
 }

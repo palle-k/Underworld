@@ -31,15 +31,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
+
+/**
+ * Klasse zur Verwaltung von Kartendaten,
+ * Pathfinding und Sichtbarkeitsberechnung
+ */
 public class Map
 {
+	/**
+	 * Innere Klasse zur Pfadberechnung
+	 * Zur Pfadberechnung wird der A*-Pathfinding-Algorithmus verwendet.
+	 */
 	private class PathFinder
 	{
+		/**
+		 * Pfadelement fuer Pathfinding
+		 * Speichert geschaetzte Distanzkosten zum Ziel,
+		 * Kosten fuer zurueckgelegte Distanz,
+		 * die vorherige PathFindingNode,
+		 * sowie die Position
+		 */
 		//Benchmarks:
 		//650ms (linear search for insertion point, unoptimized)
 		//160ms (binary search for insertion point)
-		//ca. 10ms (binary search for insertion point, 2d array of closed points instead of list)
-		//TODO (optional) implement closed points as HashMap<Integer,Node> with hashFunction x*maxY+y and lookup by hash value
+		//ca. 10ms (binary search for insertion point, 2d array of closed points instead of list
+		//using a HashMap with x*height+y as key is slower
 		private class PathFindingNode implements Comparable<PathFindingNode>
 		{
 			private int             distanceCost;
@@ -48,6 +67,14 @@ public class Map
 			private int             x;
 			private int             y;
 
+			/**
+			 * Erstellt eine neue PathFindingNode
+			 * @param x x-Position
+			 * @param y y-Position
+			 * @param stepCost Kosten fuer zurueckgelegte Strecke
+			 * @param distanceCost Kostenabschaetzung fuer nachfolgende Strecke
+			 * @param parent Vorherige PathFindingNode
+			 */
 			private PathFindingNode(final int x, final int y, final int stepCost, final int distanceCost, PathFindingNode parent)
 			{
 				this.x = x;
@@ -57,6 +84,9 @@ public class Map
 				this.parent = parent;
 			}
 
+			/**
+			 * Vergleichen zu anderer PathFindingNode zur Sortierung von PathFindingNodes in einer Prioritaetswarteschlange
+			 */
 			@Override
 			public int compareTo(final PathFindingNode o)
 			{
@@ -68,6 +98,10 @@ public class Map
 					return -1;
 			}
 
+			/**
+			 * Gibt den Punkt an, an welchem sich das Pfadelement befindet
+			 * @return (x, y)-Punkt
+			 */
 			private Point getPoint()
 			{
 				return new Point(x, y);
@@ -78,11 +112,15 @@ public class Map
 		private final Point                 end;
 		private final Point                 start;
 		private       PathFindingNode[][]   closed;
-		private       int                   closedCount;
 		private       int                   height;
 		private       List<PathFindingNode> open;
 		private       int                   width;
 
+		/**
+		 * Initialisiert einen neuen Pathfinder
+		 * @param start Ausgangspunkt
+		 * @param end Zielpunkt
+		 */
 		private PathFinder(final Point start, final Point end)
 		{
 			this.start = start;
@@ -94,13 +132,21 @@ public class Map
 			height = 1;
 		}
 
+		/**
+		 * Fuegt einen Pathfinding-Knoten zum Feld der ueberprueften Punkte hinzu
+		 * @param node Pathfinding-Knoten
+		 */
 		private void addClosed(PathFindingNode node)
 		{
 			//closed.add(node);
 			closed[node.x][node.y] = node;
-			closedCount++;
 		}
 
+		/**
+		 * Fuegt einen Pathfinding-Knoten zur Prioritaetswarteschlange der offenen
+		 * (nicht ueberprueften Punkte) hinzu.
+		 * @param node neuer, offener Punkt
+		 */
 		private void addOpen(PathFindingNode node)
 		{
 			int n = open.size();
@@ -109,6 +155,11 @@ public class Map
 				open.add(node);
 				return;
 			}
+			/*
+			Bineare Suche nach Einfuegepunkt
+			 (4x Geschwindigkeitssteigerung des Gesamtalgorithmus
+			 gegenueber linearer Suche)
+			 */
 			int left  = 0;
 			int right = n - 1;
 			while (left < right)
@@ -130,36 +181,75 @@ public class Map
 			open.add(left, node);
 		}
 
+		/**
+		 * Gibt den Pathfinding-Knoten zurueck, welcher die guenstigste Position
+		 * hat und noch nicht ueberprueft wurde. Die guenstigste Position wird
+		 * durch die Summe von Distanzestimation und zurueckgelegter Distanz berechnet.
+		 * Der Knoten, bei dem diese Summe am niedrigsten ist, wird zurueckgegeben.
+		 * @return Bestmoeglicher Pathfinding-Knoten
+		 */
 		private PathFindingNode bestOpen()
 		{
 			return open.get(0);
 		}
 
 		/**
-		 * Distance estimation (result:=deltaX+deltaY as the navigation takes place on a grid)
-		 * Estimation must always be less than or equal to the actual distance.
-		 * @param p1 first point (x1; y1)
-		 * @param p2 second point (x2; y2)
-		 * @return abs(x1 - x2) + abs(y1 - y2)
+		 * Distanzabschaetzung zwischen zwei Punkten.
+		 * Als Annaeherung wird hier die euklidische Distanz gewaehlt.
+		 * Die tatsaechliche Distanz muss in jedem fall groesser als
+		 * die geschaetzte Distanz sein, da sonst die Wahl der optimalen
+		 * Pathfinding-Knoten falsch sein kann.
+		 * <br><br>
+		 * Eine weitere, moegliche Annaeherung ist die sog. Manhattan-Distanz:
+		 * abs(x1 - x2) + abs(y1 - y2)<br>
+		 * Die Abschaetzung mittels euklidischer Distanz hat sich in den meisten
+		 * Faellen als besser erwiesen und fuehrte zu kuerzeren Pfaden.
+		 *
+		 * @param p1 erster punkt (x1; y1)
+		 * @param p2 zweiter punkt (x2; y2)
+		 * @return sqrt((x1 - x2)^2 + (y1 - y2)^2)
 		 */
 		private int distance(Point p1, Point p2)
 		{
 			//return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 			int dx = p1.x - p2.x;
 			int dy = p1.y - p2.y;
-			return (int) Math.sqrt(dx * dx + dy * dy);
+			return (int) sqrt(dx * dx + dy * dy);
 		}
 
+		/**
+		 * Sucht den Pfad von den bei der Initialisierung spezifizierten Punkten.
+		 * Implementierung des A*-Pathfinding-Algorithmus
+		 * @return Pfad von Startpunkt nach Endpunkt oder null,
+		 * wenn kein Pfad gefunden werden kann.
+		 */
 		private Point[] findPath()
 		{
+			/*
+			Der Startpunkt wird der Liste nicht ueberpruefter Punkte hinzugefuegt
+			 */
 			addOpen(new PathFindingNode(start.x, start.y, 0, distance(end, start), null));
 
+			/*
+			Solange noch offene Punkte vorhanden sind, wird der Pfad weiter gesucht.
+			Sind keine offenen Punkte mehr vorhanden und der Endpunkt wurde noch nicht
+			erreicht, existiert kein Pfad zwischen Start- und Endposition
+			 */
 			while (!open.isEmpty())
 			{
+				/*
+				Ueberpruefe die bestmoegliche, offene Position
+				 */
 				PathFindingNode current = bestOpen();
 
+				/*
+				Abbruch, wenn Pfad gefunden
+				 */
 				if (current.x == end.x && current.y == end.y)
 				{
+					/*
+					Kehre die Reihenfolge des Pfades um
+					 */
 					Stack<PathFindingNode> inverseNodes = new Stack<>();
 					do
 					{
@@ -171,27 +261,65 @@ public class Map
 					List<Point> nodes = new ArrayList<>();
 					while (!inverseNodes.isEmpty())
 						nodes.add(inverseNodes.pop().getPoint());
+
+					if (System.getProperty("com.palleklewitz.underworld.map.showpaths", "false").equalsIgnoreCase("true"))
+					{
+						if (lastCalculatedPath != null)
+							for (Point point : lastCalculatedPath)
+								points[point.x][point.y] = 0;
+						for (Point node : nodes)
+							points[node.x][node.y] = -1;
+						lastCalculatedPath = nodes.toArray(new Point[nodes.size()]);
+					}
+
+					/*
+					Gebe Pfad als Liste von Punkten zurueck
+					 */
 					return nodes.toArray(new Point[nodes.size()]);
 				}
 
+				/*
+				Aktueller Punkt wurde nun ueberprueft, entferne aus Liste offener Punkte und
+				fuege den geschlossenen Punkten hinzu
+				 */
 				removeOpen(current);
 				addClosed(current);
 
+				/*
+				Suche nach erreichbaren Nachbarpositionen
+				 */
 				Point[] neighbours = getReachableNeighbours(current.getPoint());
 
 				for (Point point : neighbours)
 				{
+					/*
+					Berechne zurueckgelegte Strecke
+					 */
 					int stepCost = current.stepCost + 1;
 
+					/*
+					Falls der Punkt schon ueberprueft wurde und die zurueckgelegte
+					Strecke bei der vorhergegangen ueberpruefung geringer war,
+					muss der Punkt nicht mehr ueberprueft werden.
+					 */
 					PathFindingNode neighbourNode = getClosed(point);
 					if (neighbourNode != null && stepCost >= neighbourNode.stepCost)
 						continue;
 
+					/*
+					Pruefe, ob der aktuelle Nachbar schon in der Liste offener Punkte ist und wenn ja,
+					pruefe, ob die aktuelle Strecke besser ist. Ist der Punkt nicht in der Liste
+					offener Punkte, wird er dieser hinzugefuegt. Ist er schon enthalten und ist ein besserer
+					Weg gefunden worden, so wird der Punkt ersetzt
+					 */
 					neighbourNode = getOpen(point);
 					if (neighbourNode == null)
 						addOpen(new PathFindingNode(point.x, point.y, stepCost, distance(end, point), current));
 					else if (neighbourNode.stepCost > stepCost)
 					{
+						/*
+						Objekt wird entfernt und wieder hinzugefuegt, um die Ordnung aufrecht zu erhalten
+						 */
 						open.remove(neighbourNode);
 						neighbourNode.stepCost = stepCost;
 						addOpen(neighbourNode);
@@ -201,11 +329,23 @@ public class Map
 			return null;
 		}
 
+		/**
+		 * Gibt den Pathfinding-Knoten fuer den angegebenen Punkt zurueck oder null,
+		 * wenn kein Knoten am angegebenen Punkt vorhanden ist.
+		 * @param point zu pruefender Punkt
+		 * @return Knoten an gegebenen Punkt oder null
+		 */
 		private PathFindingNode getClosed(Point point)
 		{
 			return closed[point.x][point.y];
 		}
 
+		/**
+		 * Gibt den Pathfinding-Knoten am gegebenen Punkt zurueck oder null,
+		 * wenn kein Knoten am gegebenen Punkt vorhanden ist.
+		 * @param point zu pruefender Punkt
+		 * @return Knoten an gegebenen Punkt oder null
+		 */
 		private PathFindingNode getOpen(Point point)
 		{
 			for (PathFindingNode n : open)
@@ -214,6 +354,13 @@ public class Map
 			return null;
 		}
 
+		/**
+		 * Gibt die Nachbarn zurueck, die von gegebenen Punkt erreicht werden koennen.
+		 * Hierbei wird ueberprueft, ob Nachbarpunkte die Karte verlassen oder ob
+		 * Hindernisse vorhanden sind.
+		 * @param point zu pruefender Punkt
+		 * @return erreichbare Nachbarn des zu pruefenden Punktes
+		 */
 		private Point[] getReachableNeighbours(Point point)
 		{
 			if (isOutOfBounds(point))
@@ -232,7 +379,7 @@ public class Map
 			if (y + 1 < getHeight() && points[x + 1][y] <= 0)
 				neighbours.add(new Point(x, y + 1));
 				*/
-
+/*
 			boolean blockedLeft   = false;
 			boolean blockedRight  = false;
 			boolean blockedTop    = false;
@@ -261,7 +408,7 @@ public class Map
 			if (!blockedBottom)
 				neighbours.add(new Point(x, y + 1));
 */
-
+/*
 			for (int x2 = 0; x2 < width; x2++)
 				for (int y2 = 0; y2 < height; y2++)
 				{
@@ -281,26 +428,55 @@ public class Map
 				neighbours.add(new Point(x, y - 1));
 			if (!blockedBottom)
 				neighbours.add(new Point(x, y + 1));
+*/
+			int baseX = point.x - width / 2;
+			int baseY = point.y - height / 2;
+
+			if (canMoveTo(new Rectangle(baseX - 1, baseY, width, height)))
+				neighbours.add(new Point(x - 1, y));
+			if (canMoveTo(new Rectangle(baseX, baseY - 1, width, height)))
+				neighbours.add(new Point(x, y - 1));
+			if (canMoveTo(new Rectangle(baseX + 1, baseY, width, height)))
+				neighbours.add(new Point(x + 1, y));
+			if (canMoveTo(new Rectangle(baseX, baseY + 1, width, height)))
+				neighbours.add(new Point(x, y + 1));
 
 			return neighbours.toArray(new Point[neighbours.size()]);
 		}
 
+		/**
+		 * Entfernt einen Knoten aus der Liste der offenen Punkte
+		 * @param node zu entfernender Knoten
+		 */
 		private void removeOpen(PathFindingNode node)
 		{
 			open.remove(node);
 		}
 
+		/**
+		 * Setzt die Hoehe des Objektes, fuer welches der Pfad erstellt werden soll
+		 * @param height maximale Hoehe eines Ganges, welcher im Pfad enthalten sein kann
+		 */
 		private void setActorHeight(final int height)
 		{
-			this.height = Math.max(height - 1, 1);
+			this.height = max(height - 1, 1);
 		}
 
+		/**
+		 * Setzt die Breite des Objektes, fuer welches der Pfad erstellt werden soll
+		 * @param width maximale Breite eines Ganges, welcher im Pfad enthalten sein kann
+		 */
 		private void setActorWidth(final int width)
 		{
-			this.width = Math.max(width - 1, 1);
+			this.width = max(width - 1, 1);
 		}
 	}
 
+	/**
+	 * Hilfsklasse zur Berechnung von sichtbaren Punkten von einem gegebenen Sichtpunkt aus.
+	 * Es wurde eine Hilfsklasse erstellt, damit Sichtbarkeitsdaten gecacht werden koennen und
+	 * somit mehrfache Berechnungen von gleichen Punkten eliminiert werden koennen.
+	 */
 	private class VisibilityCalculator
 	{
 		private Rectangle calculationBounds;
@@ -308,6 +484,11 @@ public class Map
 		//0: not calculated, 1: invisible, 2: visible
 		private int[][]   visibilityData;
 
+		/**
+		 * Initialisiert eine neue Instanz zur Berechnung von Sichtbarkeiten
+		 * @param calculationBounds Begrenzungen des Viewports zur Verringerung des Rechenbedarfs
+		 * @param pointOfVision Punkt, von dem aus betrachtet wird
+		 */
 		private VisibilityCalculator(final Rectangle calculationBounds, final Point pointOfVision)
 		{
 			this.calculationBounds = calculationBounds;
@@ -319,13 +500,18 @@ public class Map
 			visibilityData = new int[calculationBounds.width][calculationBounds.height];
 		}
 
+		/**
+		 * Berechnet die Sichtbarkeit zu gegebenem Punkt
+		 * gesehen von gegebenm Sichtbarkeitspunkt
+		 * @param toPoint zu pruefender Punkt
+		 */
 		private void calculateVisibilty(Point toPoint)
 		{
 			//double dx   = pointOfVision.x - toPoint.x;
 			//double dy   = pointOfVision.y - toPoint.y;
 			double dx   = toPoint.x - pointOfVision.x;
 			double dy   = toPoint.y - pointOfVision.y;
-			double dist = Math.sqrt(dx * dx + dy * dy);
+			double dist = sqrt(dx * dx + dy * dy);
 
 			double unitDx = dx / dist;
 			double unitDy = dy / dist;
@@ -359,6 +545,10 @@ public class Map
 			visibilityData[toPoint.x - calculationBounds.x][toPoint.y - calculationBounds.y] = interrupted ? 1 : 2;
 		}
 
+		/**
+		 * Ueberprueft die Sichtbarkeit aller Punkt von gegebenem Sichtbarkeitspunkt
+		 * @return bitmaske: [x][y] = true: Punkt ist sichtbar, false, wenn nicht
+		 */
 		private boolean[][] getVisiblePoints()
 		{
 			boolean[][] output = new boolean[calculationBounds.width][calculationBounds.height];
@@ -376,20 +566,77 @@ public class Map
 			return output;
 		}
 	}
+
+	/**
+	 * Gibt zurueck, ob der Pfad den angegeben Punkt enthaelt
+	 * @param path zu untersuchender Pfad
+	 * @param point zu pruefender Punkt
+	 * @return true, wenn der Pfad den Punkt enthaelt, false, wenn nicht
+	 */
+	public static boolean pathContains(Point[] path, Point point)
+	{
+		if (path == null)
+			return false;
+		for (Point p : path)
+			if (p.equals(point))
+				return true;
+		return false;
+	}
+
+	/**
+	 * Gibt den Index zurueck, an dem sich der Punkt auf gegebenem Pfad befindet
+	 * @param path zu untersuchender Pfad
+	 * @param point zu findender Punkt
+	 * @return index des zu findenden Punkts oder -1, wenn Punkt nicht gefunden
+	 */
+	public static int pathIndex(Point[] path, Point point)
+	{
+		if (path == null)
+			return -1;
+		/*
+		Optimierte Suche:
+		Da die Distanz zwischen zwei Punkten auf dem Pfad immer 1 ist, kann
+		der Index um die Manhattan-Distanz zwischen dem Punkt und dem aktuellen
+		Pfadelement inkrementiert werden, da das zu suchende Element fruehestens
+		an dieser Position zu finden ist.
+		 */
+		for (int i = 0; i < path.length; i += abs(path[i].x - point.x) + abs(path[i].y - point.y))
+			if (point.equals(path[i]))
+				return i;
+		return -1;
+	}
 	private int horizontalScale;
+	private Point[] lastCalculatedPath;
 	private int[][] points;
 	private int verticalScale;
 
+	/**
+	 * Erstellt eine neue, leere Karte mit angegebener Breite und Hoehe
+	 * @param width Breite der Karte
+	 * @param height Hoehe der Karte
+	 */
 	public Map(int width, int height)
 	{
 		points = new int[width][height];
 	}
 
+	/**
+	 * Erstellt eine neue Karte mit angegeben Punkten mit einem Skalierungsfaktor von 1
+	 * @param points Werte der Punkte auf der Karte
+	 */
 	public Map(final int[][] points)
 	{
 		this(points, 1, 1);
 	}
 
+	/**
+	 * Erstellt eine neue Karte mit angegebenen Punkte mit dem Skalierungsfaktor (horizontalScale, verticalScale)
+	 * Die Skalierung der Werte muss schon vor Initialisierung der Karte stattgefunden haben und dient
+	 * lediglich zur Optimierung von Objektsuchen
+	 * @param points Werte der Punkte auf der Karte
+	 * @param horizontalScale horizontale Skalierung
+	 * @param verticalScale vertikale Skalierung
+	 */
 	public Map(final int[][] points, int horizontalScale, int verticalScale)
 	{
 		this.points = points;
@@ -397,11 +644,23 @@ public class Map
 		this.verticalScale = verticalScale;
 	}
 
+	/**
+	 * Gibt an, ob ein Objekt an den gegebenen Punkt bewegt werden kann.
+	 * Dies ist der Fall, wenn an gegebenem Punkt keine Wand vorhanden ist.
+	 * @param point zu pruefender Punkt
+	 * @return true, wenn der Punkt erreicht werden kann, sonst false
+	 */
 	public boolean canMoveTo(Point point)
 	{
 		return !isOutOfBounds(point) && points[point.x][point.y] <= 0;
 	}
 
+	/**
+	 * Ueberprueft, ob der gegebene Bereich erreicht werden kann, daher ob fuer jeden Punkt,
+	 * welcher Element des Bereichs ist, gilt, dass dieser erreicht werden kann.
+	 * @param rectangle zu pruefender Bereich
+	 * @return true, wenn der Bereich erreicht werden kann, sonst false
+	 */
 	public boolean canMoveTo(Rectangle rectangle)
 	{
 		if (!canMoveTo(new Point(rectangle.x, rectangle.y)))
@@ -413,11 +672,17 @@ public class Map
 		return canMoveTo(new Point(rectangle.x, bottom)) && canMoveTo(new Point(right, bottom));
 	}
 
+	/**
+	 * Ueberprueft die Sichtbarkeit eines einzelnen Punkts von einem anderen Punkt
+	 * @param fromPoint Startpunkt der Sichtstrecke
+	 * @param toPoint Endpunkt der Sichtstrecke
+	 * @return true, wenn die Sichtstrecke nicht durch Waende unterbrochen wird, sonst false
+	 */
 	public boolean canSee(Point fromPoint, Point toPoint)
 	{
 		double dx   = toPoint.x - fromPoint.x;
 		double dy   = toPoint.y - fromPoint.y;
-		double dist = Math.sqrt(dx * dx + dy * dy);
+		double dist = sqrt(dx * dx + dy * dy);
 
 		double unitDx = dx / dist;
 		double unitDy = dy / dist;
@@ -435,12 +700,30 @@ public class Map
 		return true;
 	}
 
+	/**
+	 * Sucht einen moeglichst kurzen Pfad zwischen den gegebenen Punkten
+	 * @param fromPoint Ausgangspunkt
+	 * @param toPoint Zielpunkt
+	 * @return Pfad oder null, wenn kein Pfad exisitert
+	 */
 	public Point[] findPath(Point fromPoint, Point toPoint)
 	{
 		PathFinder pathFinder = new PathFinder(fromPoint, toPoint);
 		return pathFinder.findPath();
 	}
 
+	/**
+	 * Sucht einen moeglichst kurzen Pfad zwischen den gegebenen Punkten.
+	 * Beruecksichtigt die Groesse des Aktors
+	 * @param fromPoint Ausgangspunkt
+	 * @param toPoint Zielpunkt
+	 * @return Pfad oder null, wenn kein Pfad exisitert
+	 * @param fromPoint Ausgangspunkt
+	 * @param toPoint Zielpunkt
+	 * @param width Breite des Aktors
+	 * @param height Hoehe des Aktors
+	 * @return Pfad oder null, wenn kein Pfad exisitert
+	 */
 	public Point[] findPath(Point fromPoint, Point toPoint, int width, int height)
 	{
 		PathFinder pathFinder = new PathFinder(fromPoint, toPoint);
@@ -449,16 +732,28 @@ public class Map
 		return pathFinder.findPath();
 	}
 
+	/**
+	 * Gibt die Begrenzungen von dynamischen Gegnern zurueck
+	 * @return Begrenzungen dynamischer Gegner
+	 */
 	public Rectangle[] getDynamicEnemies()
 	{
 		return findFeatures(5);
 	}
 
+	/**
+	 * Gibt die Begrenzungen von Zielen zurueck
+	 * @return Zielbegrenzungen
+	 */
 	public Rectangle[] getFinish()
 	{
 		return findFeatures(3);
 	}
 
+	/**
+	 * Gibt die Hoehe der Karte an
+	 * @return Hoehe der Karte
+	 */
 	public int getHeight()
 	{
 		if (getWidth() == 0)
@@ -467,16 +762,32 @@ public class Map
 			return points[0].length;
 	}
 
+	/**
+	 * Gibt die horizontale Skalierung der Karte an
+	 * @return horizontale Skalierung
+	 */
 	public int getHorizontalScale()
 	{
 		return horizontalScale;
 	}
 
+	/**
+	 * Gibt die Begrenzungen von Schluesseln zurueck
+	 * @return Schluesselbegrenzungen
+	 */
 	public Rectangle[] getKeys()
 	{
 		return findFeatures(6);
 	}
 
+	/**
+	 * Gibt den Wert eines Punktes an:<br>
+	 * 0, wenn leer,<br>
+	 * 1, wenn Wand
+	 * @param x x-Koordinate
+	 * @param y y-Koordinate
+	 * @return 0, wenn nichts an dem gegebenen Punkt liegt, sonst 1
+	 */
 	public int getPoint(int x, int y)
 	{
 		if (isOutOfBounds(new Point(x, y)))
@@ -485,6 +796,10 @@ public class Map
 			return points[x][y];
 	}
 
+	/**
+	 * Gibt die Begrenzungen des Eingangs an
+	 * @return Eingangsbegrenzungen
+	 */
 	public Rectangle getStart()
 	{
 		for (int x = 0; x < getWidth(); x+=horizontalScale)
@@ -498,25 +813,22 @@ public class Map
 		return null;
 	}
 
+	/**
+	 * Gibt die Begrenzungen von statischen Gegenern zurueck.
+	 * @return Begrenzungen statischer Gegner
+	 */
 	public Rectangle[] getStaticEnemies()
 	{
 		return findFeatures(4);
 	}
 
+	/**
+	 * Gibt die vertikale Skalierung an
+	 * @return vertikale Skalierung
+	 */
 	public int getVerticalScale()
 	{
 		return verticalScale;
-	}
-
-	public boolean[][] getVisiblePoints(Rectangle inRect, Point fromVisionPoint)
-	{
-		VisibilityCalculator calc = new VisibilityCalculator(inRect, fromVisionPoint);
-		return calc.getVisiblePoints();
-	}
-
-	public int getWidth()
-	{
-		return points.length;
 	}
 /*
 	public void removeFinish()
@@ -544,40 +856,63 @@ public class Map
 	}
 */
 
+	/**
+	 * Gibt eine Bitmaske der sichtbaren Punkte zurueck.
+	 * @param inRect Begrenzungen der Berechnung
+	 * @param fromVisionPoint Sichtpunkt
+	 * @return Bitmaske: [x][y] = true, wenn Punkt sichtbar.
+	 */
+	public boolean[][] getVisiblePoints(Rectangle inRect, Point fromVisionPoint)
+	{
+		VisibilityCalculator calc = new VisibilityCalculator(inRect, fromVisionPoint);
+		return calc.getVisiblePoints();
+	}
+
+	/**
+	 * Gibt die Breite der Karte an
+	 * @return Breite der Karte
+	 */
+	public int getWidth()
+	{
+		return points.length;
+	}
+
+	/**
+	 * Ueberprueft, ob ein Punkt innerhalb der Karte liegt
+	 * @param p zu pruefender Punkt
+	 * @return true, wenn der Punkt innerhalb der Karte liegt, sonst false
+	 */
 	public boolean isOutOfBounds(Point p)
 	{
 		return p.x < 0 || p.y < 0 || p.x >= getWidth() || p.y >= getHeight();
 	}
 
+	/**
+	 * Entfernt saemtliche Objekte von der Karte.
+	 * Diese sind daraufhin nicht mehr abgreifbar.
+	 * Hierbei handelt es sich um Eingaenge,
+	 * Ausgaenge, Gegner und Schluessel.
+	 */
 	public void removeFeatures()
 	{
 		for (int x = 0; x < getWidth(); x++)
-		{
 			for (int y = 0; y < getHeight(); y++)
-			{
 				if (points[x][y] > 1)
 					points[x][y] = 0;
-			}
-		}
 	}
 
-	public void setPoint(int x, int y, int value)
-	{
-		if (!isOutOfBounds(new Point(x, y)))
-			points[x][y] = value;
-	}
-
+	/**
+	 * Sucht Begrenzungen von Bereichen mit gegebenem Wert.
+	 * @param identifier gegebener Wert
+	 * @return Feld von gefundenen Bereichen
+	 */
 	private Rectangle[] findFeatures(int identifier)
 	{
 		List<Rectangle> features = new ArrayList<>();
 		for (int x = 0; x < getWidth(); x+=horizontalScale)
-		{
-			for (int y = 0; y < getHeight(); y+=verticalScale)
-			{
+			for (int y = 0; y < getHeight(); y += verticalScale)
 				if (points[x][y] == identifier)
 					features.add(new Rectangle(x, y, horizontalScale, verticalScale));
-			}
-		}
 		return features.toArray(new Rectangle[features.size()]);
 	}
 }

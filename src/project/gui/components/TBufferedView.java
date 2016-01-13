@@ -111,18 +111,17 @@ public class TBufferedView extends TComponent
 		else
 			dirtyRect = dirtyRect.intersection(new Rectangle(new Point(), getSize()));
 
-		//System.out.printf("dispatch repaint (buffered) on rect %s\n", dirtyRect);
 		TGraphics bufferedGraphics = new TGraphics(backBuffer, dirtyRect, getWidth(), getHeight());
 		paintComponent(bufferedGraphics, dirtyRect);
 		resetNeedsDisplay();
 		paintChildren(bufferedGraphics, dirtyRect);
-		updateFramebuffer(graphics);
+		updateFramebuffer(graphics, dirtyRect);
 	}
 
-	private void updateFramebuffer(TGraphics graphics)
+	private void updateFramebuffer(TGraphics graphics, Rectangle dirtyRect)
 	{
-		for (int y = 0; y < getHeight(); y++)
-			for (int x = 0; x < getWidth(); x++)
+		for (int y = dirtyRect.y; y < dirtyRect.y + dirtyRect.height; y++)
+			for (int x = dirtyRect.x; x < dirtyRect.x + dirtyRect.width; x++)
 				if (backBuffer[x][y] != null &&
 				    (frameBuffer[x][y] == null || !frameBuffer[x][y].equals(backBuffer[x][y])))
 				{

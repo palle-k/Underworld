@@ -73,6 +73,7 @@ public class MapView extends TScrollView
 	@Override
 	protected void paintComponent(final TGraphics graphics, Rectangle dirtyRect)
 	{
+		boolean showPaths = System.getProperty("com.palleklewitz.underworld.map.showpaths", "false").equalsIgnoreCase("true");
 		super.paintComponent(graphics, dirtyRect);
 		for (int x = 0; x < getWidth(); x++)
 			for (int y = 0; y < getHeight(); y++)
@@ -84,7 +85,7 @@ public class MapView extends TScrollView
 					if (pixel < 1 &&
 					    (visibility == null || (visibility.length > x && visibility[x].length > y && visibility[x][y])))
 					{
-						if (pixel == -1)
+						if (showPaths && pixel == -1)
 							graphics.setPoint(x, y, null, Color.GREEN, ' ');
 						else
 						{

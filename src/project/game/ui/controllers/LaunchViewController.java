@@ -49,7 +49,6 @@ public class LaunchViewController extends ViewController
 		getView().setLayoutManager(layout);
 
 		TLabel label = new TLabel();
-		label.setSize(64, 8);
 		label.setText("           )  (           (                 )   (    (    (     \n" +
 		              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
 		              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
@@ -62,12 +61,10 @@ public class LaunchViewController extends ViewController
 		getView().add(label);
 
 		TLabel line2 = new TLabel();
-		line2.setSize(28, 1);
 		line2.setText(LocalizedString("launch_screen_press_any_key"));
 		getView().add(line2);
 
 		TLabel copyright = new TLabel();
-		copyright.setSize(31, 1);
 		copyright.setText("v1.0.0 - (c) Palle Klewitz 2015");
 		copyright.setColor(Color.LIGHT_GRAY);
 		getView().add(copyright);

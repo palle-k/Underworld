@@ -25,7 +25,6 @@
 
 package project.game.data;
 
-import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,6 +32,11 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 
+/**
+ * Klasse zur Verwaltung des Datenmodells eines Levels
+ * Speicherung von Gegnern, dem Spieler, Schluesseln,
+ * der Karte, Ein- und Ausgaengen.
+ */
 public class Level implements Serializable
 {
 	private Enemy[] enemies;
@@ -43,17 +47,45 @@ public class Level implements Serializable
 	private Player  player;
 	private URL     source;
 
+	/**
+	 * Erstellt ein neues Level mit der Karten-Properties-File an gegebener URL.
+	 * Die Karten-Properties-File muss folgende Keys besitzen:
+	 * <ul>
+	 *     <li><b>Width</b> - Breite des Levels</li>
+	 *     <li><b>Height</b> - Hoehe des Levels</li>
+	 *     <li><b>x,y</b> - Jeden Punkt der nicht leer ist:
+	 *         <ul>
+	 *             <li><b>0</b> - Der Punkt ist eine Wand</li>
+	 *             <li><b>1</b> - Der Punkt ist ein Eingang</li>
+	 *             <li><b>2</b> - Der Punkt ist ein Ausgang</li>
+	 *             <li><b>3</b> - An dem Punkt befindet sich ein statischer Gegner</li>
+	 *             <li><b>4</b> - An dem Punkt befindet sich ein bewegter Gegner</li>
+	 *             <li><b>5</b> - An dem Punkt befindet sich ein Schluessel</li>
+	 *         </ul>
+	 *     </li>
+	 * </ul>
+	 * @param url Pfad zur Quelldatei
+	 * @throws IOException wenn die Quelldatei nicht vorhanden oder lesbar ist.
+	 */
 	public Level(URL url) throws IOException
 	{
 		source = url;
 		load();
 	}
 
+	/**
+	 * Gibt an, wie viele Schluessel schon eingesammelt wurden.
+	 * @return Anzahl eingesammelter Schluessel
+	 */
 	public int getCollectedKeyCount()
 	{
 		return (int) Arrays.stream(keys).filter(Key::isCollected).count();
 	}
 
+	/**
+	 * Gibt saemtliche Gegner, welche im Level vorhanden sind, zurueck.
+	 * @return Gegner
+	 */
 	public Enemy[] getEnemies()
 	{
 		if (enemies == null)
@@ -68,6 +100,10 @@ public class Level implements Serializable
 		return enemies;
 	}
 
+	/**
+	 * Gibt die Begrenzungen des Eingangs an. Der Spieler muss an dieser Position starten.
+	 * @return Begrenzungen des Eingangs
+	 */
 	public Rectangle getEntranceBounds()
 	{
 		if (entranceBounds == null)
@@ -82,6 +118,12 @@ public class Level implements Serializable
 		return entranceBounds;
 	}
 
+	/**
+	 * Gibt die Begrenzungen aller moeglichen Ausgaenge an.
+	 * Ein Spieler muss, um das Level zu beenden, einen dieser
+	 * Ausgaenge erreichen und alle Schluessel eingesammelt haben.
+	 * @return Begrenzungen aller Ausgaenge
+	 */
 	public Rectangle[] getExitBounds()
 	{
 		if (exitBounds == null)
@@ -96,11 +138,20 @@ public class Level implements Serializable
 		return exitBounds;
 	}
 
+	/**
+	 * Gibt die Hoehe der Karte zurueck
+	 * @return Hoehe der Karte
+	 */
 	public int getHeight()
 	{
 		return getMap().getHeight();
 	}
 
+	/**
+	 * Gibt alle Schluessel zurueck, die sich auf der Karte befinden.
+	 * Diese werden auch zurueckgegeben, falls diese schon eingesammelt wurden.
+	 * @return Alle Schluessel
+	 */
 	public Key[] getKeys()
 	{
 		if (keys == null)
@@ -115,6 +166,11 @@ public class Level implements Serializable
 		return keys;
 	}
 
+	/**
+	 * Gibt die zugrunde liegende Karte zurueck.
+	 * Diese ermoeglicht Pathfinding und Berechnung von Sichtbarkeiten.
+	 * @return Karte des Levels
+	 */
 	public Map getMap()
 	{
 		if (map == null)
@@ -129,11 +185,28 @@ public class Level implements Serializable
 		return map;
 	}
 
+	/**
+	 * Gibt den Wert eines Punktes des Levels an.
+	 * Moegliche Werte:
+	 * <ol start="0">
+	 *     <li>An dem Punkt (x, y) befindet sich nichts</li>
+	 *     <li>An dem Punkt (x, y) befindet sich eine Wand</li>
+	 * </ol>
+	 * Objekte, welche im Level verteilt sind, werden nicht angegeben.
+	 * @param x x-Koordinate des zu testenden Punkts
+	 * @param y y-Koordinate des zu testenden Punkts
+	 * @return 0, wenn an dem Punkt (x, y) nichts vorhanden ist, sonst 1
+	 */
 	public int getPixel(int x, int y)
 	{
 		return getMap().getPoint(x, y);
 	}
 
+	/**
+	 * Gibt das Spielerobjekt des Levels zurueck.
+	 * Dieser verwaltet Ebenen fuer Angriffe, sowie den Status des Spielers.
+	 * @return Spieler
+	 */
 	public Player getPlayer()
 	{
 		if (player == null)
@@ -148,16 +221,30 @@ public class Level implements Serializable
 		return player;
 	}
 
+	/**
+	 * Gibt die Quelle des Levels zurueck.
+	 * @return Quelle des Levels
+	 */
 	public URL getSource()
 	{
 		return source;
 	}
 
+	/**
+	 * Gibt die Breite der Karte zurueck.
+	 * @return Breite der Karte
+	 */
 	public int getWidth()
 	{
 		return getMap().getWidth();
 	}
 
+	/**
+	 * Laed das Level aus der zur Initialisierung mitgeteilten Quellurl,
+	 * skaliert dieses hoch und initialisiert saemtliche Objekte, welche sich auf der
+	 * Karte befinden.
+	 * @throws IOException Wenn die Quelldatei nicht geladen werden konnte.
+	 */
 	private void load() throws IOException
 	{
 		if (source == null)
@@ -165,6 +252,10 @@ public class Level implements Serializable
 		Properties properties = new Properties();
 		properties.load(source.openStream());
 
+		/*
+		Skalierung des Levels: x-Skalierung: 8x,
+		y-Skalierung: 4x, da Zeichen im Terminal ca. doppelt so hoch, wie breit sind.
+		 */
 		int width  = Integer.parseInt(properties.getProperty("Width")) * 8;
 		int height = Integer.parseInt(properties.getProperty("Height")) * 4;
 
@@ -179,15 +270,28 @@ public class Level implements Serializable
 				else
 					points[x][y] = Integer.parseInt(value) + 1;
 			}
+
+		/*
+		Erstelle eine neue Karte mit den eingelesenen Daten
+		 */
 		this.map = new Map(points, 8, 4);
 		Rectangle start = map.getStart();
 
+		/*
+		Initialisiere Spieler
+		 */
 		if (player == null)
 		{
 			player = Player.makePlayer();
 			if (player != null)
-				player.setBounds(new Rectangle(start.getLocation(), new Dimension(8, 4)));
+			{
+				player.setLocation(start.getLocation());
+			}
 		}
+
+		/*
+		Initialisiere Gegner
+		 */
 		if (enemies == null)
 		{
 			Rectangle[] staticEnemyBounds = map.getStaticEnemies();
@@ -199,7 +303,7 @@ public class Level implements Serializable
 			{
 				Rectangle enemyBounds = staticEnemyBounds[i];
 				Enemy enemy = Enemy.createStatic();
-				enemy.setBounds(enemyBounds);
+				enemy.setLocation(enemyBounds.getLocation());
 				enemies[i] = enemy;
 			}
 
@@ -207,10 +311,14 @@ public class Level implements Serializable
 			{
 				Rectangle enemyBounds = dynamicEnemyBounds[i];
 				Enemy enemy = Enemy.createDynamic();
-				enemy.setBounds(enemyBounds);
+				enemy.setLocation(enemyBounds.getLocation());
 				enemies[i + staticEnemyBounds.length] = enemy;
 			}
 		}
+
+		/*
+		Initialisiere Schluessel.
+		 */
 		if (keys == null)
 		{
 			Rectangle[] keyBounds = map.getKeys();
@@ -219,12 +327,20 @@ public class Level implements Serializable
 			{
 				Rectangle bounds = keyBounds[i];
 				Key       key    = Key.makeKey();
-				key.setBounds(bounds);
+				key.setLocation(bounds.getLocation());
 				keys[i] = key;
 			}
 		}
+		/*
+		Initialisiere wichtige Punkte auf der Karte
+		 */
 		entranceBounds = map.getStart();
 		exitBounds = map.getFinish();
+
+		/*
+		Entferne Objekte von der Karte, da diese nicht laenger benoetigt werden und beim Pathfinding und der
+		Sichtbarkeitsberechnung stoeren.
+		 */
 		map.removeFeatures();
 	}
 }

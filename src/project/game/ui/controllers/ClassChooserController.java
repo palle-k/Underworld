@@ -37,6 +37,8 @@ import project.gui.layout.VerticalFlowLayout;
 
 import java.awt.event.KeyEvent;
 
+import static project.game.localization.LocalizedString.LocalizedString;
+
 public class ClassChooserController extends ViewController
 {
 	private Runnable onCancel;
@@ -75,7 +77,7 @@ public class ClassChooserController extends ViewController
 		getView().add(classChooserContainer);
 
 		HorizontalFlowLayout layout = new HorizontalFlowLayout();
-		layout.setSpacing(10);
+		layout.setSpacing(0);
 		classChooserContainer.setLayoutManager(layout);
 
 		TLabel sword = new TLabel();
@@ -90,16 +92,15 @@ public class ClassChooserController extends ViewController
 		sword.setSize(6, 8);
 
 		TButton swordButton = new TButton();
-		swordButton.setText("Knight");
-		swordButton.setSize(10, 1);
+		swordButton.setText(LocalizedString("class_chooser_knight"));
 		swordButton.setActionHandler(() -> {
-			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.KNIGHT);
+			SavedGameState.getPlayerState().setPlayerClass(PlayerState.KNIGHT);
 			if (onClassChoose != null)
 				onClassChoose.run();
 		});
 
 		TComponent swordContainer = new TComponent();
-		swordContainer.setSize(10, 10);
+		swordContainer.setSize(20, 10);
 		swordContainer.add(sword);
 		swordContainer.add(swordButton);
 		swordContainer.setLayoutManager(containerLayout);
@@ -116,18 +117,17 @@ public class ClassChooserController extends ViewController
 		bow.setSize(8, 8);
 
 		TButton bowButton = new TButton();
-		bowButton.setText("Hunter");
-		bowButton.setSize(10, 1);
+		bowButton.setText(LocalizedString("class_chooser_hunter"));
 		bowButton.setActionHandler(() -> {
-			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.HUNTER);
+			SavedGameState.getPlayerState().setPlayerClass(PlayerState.HUNTER);
 			if (onClassChoose != null)
 				onClassChoose.run();
 		});
 
 		TComponent bowContainer = new TComponent();
-		bowContainer.setSize(10, 10);
 		bowContainer.add(bow);
 		bowContainer.add(bowButton);
+		bowContainer.setSize(20, 10);
 		bowContainer.setLayoutManager(containerLayout);
 		classChooserContainer.add(bowContainer);
 
@@ -143,16 +143,15 @@ public class ClassChooserController extends ViewController
 		wand.setSize(5, 8);
 
 		TButton wandButton = new TButton();
-		wandButton.setText("Wizard");
-		wandButton.setSize(10, 1);
+		wandButton.setText(LocalizedString("class_chooser_wizard"));
 		wandButton.setActionHandler(() -> {
-			SavedGameState.getSavedGameState().getPlayerState().setPlayerClass(PlayerState.WIZARD);
+			SavedGameState.getPlayerState().setPlayerClass(PlayerState.WIZARD);
 			if (onClassChoose != null)
 				onClassChoose.run();
 		});
 
 		TComponent wandContainer = new TComponent();
-		wandContainer.setSize(10, 10);
+		wandContainer.setSize(20, 10);
 		wandContainer.add(wand);
 		wandContainer.add(wandButton);
 		wandContainer.setLayoutManager(containerLayout);
@@ -166,7 +165,7 @@ public class ClassChooserController extends ViewController
 		classSelectables.setBackwardsKey((char) KeyEvent.VK_LEFT);
 
 		TButton back = new TButton();
-		back.setText("Zur\u00fcck");
+		back.setText(LocalizedString("class_chooser_back"));
 		back.setSize(20, 1);
 		back.setActionHandler(() -> {
 			if (onCancel != null) onCancel.run();
@@ -177,9 +176,9 @@ public class ClassChooserController extends ViewController
 		classDescription.setText("");
 		classDescription.setSize(60, 4);
 		getView().add(classDescription);
-		swordButton.setSelectionHandler(() -> classDescription.setText("Powerful in short range."));
-		bowButton.setSelectionHandler(() -> classDescription.setText("Fast and high range."));
-		wandButton.setSelectionHandler(() -> classDescription.setText("Helpful skills for tenacious battles."));
+		swordButton.setSelectionHandler(() -> classDescription.setText(LocalizedString("class_chooser_knight_description")));
+		bowButton.setSelectionHandler(() -> classDescription.setText(LocalizedString("class_chooser_hunter_description")));
+		wandButton.setSelectionHandler(() -> classDescription.setText(LocalizedString("class_chooser_wizard_description")));
 		back.setSelectionHandler(() -> classDescription.setText(""));
 
 		SelectableGroup selectables = new SelectableGroup();

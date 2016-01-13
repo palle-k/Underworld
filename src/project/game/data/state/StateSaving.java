@@ -23,27 +23,35 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.data;
+package project.game.data.state;
+
+import java.util.prefs.Preferences;
 
 /**
- * Delegate zur Rueckmeldung ueber den Status von GameActor-Objekten
- * Zur Einbindung in eine Model-View-Controller-Struktur
- * @see GameActor
+ * Interface als Vorlage fuer das Sichern von Spielstaenden.
+ * Methoden:
+ * load: Lade alle Variablen aus den gegebenen Preferences
+ * save: Schreibe alle Variablen in die gegebenen Preferences
  */
-public interface GameActorDelegate extends MapObjectDelegate
+public interface StateSaving
 {
 	/**
-	 * Wenn die Lebenspunkte des Aktors sich aendern, wird eine Implementierung
-	 * dieser Methode aufgerufen. Der geaenderte Aktor wird als Parameter uebergeben
-	 * @param actor geaenderter Aktor
+	 * Ein Objekt, welches StateSaving implementiert, soll in dieser
+	 * Methode saemtliche Variablen, die persistent gespeichert wurden,
+	 * aus den gegebenen Preferences laden.
+	 *
+	 * @param preferences Quelle fuer die zu ladenden Variablen
+	 * @see Preferences
 	 */
-	void actorDidChangeHealth(GameActor actor);
+	void load(Preferences preferences);
 
 	/**
-	 * Wenn der Status (Warten, Bewegen, Angreifen, Verteidigen) des Aktors geaendert
-	 * wurde, wird die Delegate durch Aufruf dieser Methode darueber benachrichtigt.
-	 * Der geanderte Aktor wird als Parameter uebergeben.
-	 * @param actor geaenderter Aktor
+	 * Ein Objekt, welches StateSaving implementiert, soll in dieser
+	 * Methode saemtliche Variablen, die persistent gespeichert werden
+	 * sollen, in die gegebenen Preferences schreiben.
+	 * Hierzu muss ein eindeutiger Schluesselstring gewaehlt werden.
+	 *
+	 * @param preferences Ziel fuer die Speicherung von Variablen
 	 */
-	void actorDidChangeState(GameActor actor);
+	void save(Preferences preferences);
 }

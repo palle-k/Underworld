@@ -51,6 +51,7 @@ public class TComponent extends TResponder
 	private   boolean          drawsBorder;
 	private   TLayoutManager   layoutManager;
 	private   boolean          maskToBounds;
+	private boolean modifyingLayout;
 	private   GameloopAction   onAnimationUpdate;
 	private   TComponent       parent;
 	private   boolean          visible;
@@ -273,6 +274,8 @@ public class TComponent extends TResponder
 		Rectangle previousFrame = this.frame;
 		this.frame = frame;
 		setNeedsLayout();
+		if (parent != null && !parent.modifyingLayout)
+			parent.setNeedsLayout();
 		if (previousFrame.intersects(frame))
 		{
 			Rectangle dirtyRect = frame.union(previousFrame);
@@ -332,10 +335,14 @@ public class TComponent extends TResponder
 	public void setNeedsLayout()
 	{
 		if (layoutManager != null)
+		{
+			modifyingLayout = true;
 			synchronized (children)
 			{
 				layoutManager.layoutComponent(this);
 			}
+			modifyingLayout = false;
+		}
 	}
 
 	public void setOnAnimationUpdate(final GameloopAction onAnimationUpdate)
@@ -431,7 +438,7 @@ public class TComponent extends TResponder
 		{
 			graphics.setFillBackground(backgroundColor);
 			graphics.setFillChar(' ');
-			graphics.fillRect(new Rectangle(new Point(), getSize()));
+			graphics.fillRect(new Rectangle(new Point(), getSize()).intersection(dirtyRect));
 		}
 		if (drawsBorder)
 		{

@@ -31,8 +31,11 @@ import java.util.List;
 public class GameLoop implements Runnable
 {
 	private List<GameloopAction> actionList;
+	private long numberOfUpdates;
 	private boolean              running;
 	private long                 time;
+	private long totalUpdateTime;
+	private long updateTimeDelta;
 
 	public GameLoop()
 	{
@@ -42,6 +45,21 @@ public class GameLoop implements Runnable
 	public synchronized void addAction(GameloopAction action)
 	{
 		actionList.add(action);
+	}
+
+	public long getNumberOfUpdates()
+	{
+		return numberOfUpdates;
+	}
+
+	public long getTotalUpdateTime()
+	{
+		return totalUpdateTime;
+	}
+
+	public long getUpdateTimeDelta()
+	{
+		return updateTimeDelta;
 	}
 
 	public synchronized void removeAction(GameloopAction action)
@@ -57,11 +75,14 @@ public class GameLoop implements Runnable
 		{
 			long newTime   = System.currentTimeMillis() - baseTime;
 			long timeDelta = newTime - time;
+			totalUpdateTime += updateTimeDelta;
+			numberOfUpdates++;
 			time = newTime;
 			double updateTime      = time * 0.001;
 			double updateTimeDelta = timeDelta * 0.001;
 			//SwingUtilities.invokeAndWait(() -> invokeActions(updateTime, updateTimeDelta));
 			invokeActions(updateTime, updateTimeDelta);
+			updateTimeDelta = System.currentTimeMillis() - newTime;
 			long executionTime = System.currentTimeMillis() - baseTime - time;
 			if (executionTime < 33)
 				try

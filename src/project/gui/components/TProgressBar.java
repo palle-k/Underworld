@@ -105,7 +105,7 @@ public class TProgressBar extends TComponent
 			graphics.setPoint(0, y, getColor(), getBackgroundColor(), '[');
 			graphics.setPoint(getWidth() - 1, y, getColor(), getBackgroundColor(), ']');
 
-			for (int x = 1; x < (value - minValue) / (maxValue - minValue) * (getWidth() - 3); x++)
+			for (int x = 1; x < (value - minValue) / (maxValue - minValue) * (getWidth() - 1); x++)
 			{
 				graphics.setPoint(x, y, getColor(), getBackgroundColor(), '#');
 			}

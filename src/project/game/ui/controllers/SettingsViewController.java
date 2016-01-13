@@ -32,6 +32,7 @@ import project.gui.controller.ViewController;
 import project.gui.controller.dialog.ConfirmDialog;
 import project.gui.controller.dialog.Dialog;
 import project.gui.controller.dialog.DialogDelegate;
+import project.gui.controller.dialog.MessageDialog;
 import project.gui.event.SelectableGroup;
 import project.gui.layout.VerticalFlowLayout;
 
@@ -46,15 +47,17 @@ public class SettingsViewController extends ViewController
 
 		TLabel label = new TLabel();
 		label.setSize(54, 8);
-		label.setText(" ___ ___ _____ _____ ___ _  _  ___ ___ \n" +
-		              "/ __| __|_   _|_   _|_ _| \\| |/ __/ __|\n" +
-		              "\\__ \\ _|  | |   | |  | || .` | (_ \\__ \\\n" +
-		              "|___/___| |_|   |_| |___|_|\\_|\\___|___/\n");
 		label.setText(LocalizedString("settings_menu_title"));
 		getView().add(label);
 
+		TButton setControls = new TButton();
+		setControls.setSize(30, 1);
+		setControls.setText(LocalizedString("settings_menu_set_controls"));
+		setControls.setActionHandler(() -> getNavigationController().push(new ControlSettingsViewController()));
+		getView().add(setControls);
+
 		TButton resetState = new TButton();
-		resetState.setSize(20, 1);
+		resetState.setSize(30, 1);
 		resetState.setText(LocalizedString("settings_menu_reset_game_state"));
 		resetState.setActionHandler(() ->
 		                            {
@@ -72,7 +75,7 @@ public class SettingsViewController extends ViewController
 				                            @Override
 				                            public void dialogDidReturn(final Dialog dialog)
 				                            {
-					                            SavedGameState.getSavedGameState().reset();
+					                            SavedGameState.reset();
 					                            getNavigationController().pop();
 				                            }
 			                            });
@@ -80,20 +83,82 @@ public class SettingsViewController extends ViewController
 		                            });
 		getView().add(resetState);
 
-		TButton setControls = new TButton();
-		setControls.setSize(20, 1);
-		setControls.setText(LocalizedString("settings_menu_set_controls"));
-		setControls.setActionHandler(() -> getNavigationController().push(new ControlSettingsViewController()));
-		getView().add(setControls);
+		TButton importSettings = new TButton();
+		importSettings.setSize(30, 1);
+		importSettings.setText(LocalizedString("settings_menu_import"));
+		importSettings.setActionHandler(() -> {
+			try
+			{
+				SavedGameState.importState(null);
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+				MessageDialog dialog = new MessageDialog();
+				dialog.setMessage(
+						LocalizedString("settings_export_fault") + "\n" + e.getLocalizedMessage());
+				dialog.setDelegate(new DialogDelegate()
+				{
+					@Override
+					public void dialogDidCancel(final Dialog dialog)
+					{
+
+					}
+
+					@Override
+					public void dialogDidReturn(final Dialog dialog)
+					{
+						getNavigationController().getView().setVisible(false);
+					}
+				});
+				getNavigationController().push(dialog);
+			}
+		});
+		getView().add(importSettings);
+
+		TButton exportSettings = new TButton();
+		exportSettings.setSize(30, 1);
+		exportSettings.setText(LocalizedString("settings_menu_export"));
+		exportSettings.setActionHandler(() -> {
+			try
+			{
+				SavedGameState.exportState(null);
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+				MessageDialog dialog = new MessageDialog();
+				dialog.setMessage(
+						LocalizedString("settings_import_fault") + "\n" + e.getLocalizedMessage());
+				dialog.setDelegate(new DialogDelegate()
+				{
+					@Override
+					public void dialogDidCancel(final Dialog dialog)
+					{
+					}
+
+					@Override
+					public void dialogDidReturn(final Dialog dialog)
+					{
+						getNavigationController().getView().setVisible(false);
+					}
+				});
+				getNavigationController().push(dialog);
+			}
+		});
+		getView().add(exportSettings);
+
 		TButton back = new TButton();
-		back.setSize(20, 1);
+		back.setSize(30, 1);
 		back.setText(LocalizedString("settings_menu_back"));
 		back.setActionHandler(() -> getNavigationController().pop());
 		getView().add(back);
 
 		SelectableGroup buttonGroup = new SelectableGroup();
-		buttonGroup.addResponder(resetState);
 		buttonGroup.addResponder(setControls);
+		buttonGroup.addResponder(resetState);
+		buttonGroup.addResponder(importSettings);
+		buttonGroup.addResponder(exportSettings);
 		buttonGroup.addResponder(back);
 		getView().addResponder(buttonGroup);
 

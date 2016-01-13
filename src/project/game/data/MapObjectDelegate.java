@@ -25,7 +25,16 @@
 
 package project.game.data;
 
+/**
+ * Delegate zur Rueckmeldung ueber die Veraenderung von Objekten eines Levels.
+ * z.B. fuer die Erstellung einer Model-View-Controller-Struktur
+ * @see MapObject
+ */
 public interface MapObjectDelegate
 {
+	/**
+	 * Wird aufgerufen, wenn die Begrenzungen eines MapObjects veraendert wurden
+	 * @param mapObject geaendertes MapObject
+	 */
 	void mapObjectDidMove(MapObject mapObject);
 }

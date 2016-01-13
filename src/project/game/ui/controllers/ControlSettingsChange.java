@@ -30,6 +30,8 @@ import project.gui.controller.dialog.Dialog;
 import project.gui.controller.dialog.DialogDelegate;
 import project.gui.controller.dialog.SingleKeyInputDialog;
 
+import static project.game.localization.LocalizedString.LocalizedString;
+
 public class ControlSettingsChange implements DialogDelegate, Runnable
 {
 	private NavigationController  navigationController;
@@ -59,8 +61,7 @@ public class ControlSettingsChange implements DialogDelegate, Runnable
 	public void run()
 	{
 		SingleKeyInputDialog dialog = new SingleKeyInputDialog();
-		dialog.setInputMessage(
-				"Enter a new key code.\nshift, ctrl, alt, enter, tab\nand esc not allowed.\nCancel with esc.");
+		dialog.setInputMessage(LocalizedString("single_key_input_message"));
 		dialog.setDelegate(this);
 		navigationController.push(dialog);
 	}

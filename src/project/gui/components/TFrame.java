@@ -132,10 +132,16 @@ public class TFrame extends TBufferedView
 		return new Font("Monospaced", 0, 14);
 	}
 
-	private boolean         addedListener;
-	private GameLoop        gameLoop;
+	private boolean          addedListener;
+	private GameLoop         gameLoop;
+	private long             renderCount;
+	private long             renderingTime;
+	private long             repaintCount;
 	private Stack<Rectangle> repaintStack;
-	private SwingTerminal   terminal;
+	private long             repaintTime;
+	private SwingTerminal    terminal;
+	private long             totalRenderingTime;
+	private long             totalRepaintTime;
 
 	public TFrame()
 	{
@@ -225,8 +231,8 @@ public class TFrame extends TBufferedView
 		SwingUtilities.invokeLater(() -> {
 			if (repaintStack.isEmpty())
 				return;
-			//Rectangle dirtyRect = bridge_DirtyRect;
-			//long startTime = System.currentTimeMillis();
+			renderCount++;
+			long    repaintStart = System.currentTimeMillis();
 			boolean needsLayout = false;
 			if (frame.width != terminal.getTerminalSize().getColumns())
 			{
@@ -250,9 +256,9 @@ public class TFrame extends TBufferedView
 				dispatchRepaint(g, dirtyRect1);
 				terminal.moveCursor(getWidth(), getHeight());
 			}
-
-			//long endTime = System.currentTimeMillis();
-			//System.out.printf("Rendering time: %dms\n", endTime - startTime);
+			long repaintEnd = System.currentTimeMillis();
+			renderingTime = repaintEnd - repaintStart;
+			totalRenderingTime += renderingTime;
 		});
 	}
 
@@ -293,6 +299,23 @@ public class TFrame extends TBufferedView
 				getUnderlyingFrame().addKeyListener(listener);
 				gameLoop = new GameLoop();
 				gameLoop.addAction(this::updateAnimations);
+				if (System.getProperty("com.palleklewitz.underworld.performancemetrics", "false")
+						.equalsIgnoreCase("true"))
+					gameLoop.addAction((time, timeDelta) -> setTitle(String.format(                                                       "Rendering (total %d frames):" +
+					                                                               "last: %d avg: %dms, Animation: last: %d, avg: %dms, " +
+					                                                               "Swing Repaint: last: %d, avg: %dms",
+					                                                               renderCount,
+					                                                               renderingTime,
+					                                                               totalRenderingTime / Math.max(
+							                                                               renderCount, 1),
+					                                                                                                                      gameLoop.getUpdateTimeDelta(),
+					                                                               gameLoop.getTotalUpdateTime()
+					                                                               / Math.max(
+							                                                               gameLoop.getNumberOfUpdates(),
+							                                                               0),
+					                                                               repaintTime,
+					                                                               totalRepaintTime
+					                                                               / Math.max(repaintCount, 1))));
 				gameLoop.start();
 				addedListener = true;
 
@@ -304,10 +327,14 @@ public class TFrame extends TBufferedView
 					@Override
 					protected void paintChildren(final Graphics g)
 					{
+						long time1 = System.currentTimeMillis();
 						((Graphics2D) g).setRenderingHint(
 								RenderingHints.KEY_TEXT_ANTIALIASING,
 								RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 						super.paintChildren(g);
+						repaintTime = System.currentTimeMillis() - time1;
+						repaintCount++;
+						totalRepaintTime += repaintTime;
 					}
 				};
 				antialiasedPanel.setBackground(Appearance.defaultBackgroundColor);

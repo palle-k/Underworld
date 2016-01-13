@@ -147,7 +147,7 @@ public class ControlSettingsViewController extends ViewController
 		label.setText(LocalizedString("control_settings_title"));
 		getView().add(label);
 
-		final SettingsState settingsState = SavedGameState.getSavedGameState().getSettingsState();
+		final SettingsState settingsState = SavedGameState.getSettingsState();
 
 		TButton moveUp = new TButton();
 		moveUp.setSize(30, 1);

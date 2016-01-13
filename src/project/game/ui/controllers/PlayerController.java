@@ -28,24 +28,32 @@ package project.game.ui.controllers;
 import project.game.data.Enemy;
 import project.game.data.GameActor;
 import project.game.data.Level;
+import project.game.data.Map;
 import project.game.data.MapObject;
 import project.game.data.Player;
 import project.game.data.PlayerDelegate;
 import project.gui.components.TLabel;
 import project.gui.dynamics.StepController;
+import project.util.Direction;
 
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class PlayerController implements PlayerDelegate
 {
-	private final Level level;
-	private StepController attackController;
-	private StepController      horizontalMovementController;
-	private LevelViewController mainController;
-	private TLabel              playerLabel;
-	private StepController      verticalMovementController;
+	private final Level               level;
+	private       StepController      attackController;
+	private       boolean             cancelMovement;
+	private       Enemy               currentEnemy;
+	private       StepController      healthRegenerationController;
+	private       StepController      horizontalMovementController;
+	private       LevelViewController mainController;
+	private       int                 pathIndex;
+	private       Point[]             pathToEnemy;
+	private       TLabel              playerLabel;
+	private       StepController      verticalMovementController;
 
 	public PlayerController(final Level level, TLabel playerLabel, LevelViewController mainController)
 	{
@@ -56,9 +64,11 @@ public class PlayerController implements PlayerDelegate
 		horizontalMovementController = new StepController(level.getPlayer().getSpeed() * 2);
 		verticalMovementController = new StepController(level.getPlayer().getSpeed());
 		attackController = new StepController(level.getPlayer().getAttackRate());
+		healthRegenerationController = new StepController(level.getPlayer().getHealthRegeneration());
 		horizontalMovementController.start();
 		verticalMovementController.start();
 		attackController.start();
+		healthRegenerationController.start();
 	}
 
 	@Override
@@ -83,15 +93,9 @@ public class PlayerController implements PlayerDelegate
 	public Enemy attackEnemy()
 	{
 		Enemy enemy = findNearestVisibleEnemy(20);
-		if (enemy != null)
-		{
-			Point enemyCenter = new Point((int) enemy.getBounds().getCenterX(), (int) enemy.getBounds().getCenterY());
-			Point playerCenter = new Point(
-					(int) level.getPlayer().getBounds().getCenterX(),
-					(int) level.getPlayer().getBounds().getCenterY());
-			//TODO move player to enemy (with pathfinding)
-			//attack enemy with basic attacks when in range
-		}
+		currentEnemy = enemy;
+		cancelMovement = false;
+		mainController.updateFocussedEnemy(enemy);
 		return enemy;
 	}
 
@@ -152,99 +156,37 @@ public class PlayerController implements PlayerDelegate
 	public void moveDown()
 	{
 		move(0, 1);
+		cancelMovement = true;
 	}
 
 	public void moveLeft()
 	{
 		move(-1, 0);
+		cancelMovement = true;
 	}
 
 	public void moveRight()
 	{
 		move(1, 0);
+		cancelMovement = true;
 	}
 
 	public void moveUp()
 	{
 		move(0, -1);
+		cancelMovement = true;
 	}
 
 	@Override
 	public void playerDidEarnExperience(final Player player)
 	{
-
-	}
-
-	@Override
-	public void playerDidFocusOnEnemy(final Player player, final Enemy enemy)
-	{
-
+		mainController.updatePlayerExperience();
 	}
 
 	@Override
 	public void playerLevelDidChange(final Player player)
 	{
-
-	}
-
-	@Override
-	public void playerShouldShowAttackPotionOverlay(final Player player)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowHealthPotionOverlay(final Player player)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill1Overlay(final Player player, final GameActor target)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill1State(final Player player)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill2Overlay(final Player player, final GameActor target)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill2State(final Player player)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill3Overlay(final Player player, final GameActor target)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill3State(final Player player)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill4Overlay(final Player player, final GameActor target)
-	{
-
-	}
-
-	@Override
-	public void playerShouldShowSkill4State(final Player player)
-	{
-
+		mainController.updatePlayerExperience();
 	}
 
 	public boolean takeAttackPotion()
@@ -264,12 +206,117 @@ public class PlayerController implements PlayerDelegate
 		horizontalMovementController.updateTime(time);
 		verticalMovementController.updateTime(time);
 		attackController.updateTime(time);
+		healthRegenerationController.updateTime(time);
+
+		if (healthRegenerationController.requiresUpdate())
+			level.getPlayer().regenerateHealth(healthRegenerationController.getNumberOfSteps());
+
+		if (currentEnemy != null)
+		{
+			boolean recalculate = false;
+
+			if (!cancelMovement)
+			{
+				if (pathToEnemy == null)
+					recalculate = true;
+				else if (!Map.pathContains(pathToEnemy, currentEnemy.getCenter()))
+					recalculate = true;
+				else if (!Map.pathContains(pathToEnemy, level.getPlayer().getCenter()))
+					recalculate = true;
+			}
+
+			if (recalculate)
+			{
+				pathIndex = 0;
+				pathToEnemy = level.getMap().findPath(level.getPlayer().getCenter(), currentEnemy.getCenter());
+			}
+
+			int enemyIndex = Map.pathIndex(pathToEnemy, currentEnemy.getCenter());
+
+			if (!cancelMovement)
+				if (Math.abs(enemyIndex - pathIndex) > level.getPlayer().getAttackRange())
+				{
+					int horizontalSteps = horizontalMovementController.getNumberOfSteps();
+					int verticalSteps   = verticalMovementController.getNumberOfSteps();
+					int steps           = Math.min(horizontalSteps, verticalSteps);
+					if (enemyIndex - pathIndex > 0)
+						pathIndex += steps;
+					else
+						pathIndex -= steps;
+
+					if (horizontalSteps > verticalSteps)
+						for (int i = 0; i < horizontalSteps - verticalSteps; i++)
+						{
+							if (enemyIndex - pathIndex > 0 && pathIndex + 1 >= pathToEnemy.length)
+								break;
+							else if (enemyIndex - pathIndex < 0 && pathIndex < 1)
+								break;
+							Direction dir = Direction.direction(
+									pathToEnemy[pathIndex],
+									pathToEnemy[pathIndex +
+									            ((enemyIndex - pathIndex) > 0 ? 1 : -1)]);
+							if (dir == Direction.LEFT || dir == Direction.RIGHT)
+								if (enemyIndex - pathIndex > 0)
+									pathIndex++;
+								else
+									pathIndex--;
+						}
+					else if (verticalSteps > horizontalSteps)
+						for (int i = 0; i < verticalSteps - horizontalSteps; i++)
+						{
+							if (enemyIndex - pathIndex > 0 && pathIndex + 1 >= pathToEnemy.length)
+								break;
+							else if (enemyIndex - pathIndex < 0 && pathIndex < 1)
+								break;
+							Direction dir = Direction.direction(
+									pathToEnemy[pathIndex],
+									pathToEnemy[pathIndex +
+									            ((enemyIndex - pathIndex) > 0 ? 1 : -1)]);
+							if (dir == Direction.UP || dir == Direction.DOWN)
+								if (enemyIndex - pathIndex > 0)
+									pathIndex++;
+								else
+									pathIndex--;
+						}
+					level.getPlayer().setCenter(pathToEnemy[pathIndex]);
+				}
+
+			if (Math.abs(enemyIndex - pathIndex) <= level.getPlayer().getAttackRange())
+				if (attackController.requiresUpdate())
+				{
+					int steps = attackController.getNumberOfSteps();
+					for (int i = 0; i < steps; i++)
+					{
+						int damage = level.getPlayer().getAttackDamage() +
+						             (int) (Math.random() * level.getPlayer().getAttackDamageVariation() -
+						                    0.5 * level.getPlayer().getAttackDamageVariation());
+						currentEnemy.decreaseHealth(damage);
+					}
+					level.getPlayer().attack();
+					if (!currentEnemy.isAlive())
+					{
+						level.getPlayer().earnExperience(currentEnemy.getEarnedExperience());
+						currentEnemy = null;
+					}
+					mainController.updateFocussedEnemy(currentEnemy);
+				}
+		}
 	}
 
 	private Enemy findNearestVisibleEnemy(int maxDist)
 	{
-		//TODO implement linear search (check visibility and distance)
-		return null;
+		Point playerCenter = level.getPlayer().getCenter();
+		Map   map          = level.getMap();
+		Optional<Enemy> nearestEnemy = Arrays.stream(level.getEnemies())
+				.filter(Enemy::isAlive)
+				.filter(enemy -> playerCenter.distance(enemy.getCenter()) <= maxDist)
+				.filter(enemy -> map.canSee(enemy.getCenter(), playerCenter))
+				//.sorted((o1, o2) -> Double.compare(o1.getCenter().distance(playerCenter), o2.getCenter().distance(playerCenter)))
+				//.findFirst();
+				.min((o1, o2) -> Double.compare(
+						o1.getCenter().distance(playerCenter),
+						o2.getCenter().distance(playerCenter)));
+		return nearestEnemy.isPresent() ? nearestEnemy.get() : null;
 	}
 
 	private void move(int dx, int dy)

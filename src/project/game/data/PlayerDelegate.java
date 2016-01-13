@@ -25,31 +25,19 @@
 
 package project.game.data;
 
+/**
+ * Delegate zur Rueckmeldung ueber Aktionen des Spielers
+ * Verwendung z.B. in einem Model-View-Controller-Pattern
+ */
 public interface PlayerDelegate extends GameActorDelegate
 {
+	/**
+	 * Rueckmeldung darueber, dass der
+	 *
+	 * @param player
+	 */
 	void playerDidEarnExperience(Player player);
-
-	void playerDidFocusOnEnemy(Player player, Enemy enemy);
 
 	void playerLevelDidChange(Player player);
 
-	void playerShouldShowAttackPotionOverlay(Player player);
-
-	void playerShouldShowHealthPotionOverlay(Player player);
-
-	void playerShouldShowSkill1Overlay(Player player, GameActor target);
-
-	void playerShouldShowSkill1State(Player player);
-
-	void playerShouldShowSkill2Overlay(Player player, GameActor target);
-
-	void playerShouldShowSkill2State(Player player);
-
-	void playerShouldShowSkill3Overlay(Player player, GameActor target);
-
-	void playerShouldShowSkill3State(Player player);
-
-	void playerShouldShowSkill4Overlay(Player player, GameActor target);
-
-	void playerShouldShowSkill4State(Player player);
 }

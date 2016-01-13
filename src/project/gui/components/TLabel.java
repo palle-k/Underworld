@@ -79,13 +79,6 @@ public class TLabel extends TComponent
 		modifiedBounds = true;
 	}
 
-	@Override
-	public void setSize(final Dimension size)
-	{
-		super.setSize(size);
-		modifiedBounds = true;
-	}
-
 	public void setText(String text)
 	{
 		if (this.text.equals(text))
@@ -93,8 +86,13 @@ public class TLabel extends TComponent
 		Rectangle previous = new Rectangle(new Point(), StringUtils.getStringDimensions(this.text));
 		this.text = text;
 		Dimension newSize = StringUtils.getStringDimensions(this.text);
+		newSize.width += textInsets.left + textInsets.right;
+		newSize.height += textInsets.top + textInsets.bottom;
 		if (!modifiedBounds)
-			setSize(newSize);
+		{
+			super.setSize(newSize);
+			modifiedBounds = false;
+		}
 		setNeedsDisplay(new Rectangle(new Point(), newSize).union(previous));
 		//setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
@@ -102,7 +100,12 @@ public class TLabel extends TComponent
 	public void setTextInsets(Insets textInsets)
 	{
 		this.textInsets = textInsets;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		Dimension newSize = StringUtils.getStringDimensions(this.text);
+		newSize.width += textInsets.left + textInsets.right;
+		newSize.height += textInsets.top + textInsets.bottom;
+		if (!modifiedBounds)
+			super.setSize(newSize);
+		setNeedsDisplay(new Rectangle(new Point(), newSize));
 	}
 
 	@Override

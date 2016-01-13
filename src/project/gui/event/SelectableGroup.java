@@ -176,6 +176,7 @@ public class SelectableGroup extends TResponder implements Selectable
 		{
 			super.keyDown(event);
 			selectables.stream()
+					.filter(Selectable::isSelected)
 					.filter(selectable -> selectable instanceof SelectableGroup)
 					.forEach(selectable -> ((SelectableGroup) selectable).keyDown(event));
 		}

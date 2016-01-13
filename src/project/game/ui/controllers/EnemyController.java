@@ -43,16 +43,18 @@ public class EnemyController implements GameActorDelegate
 	private Enemy          enemy;
 	private TLabel         enemyLabel;
 	private boolean        following;
+	private StepController healthRegenerationController;
+	private StepController horizontalMovementController;
 	private Point          lastCheckPoint;
 	/*
 	private Point   lastPathEndpoint;
 	private Point   lastPlayerPosition;*/
 	private Map            map;
-	private StepController movementController;
 	private Point[]        path;
 	private int            pathIndex;
 	private Player         player;
 	private long           requiredDistance;
+	private StepController verticalMovementController;
 	//private long    requiredTravelDistance;
 
 	public EnemyController(final Enemy enemy, final Map map, final Player player, final TLabel enemyLabel)
@@ -62,10 +64,14 @@ public class EnemyController implements GameActorDelegate
 		this.player = player;
 		this.enemyLabel = enemyLabel;
 		enemy.setDelegate(this);
-		movementController = new StepController(enemy.getSpeed());
+		horizontalMovementController = new StepController(enemy.getSpeed());
+		verticalMovementController = new StepController(enemy.getSpeed() / 2);
 		attackController = new StepController(enemy.getAttackRate());
-		movementController.start();
+		healthRegenerationController = new StepController(enemy.getHealthRegeneration());
+		horizontalMovementController.start();
+		verticalMovementController.start();
 		attackController.start();
+		healthRegenerationController.start();
 	}
 
 	@Override
@@ -98,6 +104,10 @@ public class EnemyController implements GameActorDelegate
 		if (!enemy.isAlive())
 			return;
 
+		healthRegenerationController.updateTime(time);
+		if (healthRegenerationController.requiresUpdate())
+			enemy.regenerateHealth(healthRegenerationController.getNumberOfSteps());
+
 		Point playerCenter = player.getCenter();
 		Point enemyCenter  = enemy.getCenter();
 
@@ -105,9 +115,10 @@ public class EnemyController implements GameActorDelegate
 
 		if (enemy.getSpeed() > 0)
 		{
-			movementController.updateTime(time);
+			horizontalMovementController.updateTime(time);
+			verticalMovementController.updateTime(time);
 
-			if (movementController.requiresUpdate())
+			if (horizontalMovementController.requiresUpdate() || verticalMovementController.requiresUpdate())
 			{
 				boolean recalculateFlag = false;
 				if (path == null)
@@ -125,7 +136,7 @@ public class EnemyController implements GameActorDelegate
 							recalculateFlag = true;
 					}
 				}
-				else if (!pathContains(playerCenter))
+				else if (!Map.pathContains(path, playerCenter))
 					recalculateFlag = true;
 
 				if (playerDist == 0)
@@ -138,8 +149,8 @@ public class EnemyController implements GameActorDelegate
 							playerCenter,
 							enemy.getBounds().width,
 							enemy.getBounds().height);
-					if ((path != null && newPath.length > enemy.getFollowRange()) ||
-					    (path == null && newPath.length > enemy.getVisionRange()))
+					if (newPath != null && ((path != null && newPath.length > enemy.getFollowRange()) ||
+					    (path == null && newPath.length > enemy.getVisionRange())))
 					{
 						lastCheckPoint = playerCenter;
 						requiredDistance = newPath.length - enemy.getVisionRange();
@@ -154,8 +165,8 @@ public class EnemyController implements GameActorDelegate
 
 				if (path != null)
 				{
-					int playerIndex = pathIndex(playerCenter);
-					if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
+					int playerIndex = Map.pathIndex(path, playerCenter);
+					/*if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
 					    !map.canSee(enemyCenter, playerCenter))
 					{
 						if (playerIndex > pathIndex)
@@ -171,21 +182,55 @@ public class EnemyController implements GameActorDelegate
 								pathIndex = playerIndex;
 						}
 
-						enemy.setCenter(path[pathIndex]);
+					}*/
+					int horizontalSteps = horizontalMovementController.getNumberOfSteps();
+					int verticalSteps = verticalMovementController.getNumberOfSteps();
+					if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
+					    !map.canSee(enemyCenter, playerCenter))
+					{
+						if (pathIndex < playerIndex)
+						{
+							pathIndex += Math.min(horizontalSteps, verticalSteps);
+							if (horizontalSteps > verticalSteps)
+							{
+								loop: for (int i = 0; i < horizontalSteps - verticalSteps; i++)
+									switch (Direction.direction(path[pathIndex], path[pathIndex + 1]))
+									{
+										case LEFT:
+										case RIGHT:
+											pathIndex++;
+											break;
+										default:
+											break loop;
+									}
+							}
+							else if (verticalSteps > horizontalSteps)
+							{
+								loop: for (int i = 0; i < verticalSteps - horizontalSteps; i++)
+									switch (Direction.direction(path[pathIndex], path[pathIndex + 1]))
+									{
+										case UP:
+										case DOWN:
+											pathIndex++;
+											break;
+										default:
+											break loop;
+									}
+							}
+						}
+
 					}
+
+					enemy.setCenter(path[pathIndex]);
 				}
 
 			}
 		}
 		attackController.updateTime(time);
-		if (playerDist <= enemy.getAttackRange())
-		{
-			if (attackController.requiresUpdate())
-				for (int i = 0; i < attackController.getNumberOfSteps(); i++)
-				{
-					attackPlayer();
-				}
-		}
+		if (playerDist <= enemy.getAttackRange() && attackController.requiresUpdate() &&
+		    map.canSee(enemyCenter, playerCenter))
+			for (int i = 0; i < attackController.getNumberOfSteps(); i++)
+				attackPlayer();
 	}
 
 	private void attackPlayer()
@@ -193,7 +238,7 @@ public class EnemyController implements GameActorDelegate
 		int damage = enemy.getAttackDamage() +
 		             (int) (Math.random() * enemy.getAttackDamageVariation() -
 		                    0.5 * enemy.getAttackDamageVariation());
-		enemy.attack(player);
+		enemy.attack();
 		player.decreaseHealth(damage);
 
 		if (enemy.usesProjectiles())
@@ -204,25 +249,5 @@ public class EnemyController implements GameActorDelegate
 			String[] projectiles = enemy.getAttackProjectilesForDirection(Direction.direction(enemyLocation, playerLocation));
 
 		}
-	}
-
-	private boolean pathContains(Point point)
-	{
-		if (path == null)
-			return false;
-		for (Point p : path)
-			if (p.equals(point))
-				return true;
-		return false;
-	}
-
-	private int pathIndex(Point point)
-	{
-		if (path == null)
-			return -1;
-		for (int i = path.length - 1; i >= 0; i--)
-			if (point.equals(path[i]))
-				return i;
-		return -1;
 	}
 }
