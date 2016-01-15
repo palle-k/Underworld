@@ -147,4 +147,5 @@ public class TScrollView extends TComponent
 		}
 		contentView.setSize(maxX, maxY);
 	}
+
 }

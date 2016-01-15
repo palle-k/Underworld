@@ -25,15 +25,12 @@
 
 package project.game.ui.controllers;
 
+import project.audio.AudioPlayer;
 import project.gui.components.TLabel;
 import project.gui.controller.ViewController;
-import project.gui.event.TEvent;
-import project.gui.event.TEventHandler;
 import project.gui.layout.VerticalFlowLayout;
 
 import java.awt.Color;
-
-import static project.game.localization.LocalizedString.LocalizedString;
 
 public class LaunchViewController extends ViewController
 {
@@ -60,29 +57,24 @@ public class LaunchViewController extends ViewController
 		label.setColor(new Color(255, 100, 0));
 		getView().add(label);
 
-		TLabel line2 = new TLabel();
-		line2.setText(LocalizedString("launch_screen_press_any_key"));
-		getView().add(line2);
-
 		TLabel copyright = new TLabel();
 		copyright.setText("v1.0.0 - (c) Palle Klewitz 2015");
 		copyright.setColor(Color.LIGHT_GRAY);
 		getView().add(copyright);
 
-		getView().setAllowsFirstResponder(true);
-		getView().setEventHandler(new TEventHandler()
-		{
-			@Override
-			public void keyDown(final TEvent event)
-			{
-			}
+		AudioPlayer player = new AudioPlayer(AudioPlayer.class.getResource("Intro Sound.aif"));
+		player.play();
 
-			@Override
-			public void keyUp(final TEvent event)
+		new Thread(() -> {
+			try
 			{
-				getNavigationController().push(new MainMenuViewController());
+				Thread.sleep(3300);
 			}
-		});
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+			getNavigationController().push(new MainMenuViewController());
+		}).start();
 	}
-
 }

@@ -41,12 +41,24 @@ import java.util.List;
 
 public class TComponent extends TResponder
 {
+	public enum Composite
+	{
+		SRC_OVER,
+		MULTIPLY,
+		ADD,
+		BRIGHTNESS
+	}
+	public static Composite ADD = Composite.ADD;
+	public static Composite BRIGHTNESS = Composite.BRIGHTNESS;
+	public static Composite MULTIPLY = Composite.MULTIPLY;
+	public static Composite SRC_OVER = Composite.SRC_OVER;
 	protected Rectangle        frame;
 	protected boolean          needsDisplay;
 	private   List<Animation>  animations;
 	private   Color            backgroundColor;
 	private   Color            borderColor;
 	private   List<TComponent> children;
+	private Composite composite;
 	private   boolean          drawsBackground;
 	private   boolean          drawsBorder;
 	private   TLayoutManager   layoutManager;
@@ -66,6 +78,7 @@ public class TComponent extends TResponder
 		setMaskToBounds(true);
 		borderColor = Appearance.defaultBorderColor;
 		backgroundColor = Appearance.defaultBackgroundColor;
+		composite = Composite.SRC_OVER;
 	}
 
 	public void add(TComponent child)
@@ -136,6 +149,11 @@ public class TComponent extends TResponder
 		{
 			return children.toArray(new TComponent[0]);
 		}
+	}
+
+	public Composite getComposite()
+	{
+		return composite;
 	}
 
 	public Rectangle getFrame()
@@ -239,6 +257,12 @@ public class TComponent extends TResponder
 		animations.remove(animation);
 	}
 
+	public void removeFromSuperview()
+	{
+		if (getParent() != null)
+			getParent().remove(this);
+	}
+
 	public void setBackgroundColor(Color color)
 	{
 		this.backgroundColor = color;
@@ -253,6 +277,12 @@ public class TComponent extends TResponder
 	public void setBorderColor(Color borderColor)
 	{
 		this.borderColor = borderColor;
+	}
+
+	public void setComposite(final Composite composite)
+	{
+		this.composite = composite;
+		setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
 	public void setDrawsBackground(boolean drawsBackground)
@@ -400,8 +430,11 @@ public class TComponent extends TResponder
 		}
 		synchronized (children)
 		{
-			for (TComponent child : children)
+			for (int i = 0; i < children.size(); i++)
+			{
+				TComponent child = children.get(i);
 				child.updateAnimations(time, timeDelta);
+			}
 		}
 		if (onAnimationUpdate != null)
 			onAnimationUpdate.update(time, timeDelta);
@@ -425,7 +458,9 @@ public class TComponent extends TResponder
 					if (child.maskToBounds)
 						r = r.intersection(child.getFrame());
 					r.translate(-child.getLocation().x, -child.getLocation().y);
-					child.dispatchRepaint(graphics.getChildContext(child.getFrame(), child.maskToBounds), r);
+					TGraphics childContext = graphics.getChildContext(child.getFrame(), child.maskToBounds);
+					childContext.setComposite(child.getComposite());
+					child.dispatchRepaint(childContext, r);
 				}
 		}
 	}

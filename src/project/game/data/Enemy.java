@@ -30,6 +30,8 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.Properties;
 
+import static project.game.localization.LocalizedString.LocalizedString;
+
 /**
  * Klasse fuer einen Gegner
  * Diese Klasse speichert den Zustand sowie das Aussehen eines Gegners.
@@ -160,6 +162,6 @@ public class Enemy extends GameActor implements Serializable
 		earnedExperience = Integer.parseInt(properties.getProperty("earned_experience"));
 		follow_range = Integer.parseInt(properties.getProperty("follow_range"));
 		visionRange = Integer.parseInt(properties.getProperty("vision_range"));
-		name = properties.getProperty("name");
+		name = LocalizedString(properties.getProperty("name"));
 	}
 }

@@ -25,15 +25,15 @@
 
 package project.game.data;
 
-import project.util.Direction;
 import project.util.StringUtils;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Basisklasse fuer saemtliche Dinge/Personen, die im Spiel handeln koennen.
@@ -49,6 +49,7 @@ public abstract class GameActor extends MapObject implements Serializable
 		RESTING,
 		ATTACKING,
 		DEFENDING,
+		MOVING,
 		DEAD
 	}
 
@@ -69,52 +70,20 @@ public abstract class GameActor extends MapObject implements Serializable
 	 * Der Aktor wurde vor kurzer Zeit (von einem anderen Aktoren) angegriffen.
 	 */
 	public static final ActorState DEFENDING = ActorState.DEFENDING;
-
+	/**
+	 * Bewegungsstatus fuer Aktor:
+	 * Der Aktor hat sich vor kurzer Zeit bewegt.
+	 */
+	public static final ActorState MOVING = ActorState.MOVING;
 	/**
 	 * Wartestatus fuer Aktor:
 	 * Der Aktor hat seit einiger Zeit keine Aktion durchgefuehrt.
 	 */
 	public static final ActorState RESTING   = ActorState.RESTING;
-
-	/**
-	 * Schaden, der durch eine Basisattacke erzielt wird.
-	 * Der tatsaechliche Schaden kann variieren.
-	 */
-	protected transient int attackDamage;
-
-	/**
-	 * Schadensvariation bei einer Basisattacke.
-	 * Der tatsaechliche Schaden liegt zwischen attackDamage - attackDamageVariation / 2
-	 * und attackDamage + attackDamageVariation / 2
-	 */
-	protected transient int attackDamageVariation;
-
-	/**
-	 * Ebenen, die ueber dem Aktor bei der Ausfuehrung eines Angriffs angezeigt werden sollen
-	 */
-	protected transient String[] attackLayers;
-
-	/**
-	 * Ebenen, welche Projektile darstellen, welche beim Angriff vom angreifenden Aktor
-	 * auf den angegriffenen Aktor geschossen werden.
-	 * Diese koennen Richtungsabhaengig sein.
-	 */
-	protected transient String[] attackProjectiles;
-
-	/**
-	 * Maximalradius, den die Basisattacke ueberbruecken kann.
-	 */
-	protected transient int attackRange;
-
-	/**
-	 * Angriffsrate (Wiederholrate fuer Basisangriffe)
-	 */
-	protected transient int attackRate;
-
 	/**
 	 * Ebenen, die den Aktor waehrend eines Angriffs darstellen.
 	 */
-	protected transient String[] attackStates;
+	protected transient String attackState;
 
 	/**
 	 * Aktuell verfuegbare Lebenspunkte
@@ -129,19 +98,13 @@ public abstract class GameActor extends MapObject implements Serializable
 	/**
 	 * Ebenen, welche den Aktor in Verteidigungsposition darstellen.
 	 */
-	protected transient String[] defenseStates;
-
-	/**
-	 * Boolean, welcher angibt, ob die verwendeten Projektile der
-	 * Basisattacke abhaengig von der Bewegungsrichtung sind.
-	 */
-	protected transient boolean directionDependentProjectiles;
+	protected transient String defenseState;
 
 	/**
 	 * Wert, der die Regeneration von Leben angibt.
 	 * (Wiederhergestellte Lebenspunkte pro Sekunde)
 	 */
-	protected transient int healthRegeneration;
+	protected transient double healthRegeneration;
 
 	/**
 	 * Maximal erreichbare Lebenspunkte
@@ -151,36 +114,29 @@ public abstract class GameActor extends MapObject implements Serializable
 	/**
 	 * Ebenen, welche den Aktor in Bewegung darstellen.
 	 */
-	protected transient String[] movingStates;
-
-	/**
-	 * Projektilebenen pro Richtung
-	 */
-	protected transient int projectilesPerDirection;
+	protected transient String[] movementStates;
 
 	/**
 	 * Geschwindigkeit, mit der sich der Aktor in einem Level
 	 * bewegen kann
 	 */
-	protected transient int speed;
-
+	protected transient double speed;
 	/**
-	 * Angabe, ob fuer die Darstellung von Standardangriffen
-	 * Projektile angezeigt werden sollen.
+	 * Basisattacke (Hat jeder Aktor)
 	 */
-	protected transient boolean useProjectiles;
-
+	private transient SkillConfiguration baseAttack;
+	private int movementStateCounter;
 	/**
 	 * Aktueller Status des Aktors.
 	 *
 	 * @see ActorState
 	 */
 	private ActorState state;
-
 	/*
 	 * Statuszaehler (Verhindert fehlerhafte Aenderungen des Aktorstatus)
 	 */
 	private transient long stateCounter;
+	private transient Timer stateTimer;
 
 	/**
 	 * Erzeugt einen neuen GameActor mit den Angaben in den angegebenen Properties
@@ -192,76 +148,8 @@ public abstract class GameActor extends MapObject implements Serializable
 	{
 		super(properties);
 
-		speed = Integer.parseInt(properties.getProperty("speed"));
-
-		attackStates = new String[]{ properties.getProperty("attack") };
-		defenseStates = new String[]{ properties.getProperty("defend") };
-		deadState = properties.getProperty("dead", "");
-
-		int movement_state_count = Integer.parseInt(properties.getProperty("movement_states"));
-		movingStates = new String[movement_state_count];
-
-		for (int i = 0; i < movement_state_count; i++)
-			movingStates[i] = properties.getProperty("move_" + (i + 1));
-
-		attackRate = Integer.parseInt(properties.getProperty("attack_rate"));
-		attackDamage = Integer.parseInt(properties.getProperty("attack_damage"));
-		attackRange = Integer.parseInt(properties.getProperty("attack_range"));
-		maxHealth = Integer.parseInt(properties.getProperty("max_health"));
-		currentHealth = maxHealth;
-		healthRegeneration = Integer.parseInt(properties.getProperty("health_regeneration"));
-		attackDamageVariation = Integer.parseInt(properties.getProperty("attack_damage_variation"));
-		
-		useProjectiles = Boolean.parseBoolean(properties.getProperty("base_attack_objects", "false"));
-		if (useProjectiles)
-		{
-			directionDependentProjectiles = Boolean.parseBoolean(properties.getProperty(
-					"base_attack_direction_dependent",
-					"false"));
-			projectilesPerDirection = Integer.parseInt(properties.getProperty(
-					"base_attack_objects_per_direction",
-					"1"));
-
-			attackProjectiles = new String[projectilesPerDirection * (directionDependentProjectiles ? 4 : 1)];
-
-			if (directionDependentProjectiles)
-			{
-				for (int i = 0; i < projectilesPerDirection; i++)
-				{
-					String upName     = "base_attack_obj_up_" + (i + 1);
-					String leftName   = "base_attack_obj_left_" + (i + 1);
-					String downName   = "base_attack_obj_down_" + (i + 1);
-					String rightName  = "base_attack_obj_right_" + (i + 1);
-					String upValue    = properties.getProperty(upName);
-					String leftValue  = properties.getProperty(leftName);
-					String downValue  = properties.getProperty(downName);
-					String rightValue = properties.getProperty(rightName);
-					attackProjectiles[i] = upValue;
-					attackProjectiles[i + projectilesPerDirection] = leftValue;
-					attackProjectiles[i + projectilesPerDirection * 2] = downValue;
-					attackProjectiles[i + projectilesPerDirection * 3] = rightValue;
-				}
-			}
-			else
-			{
-				for (int i = 0; i < projectilesPerDirection; i++)
-				{
-					String pName  = "base_attack_obj_" + (i + 1);
-					String pValue = properties.getProperty(pName);
-					attackProjectiles[i] = pValue;
-				}
-			}
-		}
-		else
-		{
-			attackProjectiles = new String[0];
-			directionDependentProjectiles = false;
-			projectilesPerDirection = 0;
-		}
-
-		//TODO load attack states and projectiles
-		//FIXME Important: not loading attack projectiles
-		attackLayers = new String[0];
+		this.properties = properties;
+		restore();
 	}
 
 	/**
@@ -277,25 +165,6 @@ public abstract class GameActor extends MapObject implements Serializable
 	}
 
 	/**
-	 * Aendert den Status des GameActors auf Angriff
-	 * DEPRECATED. Use attack() instead.
-	 * @param actor angegriffener Gegner
-	 */
-	@Deprecated
-	public void attack(GameActor actor)
-	{
-		makeStateChange(ActorState.ATTACKING);
-	}
-
-	/**
-	 * Setzt den Status des GameActors auf Angriff
-	 */
-	public void attack()
-	{
-		makeStateChange(ActorState.ATTACKING);
-	}
-
-	/**
 	 * Der Aktor wurde angegriffen und verliert die angegebene Anzahl
 	 * an Lebenspunkten
 	 * @param damage Erhaltener Schaden
@@ -305,98 +174,43 @@ public abstract class GameActor extends MapObject implements Serializable
 		currentHealth -= damage;
 		if (currentHealth < 0)
 			currentHealth = 0;
-		makeStateChange(ActorState.DEFENDING);
+		enterState(ActorState.DEFENDING);
 		if (delegate instanceof GameActorDelegate)
 			((GameActorDelegate) delegate).actorDidChangeHealth(this);
 	}
 
 	/**
-	 * Gibt den Schaden an, welcher der Aktor durchschnittlich erziehlt.
-	 *
-	 * @return Schaden
+	 * Setzt den Status des GameActors auf Angriff
 	 */
-	public int getAttackDamage()
+	public void enterAttackState()
 	{
-		return attackDamage;
+		enterState(ActorState.ATTACKING);
 	}
 
 	/**
-	 * Gibt die Abweichung des Schadens des Aktors an.
-	 * Der tatsaechliche Schaden liegt zwischen attackDamage - attackDamageVariation / 2
-	 * und attackDamage + attackDamageVariation / 2
-	 * @return Schadensvariation.
+	 * Setzt den Status des GameAcotrs auf Bewegen
 	 */
-	public int getAttackDamageVariation()
+	public void enterMovementState()
 	{
-		return attackDamageVariation;
-	}
-
-	/**
-	 * Gibt die Ebenen an, welche beim Ausfuehren eines Standardangriffs angezeigt werden sollen
-	 *
-	 * @return Angriffsebenen
-	 */
-	public String[] getAttackLayers()
-	{
-		return attackLayers;
-	}
-
-	/**
-	 * Gibt die Ebenen fuer ein Projektil an, welches beim Standardangriff geschossen werden soll
-	 * @param direction Richtung, in die sicht das Projektil bewegt
-	 * @return Ebenen fuer Angriffsdarstellung
-	 */
-	public String[] getAttackProjectilesForDirection(Direction direction)
-	{
-
-		String[] projectiles = new String[projectilesPerDirection];
-		System.arraycopy(
-				attackProjectiles,
-				directionDependentProjectiles ? direction.ordinal() * projectilesPerDirection : 0,
-				projectiles,
-				0,
-				projectilesPerDirection);
-		return projectiles;
-	}
-
-	/**
-	 * Gibt den Maximalen Angriffsradius eines Standardangriffs an.
-	 * Ein Angriff kann nur durchgefuehrt werden, wenn sich der Gegner innerhalb dieses Radius
-	 * befindet.
-	 * @return maximaler Angriffsradius
-	 */
-	public int getAttackRange()
-	{
-		return attackRange;
-	}
-
-	/**
-	 * Gibt die Angriffsrate des Aktors an.
-	 * Diese gibt die Anzahl von Basisangriffen pro Sekunde an
-	 * @return Angriffsrate
-	 */
-	public int getAttackRate()
-	{
-		return attackRate;
+		enterState(ActorState.MOVING);
 	}
 
 	/**
 	 * Gibt die Ebenen an, welche den Aktor waehrend der Durchfuherung eines Angriffs zeigen
 	 * @return Angriffsstatusebenen
 	 */
-	public String[] getAttackStates()
+	public String getAttackState()
 	{
-		return attackStates;
+		return attackState;
 	}
 
 	/**
-	 * Gibt den Mittelpunkt des Aktors an.
-	 *
-	 * @return Mittelpunkt des Aktors
+	 * Gibt den Standardangriff zurueck, welchen der Aktor ausfuehren kann.
+	 * @return Standardangriff
 	 */
-	public Point getCenter()
+	public SkillConfiguration getBaseAttack()
 	{
-		return new Point((int) getBounds().getCenterX(), (int) getBounds().getCenterY());
+		return baseAttack;
 	}
 
 	/**
@@ -423,9 +237,9 @@ public abstract class GameActor extends MapObject implements Serializable
 	 *
 	 * @return Verteidigungsebenen
 	 */
-	public String[] getDefenseStates()
+	public String getDefenseState()
 	{
-		return defenseStates;
+		return defenseState;
 	}
 
 	/**
@@ -433,7 +247,7 @@ public abstract class GameActor extends MapObject implements Serializable
 	 *
 	 * @return Lebenspunkteregeneration pro Sekunde
 	 */
-	public int getHealthRegeneration()
+	public double getHealthRegeneration()
 	{
 		return healthRegeneration;
 	}
@@ -456,10 +270,26 @@ public abstract class GameActor extends MapObject implements Serializable
 	}
 
 	/**
+	 * Gibt die Bewegungsebenen des Aktors an.
+	 * @return Bewegungsebenen
+	 */
+	public String[] getMovementStates()
+	{
+		return movementStates;
+	}
+
+	public String getNextMovementState()
+	{
+		movementStateCounter++;
+		movementStateCounter %= movementStates.length;
+		return movementStates[movementStateCounter];
+	}
+
+	/**
 	 * Gibt die Geschwindigkeit an, mit der sich der Aktor bewegen kann.
 	 * @return Geschwindigkeit des Aktors
 	 */
-	public int getSpeed()
+	public double getSpeed()
 	{
 		return speed;
 	}
@@ -502,31 +332,6 @@ public abstract class GameActor extends MapObject implements Serializable
 	}
 
 	/**
-	 * Setzt den Mittelpunkt des Aktors.
-	 * Hierbei findet eine Translation des gesamten Aktors statt.
-	 * @param newCenter Neuer Mittelpunkt des Aktors
-	 */
-	public void setCenter(Point newCenter)
-	{
-		Point     currentCenter = getCenter();
-		int       dx            = newCenter.x - currentCenter.x;
-		int       dy            = newCenter.y - currentCenter.y;
-		Rectangle bounds        = getBounds();
-		bounds.translate(dx, dy);
-		setBounds(bounds);
-	}
-
-	/**
-	 * Gibt an, ob der Aktor fuer Basisangriffe Projektile verwendet.
-	 *
-	 * @return true, wenn Projektile verwendet werden, sonst false.
-	 */
-	public boolean usesProjectiles()
-	{
-		return useProjectiles;
-	}
-
-	/**
 	 * Stellt den Aktor wieder her.
 	 */
 	@Override
@@ -534,76 +339,25 @@ public abstract class GameActor extends MapObject implements Serializable
 	{
 		super.restore();
 
-		speed = Integer.parseInt(properties.getProperty("speed"));
+		speed = Double.parseDouble(properties.getProperty("speed"));
 
-		attackStates = new String[]{ properties.getProperty("attack") };
-		defenseStates = new String[]{ properties.getProperty("defend") };
+		defenseState = properties.getProperty("defend");
 		deadState = properties.getProperty("dead", "");
 
 		int movement_state_count = Integer.parseInt(properties.getProperty("movement_states"));
-		movingStates = new String[movement_state_count];
+		movementStates = new String[movement_state_count];
 
 		for (int i = 0; i < movement_state_count; i++)
-			movingStates[i] = properties.getProperty("move_" + (i + 1));
+			movementStates[i] = properties.getProperty("move_" + (i + 1));
 
-		attackRate = Integer.parseInt(properties.getProperty("attack_rate"));
-		attackDamage = Integer.parseInt(properties.getProperty("attack_damage"));
-		attackRange = Integer.parseInt(properties.getProperty("attack_range"));
 		maxHealth = Integer.parseInt(properties.getProperty("max_health"));
 		currentHealth = maxHealth;
-		healthRegeneration = Integer.parseInt(properties.getProperty("health_regeneration"));
-		attackDamageVariation = Integer.parseInt(properties.getProperty("attack_damage_variation"));
+		healthRegeneration = Double.parseDouble(properties.getProperty("health_regeneration"));
 
-		useProjectiles = Boolean.parseBoolean(properties.getProperty("base_attack_objects", "false"));
-		if (useProjectiles)
-		{
-			directionDependentProjectiles = Boolean.parseBoolean(properties.getProperty(
-					"base_attack_direction_dependent",
-					"false"));
-			projectilesPerDirection = Integer.parseInt(properties.getProperty(
-					"base_attack_objects_per_direction",
-					"1"));
+		attackState = properties.getProperty("attack");
 
-			attackProjectiles = new String[projectilesPerDirection * (directionDependentProjectiles ? 4 : 1)];
-
-			if (directionDependentProjectiles)
-			{
-				for (int i = 0; i < projectilesPerDirection; i++)
-				{
-					String upName     = "base_attack_obj_up_" + (i + 1);
-					String leftName   = "base_attack_obj_left_" + (i + 1);
-					String downName   = "base_attack_obj_down_" + (i + 1);
-					String rightName  = "base_attack_obj_right_" + (i + 1);
-					String upValue    = properties.getProperty(upName);
-					String leftValue  = properties.getProperty(leftName);
-					String downValue  = properties.getProperty(downName);
-					String rightValue = properties.getProperty(rightName);
-					attackProjectiles[i] = upValue;
-					attackProjectiles[i + projectilesPerDirection] = leftValue;
-					attackProjectiles[i + projectilesPerDirection * 2] = downValue;
-					attackProjectiles[i + projectilesPerDirection * 3] = rightValue;
-				}
-			}
-			else
-			{
-				for (int i = 0; i < projectilesPerDirection; i++)
-				{
-					String pName  = "base_attack_obj_" + (i + 1);
-					String pValue = properties.getProperty(pName);
-					attackProjectiles[i] = pValue;
-				}
-			}
-		}
-		else
-		{
-			attackProjectiles = new String[0];
-			directionDependentProjectiles = false;
-			projectilesPerDirection = 0;
-		}
-
-		//TODO load attack states and projectiles
-		//FIXME Important: not loading attack projectiles
-		attackLayers = new String[0];
+		baseAttack = new SkillConfiguration();
+		baseAttack.load(properties, "base_");
 	}
 
 	/**
@@ -612,7 +366,7 @@ public abstract class GameActor extends MapObject implements Serializable
 	 * wird der RESTING-Status nach 200ms automatisch wiederhergestellt.
 	 * @param newState neuer Status des Aktors
 	 */
-	private void makeStateChange(ActorState newState)
+	private void enterState(ActorState newState)
 	{
 		setState(newState);
 		stateCounter++;
@@ -622,22 +376,21 @@ public abstract class GameActor extends MapObject implements Serializable
 		{
 			long      stateCounterCopy = stateCounter;
 			GameActor self             = this;
-			new Thread(() -> {
-				try
+			if (stateTimer == null)
+				stateTimer = new Timer();
+			stateTimer.schedule(new TimerTask()
+			{
+				@Override
+				public void run()
 				{
-					Thread.sleep(200);
+					if (stateCounterCopy == stateCounter)
+					{
+						setState(ActorState.RESTING);
+						if (delegate instanceof GameActorDelegate)
+							((GameActorDelegate) delegate).actorDidChangeState(self);
+					}
 				}
-				catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				}
-				if (stateCounterCopy == stateCounter)
-				{
-					setState(ActorState.RESTING);
-					if (delegate instanceof GameActorDelegate)
-						((GameActorDelegate) delegate).actorDidChangeState(self);
-				}
-			}).start();
+			}, 200);
 		}
 	}
 
@@ -654,9 +407,9 @@ public abstract class GameActor extends MapObject implements Serializable
 		if (state == ActorState.RESTING)
 			newBounds.setSize(StringUtils.getStringDimensions(getRestingState()));
 		else if (state == ActorState.ATTACKING)
-			newBounds.setSize(StringUtils.getStringDimensions(getAttackStates()[0]));
+			newBounds.setSize(StringUtils.getStringDimensions(getAttackState()));
 		else if (state == ActorState.DEFENDING)
-			newBounds.setSize(StringUtils.getStringDimensions(getDefenseStates()[0]));
+			newBounds.setSize(StringUtils.getStringDimensions(getDefenseState()));
 		else if (state == ActorState.DEAD)
 			newBounds.setSize(StringUtils.getStringDimensions(getDeadState()));
 		setBounds(newBounds);

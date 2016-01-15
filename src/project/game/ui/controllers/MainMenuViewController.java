@@ -25,6 +25,7 @@
 
 package project.game.ui.controllers;
 
+import project.audio.AudioPlayer;
 import project.gui.components.TButton;
 import project.gui.components.TComponent;
 import project.gui.components.TLabel;
@@ -40,6 +41,24 @@ import static project.game.localization.LocalizedString.LocalizedString;
 
 public class MainMenuViewController extends ViewController
 {
+	private AudioPlayer player;
+
+	@Override
+	public void viewDidAppear()
+	{
+		super.viewDidAppear();
+		if (player != null)
+			player.play();
+	}
+
+	@Override
+	public void viewDidDisappear()
+	{
+		super.viewDidDisappear();
+		if (player != null)
+			player.stop();
+	}
+
 	@Override
 	protected void initializeView()
 	{
@@ -101,11 +120,6 @@ public class MainMenuViewController extends ViewController
 		});
 		getView().add(play);
 
-		TButton introduction = new TButton();
-		introduction.setSize(20, 1);
-		introduction.setText(LocalizedString("main_menu_tutorial"));
-		getView().add(introduction);
-
 		TButton showProgress = new TButton();
 		showProgress.setSize(20, 1);
 		showProgress.setText(LocalizedString("settings_menu_show_progress"));
@@ -131,7 +145,6 @@ public class MainMenuViewController extends ViewController
 
 		SelectableGroup buttonGroup = new SelectableGroup();
 		buttonGroup.addResponder(play);
-		buttonGroup.addResponder(introduction);
 		buttonGroup.addResponder(showProgress);
 		buttonGroup.addResponder(settings);
 		buttonGroup.addResponder(quit);
@@ -142,5 +155,8 @@ public class MainMenuViewController extends ViewController
 		layout.setHorizontalAlignment(VerticalFlowLayout.CENTER);
 		layout.setLayoutInsets(3, 5, 0, 0);
 		getView().setLayoutManager(layout);
+
+		player = new AudioPlayer(AudioPlayer.class.getResource("Dark Background.aif"));
+		player.setRepeats(true);
 	}
 }

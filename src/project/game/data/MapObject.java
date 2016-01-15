@@ -139,6 +139,16 @@ public abstract class MapObject implements Serializable
 	}
 
 	/**
+	 * Gibt den Mittelpunkt des Aktors an.
+	 *
+	 * @return Mittelpunkt des Aktors
+	 */
+	public Point getCenter()
+	{
+		return new Point((int) getBounds().getCenterX(), (int) getBounds().getCenterY());
+	}
+
+	/**
 	 * Gibt die Farbe des Objekts an
 	 * @return Objektfarbe
 	 */
@@ -176,6 +186,21 @@ public abstract class MapObject implements Serializable
 		this.bounds = bounds;
 		if (delegate != null)
 			delegate.mapObjectDidMove(this);
+	}
+
+	/**
+	 * Setzt den Mittelpunkt des Aktors.
+	 * Hierbei findet eine Translation des gesamten Aktors statt.
+	 * @param newCenter Neuer Mittelpunkt des Aktors
+	 */
+	public void setCenter(Point newCenter)
+	{
+		Point     currentCenter = getCenter();
+		int       dx            = newCenter.x - currentCenter.x;
+		int       dy            = newCenter.y - currentCenter.y;
+		Rectangle bounds        = getBounds();
+		bounds.translate(dx, dy);
+		setBounds(bounds);
 	}
 
 	/**
@@ -248,4 +273,5 @@ public abstract class MapObject implements Serializable
 
 		properties = null;
 	}
+
 }

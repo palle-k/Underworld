@@ -69,6 +69,11 @@ public class Player extends GameActor implements Serializable
 
 	private transient long experience;
 
+	private transient SkillConfiguration skill1;
+	private transient SkillConfiguration skill2;
+	private transient SkillConfiguration skill3;
+	private transient SkillConfiguration skill4;
+
 	/**
 	 * Initialisiert einen neuen Spieler und laed diesen aus den gegebenen Properties
 	 * DEPRECATED. Use new Player(URL source) instead
@@ -105,7 +110,6 @@ public class Player extends GameActor implements Serializable
 			levelWillChange = true;
 		experience += exp;
 		SavedGameState.getPlayerState().setPlayerExperience(experience);
-		currentHealth = maxHealth;
 		if (delegate instanceof PlayerDelegate)
 		{
 			if (levelWillChange)
@@ -124,7 +128,7 @@ public class Player extends GameActor implements Serializable
 	}
 
 	@Override
-	public int getHealthRegeneration()
+	public double getHealthRegeneration()
 	{
 		return (int) (super.getHealthRegeneration() * Math.sqrt(getLevel()));
 	}
@@ -172,6 +176,50 @@ public class Player extends GameActor implements Serializable
 	}
 
 	/**
+	 * Gibt die Konfiguration fuer den ersten Skill an
+	 *
+	 * @return Konfiguration des ersten Skills
+	 * @see SkillConfiguration
+	 */
+	public SkillConfiguration getSkill1()
+	{
+		return skill1;
+	}
+
+	/**
+	 * Gibt die Konfiguration fuer den zweiten Skill an
+	 *
+	 * @return Konfiguration des zweiten Skills
+	 * @see SkillConfiguration
+	 */
+	public SkillConfiguration getSkill2()
+	{
+		return skill2;
+	}
+
+	/**
+	 * Gibt die Konfiguration fuer den dritten Skill an
+	 *
+	 * @return Konfiguration des dritten Skills
+	 * @see SkillConfiguration
+	 */
+	public SkillConfiguration getSkill3()
+	{
+		return skill3;
+	}
+
+	/**
+	 * Gibt die Konfiguration fuer den vierten Skill an
+	 *
+	 * @return Konfiguration des vierten Skills
+	 * @see SkillConfiguration
+	 */
+	public SkillConfiguration getSkill4()
+	{
+		return skill4;
+	}
+
+	/**
 	 * Stellt den Spieler wieder her
 	 */
 	@Override
@@ -179,5 +227,13 @@ public class Player extends GameActor implements Serializable
 	{
 		super.restore();
 		experience = SavedGameState.getPlayerState().getPlayerExperience();
+		skill1 = new SkillConfiguration();
+		skill1.load(properties, "skill_1_");
+		skill2 = new SkillConfiguration();
+		skill2.load(properties, "skill_2_");
+		skill3 = new SkillConfiguration();
+		skill3.load(properties, "skill_3_");
+		skill4 = new SkillConfiguration();
+		skill4.load(properties, "skill_4_");
 	}
 }

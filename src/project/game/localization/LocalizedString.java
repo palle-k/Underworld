@@ -28,10 +28,25 @@ package project.game.localization;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Hilfsklasse zum Laden von lokalisierten Strings
+ * zur Unterstuetzung mehrerer Sprachen.
+ * Lokalisierte Strings werden aus
+ * /project/game/localization/Localizable
+ * geladen.
+ */
 public class LocalizedString
 {
+	/**
+	 * Quelle fuer lokalisierte Strings
+	 */
 	private static ResourceBundle localizedStrings;
 
+	/**
+	 * Gibt den lokalisierten String fuer den angegebenen Schluessel an.
+	 * @param key Schluessel
+	 * @return Lokalisierter String fuer angegebenen Schluessel
+	 */
 	public static String LocalizedString(String key)
 	{
 		if (localizedStrings == null)
@@ -39,6 +54,9 @@ public class LocalizedString
 		return localizedStrings.getString(key);
 	}
 
+	/**
+	 * Laed die lokalisierten Strings.
+	 */
 	private static void InitializeLocalizedStrings()
 	{
 		Locale locale = Locale.getDefault();

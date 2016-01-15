@@ -27,6 +27,7 @@ package project.gui.graphics;
 
 import com.googlecode.lanterna.terminal.Terminal;
 import project.gui.components.TBufferedView;
+import project.gui.components.TComponent;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -37,6 +38,7 @@ public class TGraphics
 {
 	private class TGraphicsState
 	{
+		private TComponent.Composite composite;
 		private Color          fillBackground;
 		private char           fillChar;
 		private Color          fillColor;
@@ -54,6 +56,7 @@ public class TGraphics
 				char fillChar,
 				char strokeChar,
 				GeneralPath path,
+				TComponent.Composite composite,
 				TGraphicsState parentState)
 		{
 			this.fillColor = fillColor;
@@ -62,6 +65,7 @@ public class TGraphics
 			this.strokeBackground = strokeBackground;
 			this.path = path;
 			this.parentState = parentState;
+			this.composite = composite;
 			this.fillChar = fillChar;
 			this.strokeChar = strokeChar;
 		}
@@ -97,7 +101,7 @@ public class TGraphics
 		width = target.getTerminalSize().getColumns();
 		height = target.getTerminalSize().getRows();
 		maskToBounds = true;
-		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), null);
+		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), TComponent.SRC_OVER, null);
 		this.dirtyRect = dirtyRect;
 	}
 
@@ -109,7 +113,7 @@ public class TGraphics
 		this.width = width;
 		this.height = height;
 		this.maskToBounds = maskToBounds;
-		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), null);
+		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), TComponent.SRC_OVER, null);
 	}
 
 	public TGraphics(TBufferedView.TChar[][] buffer, Rectangle dirtyRect, int width, int height)
@@ -117,7 +121,7 @@ public class TGraphics
 		this.buffer = buffer;
 		this.width = width;
 		this.height = height;
-		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), null);
+		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), TComponent.SRC_OVER, null);
 		this.maskToBounds = true;
 		this.dirtyRect = dirtyRect;
 	}
@@ -180,6 +184,11 @@ public class TGraphics
 		return new TGraphics(this, childRect.x, childRect.y, childRect.width, childRect.height, maskToBounds);
 	}
 
+	public TComponent.Composite getComposite()
+	{
+		return currentState.composite;
+	}
+
 	public Color getFillBackground()
 	{
 		return currentState.fillBackground;
@@ -233,12 +242,13 @@ public class TGraphics
 				currentState.fillChar,
 				currentState.strokeChar,
 				currentState.path,
+				currentState.composite,
 				currentState);
 	}
 
 	public TBufferedView.TChar queryPoint(int x, int y)
 	{
-		if (buffer != null)
+		if (buffer != null && x >= 0 && buffer.length > x && y >= 0 && buffer[0].length > y)
 			return buffer[x][y];
 		if (parent != null)
 			return parent.queryPoint(x + offsetX, y + offsetY);
@@ -252,6 +262,12 @@ public class TGraphics
 		currentState.strokeColor = Color.BLACK;
 		currentState.fillBackground = Color.BLACK;
 		currentState.strokeBackground = Color.BLACK;
+		currentState.composite = TComponent.Composite.SRC_OVER;
+	}
+
+	public void setComposite(TComponent.Composite composite)
+	{
+		currentState.composite = composite;
 	}
 
 	public void setFillBackground(Color fillBackground)
@@ -276,10 +292,63 @@ public class TGraphics
 
 	public void setPoint(int x, int y, Color color, Color backgroundColor, char c)
 	{
-		if (canDrawAtPoint(x, y))
+		if (canDrawAtPoint(x, y) && !(backgroundColor == null && c == ' '))
 		{
 			if (parent != null)
-				parent.setPoint(x + offsetX, y + offsetY, color, backgroundColor, c);
+			{
+				TBufferedView.TChar parentChar = parent.queryPoint(x, y);
+				if (parentChar != null)
+				{
+					Color parentColor         = parent.queryPoint(x, y).getBackgroundColor();
+					//System.out.printf("Compositing [%s; %s] over %s\n", color, backgroundColor, parentColor);
+					Color compositeBackground = null;
+					Color compositeColor      = color;
+					switch (currentState.composite)
+					{
+						case SRC_OVER:
+							compositeColor = color;
+							compositeBackground = backgroundColor;
+							break;
+						case MULTIPLY:
+							if (color != null)
+								compositeColor = new Color(color.getRed() * parentColor.getRed() / 255,
+								                           color.getGreen() * parentColor.getGreen() / 255,
+								                           color.getBlue() * parentColor.getBlue() / 255);
+							if (backgroundColor != null)
+								compositeBackground = new Color(backgroundColor.getRed() * parentColor.getRed() / 255,
+								                                backgroundColor.getGreen() * parentColor.getGreen() / 255,
+								                                backgroundColor.getBlue() * parentColor.getBlue() / 255);
+							break;
+						case ADD:
+							if (color != null)
+								compositeColor = new Color(Math.max(color.getRed() + parentColor.getRed(), 255),
+								                           Math.max(color.getGreen() + parentColor.getGreen(), 255),
+								                           Math.max(color.getBlue() + parentColor.getBlue(), 255));
+							if (backgroundColor != null)
+								compositeBackground = new Color(Math.max(backgroundColor.getRed() + parentColor.getRed(), 255),
+								                                Math.max(backgroundColor.getGreen() + parentColor.getGreen(), 255),
+								                                Math.max(backgroundColor.getBlue() + parentColor.getBlue(), 255));
+							break;
+						case BRIGHTNESS:
+							int brightness = (parentColor.getRed() + parentColor.getGreen() + parentColor.getBlue()) / 3;
+							if (color != null)
+								compositeColor = new Color(color.getRed() * brightness / 255,
+								                           color.getGreen() * brightness / 255,
+								                           color.getBlue() * brightness / 255);
+							if (backgroundColor != null)
+								compositeBackground = new Color(backgroundColor.getRed() * brightness / 255,
+								                                backgroundColor.getGreen() * brightness / 255,
+								                                backgroundColor.getBlue() * brightness / 255);
+							break;
+					}
+					parent.setPoint(x + offsetX, y + offsetY, compositeColor, compositeBackground, c);
+				}
+				else
+				{
+					parent.setPoint(x + offsetX, y + offsetY, color, backgroundColor, c);
+				}
+
+			}
 			if (target != null)
 			{
 				target.moveCursor(x, y);
@@ -448,6 +517,6 @@ public class TGraphics
 	private boolean canDrawAtPoint(int x, int y)
 	{
 		return !(dirtyRect != null && !dirtyRect.contains(x, y)) &&
-		       (!maskToBounds || x >= 0 && x < width && y >= 0 && y < height) && (mask == null || mask.length <= x || mask[x].length <= y || mask[x][y]);
+		       (!maskToBounds || x >= 0 && x < width && y >= 0 && y < height) && (mask == null || (mask.length > x && mask[x].length > y && mask[x][y]));
 	}
 }

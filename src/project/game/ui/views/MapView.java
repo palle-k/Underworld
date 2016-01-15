@@ -95,7 +95,7 @@ public class MapView extends TScrollView
 								int dx = visionPoint.x - (x + getOffset().x);
 								int dy = visionPoint.y - (y + getOffset().y);
 								int value = Math.max(255 - (int) (Math.sqrt(dx * dx / 2 + dy * dy * 9) * 6), 0);
-								color = Color.getHSBColor(0.18f, 0.35f, value / 255.0f);
+								color = Color.getHSBColor(0.1f, 0.7f, value / 255.0f);
 							}
 							else
 							{

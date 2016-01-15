@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
@@ -256,7 +255,7 @@ public class Map
 						inverseNodes.push(current);
 						current = current.parent;
 					}
-					while (current.parent != null);
+					while (current != null && current.parent != null);
 
 					List<Point> nodes = new ArrayList<>();
 					while (!inverseNodes.isEmpty())
@@ -497,6 +496,10 @@ public class Map
 			if (calculationBounds.getMaxY() >= getHeight())
 				calculationBounds.height = getHeight() - calculationBounds.y - 1;
 			this.pointOfVision = pointOfVision;
+			if (calculationBounds.width < 0)
+				calculationBounds.width = 0;
+			if (calculationBounds.height < 0)
+				calculationBounds.height = 0;
 			visibilityData = new int[calculationBounds.width][calculationBounds.height];
 		}
 
@@ -567,44 +570,6 @@ public class Map
 		}
 	}
 
-	/**
-	 * Gibt zurueck, ob der Pfad den angegeben Punkt enthaelt
-	 * @param path zu untersuchender Pfad
-	 * @param point zu pruefender Punkt
-	 * @return true, wenn der Pfad den Punkt enthaelt, false, wenn nicht
-	 */
-	public static boolean pathContains(Point[] path, Point point)
-	{
-		if (path == null)
-			return false;
-		for (Point p : path)
-			if (p.equals(point))
-				return true;
-		return false;
-	}
-
-	/**
-	 * Gibt den Index zurueck, an dem sich der Punkt auf gegebenem Pfad befindet
-	 * @param path zu untersuchender Pfad
-	 * @param point zu findender Punkt
-	 * @return index des zu findenden Punkts oder -1, wenn Punkt nicht gefunden
-	 */
-	public static int pathIndex(Point[] path, Point point)
-	{
-		if (path == null)
-			return -1;
-		/*
-		Optimierte Suche:
-		Da die Distanz zwischen zwei Punkten auf dem Pfad immer 1 ist, kann
-		der Index um die Manhattan-Distanz zwischen dem Punkt und dem aktuellen
-		Pfadelement inkrementiert werden, da das zu suchende Element fruehestens
-		an dieser Position zu finden ist.
-		 */
-		for (int i = 0; i < path.length; i += abs(path[i].x - point.x) + abs(path[i].y - point.y))
-			if (point.equals(path[i]))
-				return i;
-		return -1;
-	}
 	private int horizontalScale;
 	private Point[] lastCalculatedPath;
 	private int[][] points;
@@ -830,31 +795,6 @@ public class Map
 	{
 		return verticalScale;
 	}
-/*
-	public void removeFinish()
-	{
-		for (int x = 0; x < getWidth(); x++)
-		{
-			for (int y = 0; y < getHeight(); y++)
-			{
-				if (points[x][y] == 3)
-					points[x][y] = 0;
-			}
-		}
-	}
-
-	public void removeStart()
-	{
-		for (int x = 0; x < getWidth(); x++)
-		{
-			for (int y = 0; y < getHeight(); y++)
-			{
-				if (points[x][y] == 2)
-					points[x][y] = 0;
-			}
-		}
-	}
-*/
 
 	/**
 	 * Gibt eine Bitmaske der sichtbaren Punkte zurueck.
@@ -899,6 +839,18 @@ public class Map
 			for (int y = 0; y < getHeight(); y++)
 				if (points[x][y] > 1)
 					points[x][y] = 0;
+	}
+
+	/**
+	 * Setzt den Punkt auf der Karte an der angegebenen Position (x, y) auf den Wert value
+	 * @param x x-Koordinate
+	 * @param y y-Koordinate
+	 * @param value neuer Wert
+	 */
+	protected void setPoint(int x, int y, int value)
+	{
+		if (!isOutOfBounds(new Point(x, y)))
+			points[x][y] = value;
 	}
 
 	/**

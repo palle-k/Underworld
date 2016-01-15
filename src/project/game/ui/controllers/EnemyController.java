@@ -31,18 +31,21 @@ import project.game.data.GameActorDelegate;
 import project.game.data.Map;
 import project.game.data.MapObject;
 import project.game.data.Player;
+import project.game.data.skills.SkillExecutor;
+import project.gui.components.TComponent;
 import project.gui.components.TLabel;
 import project.gui.dynamics.StepController;
 import project.util.Direction;
+import project.util.PathUtil;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 
 public class EnemyController implements GameActorDelegate
 {
 	private StepController attackController;
 	private Enemy          enemy;
 	private TLabel         enemyLabel;
-	private boolean        following;
 	private StepController healthRegenerationController;
 	private StepController horizontalMovementController;
 	private Point          lastCheckPoint;
@@ -50,6 +53,7 @@ public class EnemyController implements GameActorDelegate
 	private Point   lastPathEndpoint;
 	private Point   lastPlayerPosition;*/
 	private Map            map;
+	private TComponent     mapView;
 	private Point[]        path;
 	private int            pathIndex;
 	private Player         player;
@@ -57,16 +61,17 @@ public class EnemyController implements GameActorDelegate
 	private StepController verticalMovementController;
 	//private long    requiredTravelDistance;
 
-	public EnemyController(final Enemy enemy, final Map map, final Player player, final TLabel enemyLabel)
+	public EnemyController(final Enemy enemy, final Map map, final Player player, final TLabel enemyLabel, TComponent mapView)
 	{
 		this.enemy = enemy;
 		this.map = map;
 		this.player = player;
 		this.enemyLabel = enemyLabel;
+		this.mapView = mapView;
 		enemy.setDelegate(this);
 		horizontalMovementController = new StepController(enemy.getSpeed());
 		verticalMovementController = new StepController(enemy.getSpeed() / 2);
-		attackController = new StepController(enemy.getAttackRate());
+		attackController = new StepController(enemy.getBaseAttack().getAttackRate());
 		healthRegenerationController = new StepController(enemy.getHealthRegeneration());
 		horizontalMovementController.start();
 		verticalMovementController.start();
@@ -77,7 +82,8 @@ public class EnemyController implements GameActorDelegate
 	@Override
 	public void actorDidChangeHealth(final GameActor actor)
 	{
-
+		if (!actor.isAlive())
+			enemyLabel.removeFromSuperview();
 	}
 
 	@Override
@@ -88,9 +94,11 @@ public class EnemyController implements GameActorDelegate
 		else if (actor.getState() == GameActor.DEAD)
 			enemyLabel.setText(actor.getDeadState());
 		else if (actor.getState() == GameActor.ATTACKING)
-			enemyLabel.setText(actor.getAttackStates()[0]);
+			enemyLabel.setText(actor.getAttackState());
 		else if (actor.getState() == GameActor.DEFENDING)
-			enemyLabel.setText(actor.getDefenseStates()[0]);
+			enemyLabel.setText(actor.getDefenseState());
+		else if (actor.getState() == GameActor.MOVING)
+			enemyLabel.setText(actor.getNextMovementState());
 	}
 
 	@Override
@@ -102,8 +110,10 @@ public class EnemyController implements GameActorDelegate
 	public void update(double time)
 	{
 		if (!enemy.isAlive())
+		{
+			enemyLabel.removeFromSuperview();
 			return;
-
+		}
 		healthRegenerationController.updateTime(time);
 		if (healthRegenerationController.requiresUpdate())
 			enemy.regenerateHealth(healthRegenerationController.getNumberOfSteps());
@@ -111,7 +121,7 @@ public class EnemyController implements GameActorDelegate
 		Point playerCenter = player.getCenter();
 		Point enemyCenter  = enemy.getCenter();
 
-		int   playerDist   = Math.abs(enemyCenter.x - playerCenter.x) + Math.abs(enemyCenter.y - playerCenter.y);
+		int playerDist = Math.abs(enemyCenter.x - playerCenter.x) + Math.abs(enemyCenter.y - playerCenter.y) * 2;
 
 		if (enemy.getSpeed() > 0)
 		{
@@ -124,7 +134,7 @@ public class EnemyController implements GameActorDelegate
 				if (path == null)
 				{
 					if (lastCheckPoint == null ||
-					    Math.abs(playerCenter.x - lastCheckPoint.x) + Math.abs(playerCenter.y - lastCheckPoint.y) >=
+					    Math.abs(playerCenter.x - lastCheckPoint.x) + Math.abs(playerCenter.y - lastCheckPoint.y) * 2 >=
 					    requiredDistance)
 					{
 						if (playerDist > enemy.getVisionRange())
@@ -136,11 +146,11 @@ public class EnemyController implements GameActorDelegate
 							recalculateFlag = true;
 					}
 				}
-				else if (!Map.pathContains(path, playerCenter))
+				else if (!PathUtil.pathContains(path, playerCenter))
 					recalculateFlag = true;
-
-				if (playerDist == 0)
-					recalculateFlag = false;
+//
+//				if (playerDist == 0)
+//					recalculateFlag = false;
 
 				if (recalculateFlag)
 				{
@@ -165,7 +175,7 @@ public class EnemyController implements GameActorDelegate
 
 				if (path != null)
 				{
-					int playerIndex = Map.pathIndex(path, playerCenter);
+					int playerIndex = PathUtil.pathIndex(path, playerCenter);
 					/*if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
 					    !map.canSee(enemyCenter, playerCenter))
 					{
@@ -185,12 +195,16 @@ public class EnemyController implements GameActorDelegate
 					}*/
 					int horizontalSteps = horizontalMovementController.getNumberOfSteps();
 					int verticalSteps = verticalMovementController.getNumberOfSteps();
-					if (Math.abs(playerIndex - pathIndex) > enemy.getAttackRange() ||
+					if (PathUtil.pathLength(path, pathIndex, playerIndex, 1, 2) >
+					    enemy.getBaseAttack().getAttackRange() ||
 					    !map.canSee(enemyCenter, playerCenter))
 					{
+
 						if (pathIndex < playerIndex)
 						{
 							pathIndex += Math.min(horizontalSteps, verticalSteps);
+							if (pathIndex >= path.length - 1)
+								pathIndex = path.length - 2;
 							if (horizontalSteps > verticalSteps)
 							{
 								loop: for (int i = 0; i < horizontalSteps - verticalSteps; i++)
@@ -218,16 +232,46 @@ public class EnemyController implements GameActorDelegate
 									}
 							}
 						}
-
+						if (pathIndex < 0)
+							pathIndex = 0;
+						else if (pathIndex >= path.length)
+							pathIndex = path.length - 1;
 					}
 
 					enemy.setCenter(path[pathIndex]);
+					enemy.enterMovementState();
 				}
-
+				else
+				{
+					Rectangle bounds = new Rectangle(enemy.getBounds());
+					for (int i = 0; i < horizontalMovementController.getNumberOfSteps(); i++)
+					{
+						Rectangle newBounds = new Rectangle(bounds);
+						newBounds.translate((int) (Math.random() * 4 - 2), 0);
+						enemy.enterMovementState();
+						if (!map.canMoveTo(newBounds))
+							break;
+						else
+							bounds = newBounds;
+						requiredDistance--;
+					}
+					for (int i = 0; i < verticalMovementController.getNumberOfSteps(); i++)
+					{
+						Rectangle newBounds = new Rectangle(bounds);
+						newBounds.translate(0, (int) (Math.random() * 4 - 2));
+						enemy.enterMovementState();
+						if (!map.canMoveTo(newBounds))
+							break;
+						else
+							bounds = newBounds;
+						requiredDistance--;
+					}
+					enemy.setBounds(bounds);
+				}
 			}
 		}
 		attackController.updateTime(time);
-		if (playerDist <= enemy.getAttackRange() && attackController.requiresUpdate() &&
+		if (playerDist <= enemy.getBaseAttack().getAttackRange() && attackController.requiresUpdate() &&
 		    map.canSee(enemyCenter, playerCenter))
 			for (int i = 0; i < attackController.getNumberOfSteps(); i++)
 				attackPlayer();
@@ -235,19 +279,32 @@ public class EnemyController implements GameActorDelegate
 
 	private void attackPlayer()
 	{
-		int damage = enemy.getAttackDamage() +
-		             (int) (Math.random() * enemy.getAttackDamageVariation() -
-		                    0.5 * enemy.getAttackDamageVariation());
-		enemy.attack();
-		player.decreaseHealth(damage);
+		int damage = enemy.getBaseAttack().getAttackDamage() +
+		             (int) (Math.random() * enemy.getBaseAttack().getAttackDamageVariation() -
+		                    0.5 * enemy.getBaseAttack().getAttackDamageVariation());
+		enemy.enterAttackState();
+//		player.decreaseHealth(damage);
 
-		if (enemy.usesProjectiles())
-		{
-			Point playerLocation = player.getCenter();
-			Point enemyLocation = enemy.getCenter();
+//		Point playerLocation = player.getCenter();
+//		Point enemyLocation = enemy.getCenter();
 
-			String[] projectiles = enemy.getAttackProjectilesForDirection(Direction.direction(enemyLocation, playerLocation));
+//		String[] projectiles = enemy.getBaseAttack().getAttackProjectilesForDirection(Direction.direction(enemyLocation, playerLocation));
 
-		}
+		SkillExecutor skillExecutor = enemy.getBaseAttack().getSkillExecutor();
+		skillExecutor.setTarget(mapView);
+		skillExecutor.executeSkill(enemy, player);
+
+//		SkillCoordinator skillCoordinator = new SkillCoordinator(
+//				mapView,
+//				enemy.getBaseAttack().getAttackOverlays(),
+//				projectiles,
+//				enemy.getBaseAttack().getAttackHitOverlays(),
+//				enemy.getBaseAttack().getAttackOverlayColor(),
+//				enemy.getBaseAttack().getAttackProjectileColor(),
+//				enemy.getBaseAttack().getAttackHitOverlayColor(),
+//				enemy.getBaseAttack().getAttackOverlayAnimationTime(),
+//				enemy.getBaseAttack().getAttackProjectileAnimationTime(enemyLocation, playerLocation),
+//				enemy.getBaseAttack().getAttackHitOverlayAnimationTime(), damage);
+//		skillCoordinator.visualizeSkill(enemy, player);
 	}
 }

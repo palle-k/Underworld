@@ -256,8 +256,12 @@ public class Level implements Serializable
 		Skalierung des Levels: x-Skalierung: 8x,
 		y-Skalierung: 4x, da Zeichen im Terminal ca. doppelt so hoch, wie breit sind.
 		 */
-		int width  = Integer.parseInt(properties.getProperty("Width")) * 8;
-		int height = Integer.parseInt(properties.getProperty("Height")) * 4;
+
+		int hScale = Integer.parseInt(properties.getProperty("HorizontalScaling", "8"));
+		int vScale = Integer.parseInt(properties.getProperty("VerticalScaling", "4"));
+
+		int width  = Integer.parseInt(properties.getProperty("Width")) * hScale;
+		int height = Integer.parseInt(properties.getProperty("Height")) * vScale;
 
 		int[][] points = new int[width][height];
 

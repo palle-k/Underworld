@@ -112,14 +112,14 @@ public class LevelCoordinator extends PageController
 			return null;
 		}
 
-		try
-		{
-			return new LevelViewController(new Level(Level.class.getResource("levels/level.properties")));
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+//		try
+//		{
+//			return new LevelViewController(new Level(Level.class.getResource("levels/level.properties")));
+//		}
+//		catch (IOException e)
+//		{
+//			e.printStackTrace();
+//		}
 
 		Level savedLevel = SavedGameState.getLevelState().getSavedLevel();
 		if (savedLevel != null)

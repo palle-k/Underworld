@@ -254,6 +254,7 @@ public class LevelViewController extends ViewController
 					mapView.add(keyLabel);
 					keyViews.put(key, keyLabel);
 				});
+
 		/*
 		for (Key key : keys)
 		{
@@ -268,19 +269,36 @@ public class LevelViewController extends ViewController
 		*/
 
 		Enemy[] enemies = level.getEnemies();
-		enemyControllers = new EnemyController[enemies.length];
-		for (int i = 0, enemiesLength = enemies.length; i < enemiesLength; i++)
+		//enemyControllers = new EnemyController[enemies.length];
+		/*for (int i = 0, enemiesLength = enemies.length; i < enemiesLength; i++)
 		{
 			Enemy  enemy      = enemies[i];
-			TLabel enemyLabel = new TLabel();
-			enemyLabel.setText(enemy.getRestingState());
-			enemyLabel.setLocation(enemy.getBounds().getLocation());
-			enemyLabel.setSize(StringUtils.getStringDimensions(enemy.getRestingState()));
-			enemyLabel.setColor(enemy.getColor());
-			enemyLabel.setMaskToBounds(false);
-			mapView.add(enemyLabel);
-			enemyControllers[i] = new EnemyController(enemy, level.getMap(), level.getPlayer(), enemyLabel);
-		}
+			if (enemy.isAlive())
+			{
+				TLabel enemyLabel = new TLabel();
+				enemyLabel.setText(enemy.getRestingState());
+				enemyLabel.setLocation(enemy.getBounds().getLocation());
+				enemyLabel.setSize(StringUtils.getStringDimensions(enemy.getRestingState()));
+				enemyLabel.setColor(enemy.getColor());
+				enemyLabel.setMaskToBounds(false);
+				mapView.add(enemyLabel);
+				enemyControllers[i] = new EnemyController(enemy, level.getMap(), level.getPlayer(), enemyLabel, mapView);
+			}
+		}*/
+		enemyControllers =
+				Arrays.stream(enemies)
+				.filter(Enemy::isAlive)
+				.map(enemy -> {
+					TLabel enemyLabel = new TLabel();
+					enemyLabel.setText(enemy.getRestingState());
+					enemyLabel.setLocation(enemy.getBounds().getLocation());
+					enemyLabel.setSize(StringUtils.getStringDimensions(enemy.getRestingState()));
+					enemyLabel.setColor(enemy.getColor());
+					enemyLabel.setMaskToBounds(false);
+					mapView.add(enemyLabel);
+					return new EnemyController(enemy, level.getMap(), level.getPlayer(), enemyLabel, mapView);
+				})
+				.toArray(size -> new EnemyController[size]);
 
 		playerLabel = new TLabel();
 		playerLabel.setLocation(level.getPlayer().getBounds().getLocation());
@@ -289,7 +307,7 @@ public class LevelViewController extends ViewController
 		playerLabel.setColor(level.getPlayer().getColor());
 		mapView.add(playerLabel);
 
-		playerController = new PlayerController(level, playerLabel, this);
+		playerController = new PlayerController(level, playerLabel, this, mapView);
 
 		TComponent bottomBar = new TComponent();
 		getView().add(bottomBar);
@@ -406,7 +424,7 @@ public class LevelViewController extends ViewController
 		if (enemyNotNull)
 		{
 			enemyName.setText(enemy.getName());
-			enemyLevel.setText("Level" + enemy.getLevel());
+			enemyLevel.setText(String.format(LocalizedString("level_view_current_level"), enemy.getLevel()));
 			enemyHealth.setMaxValue(enemy.getMaxHealth());
 			enemyHealth.setMinValue(0);
 			enemyHealth.setValue(enemy.getCurrentHealth());
@@ -493,4 +511,5 @@ public class LevelViewController extends ViewController
 		mapView.setPointOfVision(level.getPlayer().getCenter());
 		playerLabel.setFrame(level.getPlayer().getBounds());
 	}
+
 }

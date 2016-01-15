@@ -38,6 +38,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -213,18 +214,25 @@ public class TFrame extends TBufferedView
 			else if (next.equals(dirtyRect))
 				return;
 		}*/
+
 		for (int i = 0; i < repaintStack.size(); i++)
 		{
-			Rectangle next = repaintStack.get(i);
-			if (dirtyRect.contains(next))
+			synchronized (repaintStack)
 			{
-				repaintStack.remove(i);
-				i--;
+				if (repaintStack.size() <= i)
+					break;
+				Rectangle next = repaintStack.get(i);
+				if (dirtyRect.contains(next))
+				{
+
+					repaintStack.remove(i);
+					i--;
+				}
+				else if (next.contains(dirtyRect))
+					return;
+				else if (next.equals(dirtyRect))
+					return;
 			}
-			else if (next.contains(dirtyRect))
-				return;
-			else if (next.equals(dirtyRect))
-				return;
 		}
 
 		repaintStack.add(dirtyRect);
@@ -251,7 +259,14 @@ public class TFrame extends TBufferedView
 				return;
 			while (!repaintStack.isEmpty())
 			{
-				Rectangle dirtyRect1 = repaintStack.pop();
+				Rectangle dirtyRect1;
+				synchronized (repaintStack)
+				{
+					if (!repaintStack.isEmpty())
+						dirtyRect1 = repaintStack.pop();
+					else
+						break;
+				}
 				TGraphics g          = new TGraphics(terminal, dirtyRect1);
 				dispatchRepaint(g, dirtyRect1);
 				terminal.moveCursor(getWidth(), getHeight());
@@ -279,6 +294,18 @@ public class TFrame extends TBufferedView
 		JFrame underlyingFrame = getUnderlyingFrame();
 		if (underlyingFrame != null)
 			underlyingFrame.setTitle(title);
+	}
+
+	public void setUndecorated(boolean undecorated)
+	{
+		JFrame underlyingFrame = getUnderlyingFrame();
+		if (underlyingFrame != null)
+		{
+			underlyingFrame.setVisible(false);
+			underlyingFrame.dispose();
+			underlyingFrame.setUndecorated(undecorated);
+			underlyingFrame.setVisible(true);
+		}
 	}
 
 	@Override
@@ -319,10 +346,10 @@ public class TFrame extends TBufferedView
 				gameLoop.start();
 				addedListener = true;
 
-				JComponent terminalRenderer = (JComponent) getUnderlyingFrame().getContentPane().getComponent(0);
+				Component terminalRenderer = getUnderlyingFrame().getContentPane().getComponent(0);
 				getUnderlyingFrame().getContentPane().remove(terminalRenderer);
 
-				JPanel antialiasedPanel = new JPanel()
+				JComponent antialiasedPanel = new JPanel()
 				{
 					@Override
 					protected void paintChildren(final Graphics g)
