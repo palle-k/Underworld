@@ -23,41 +23,64 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.ui.views;
 
 import project.gui.components.TComponent;
+import project.gui.graphics.TGraphics;
 
-import java.awt.Dimension;
-import java.awt.Insets;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+public class PlayerPathView extends TComponent
 {
-	private Insets insets = new Insets(0, 0, 0, 0);
+	private Color pathColor;
 
-	public Insets getInsets()
+	private List<Point> pointList;
+
+	public PlayerPathView()
 	{
-		return insets;
+		this.pointList = new ArrayList<>();
+		pathColor = new Color(200, 200, 200);
+	}
+
+	public void addPoint(Point point)
+	{
+		if (!pointList.isEmpty() && pointList.get(pointList.size() - 1).equals(point))
+			return;
+		pointList.add(point);
+		if (point.x >= getWidth())
+			setWidth(point.x + 1);
+		if (point.y >= getHeight())
+			setHeight(point.y + 1);
+		setNeedsDisplay();
+	}
+
+	public Color getPathColor()
+	{
+		return pathColor;
+	}
+
+	public void setPathColor(final Color pathColor)
+	{
+		this.pathColor = pathColor;
 	}
 
 	@Override
-	public void layoutComponent(final TComponent component)
+	protected void paintComponent(final TGraphics graphics, final Rectangle dirtyRect)
 	{
-		Dimension size = new Dimension(component.getSize());
-		size.setSize(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(insets.left, insets.top);
-			child.setSize(size);
-		}
-	}
-
-	public void setInsets(final Insets insets)
-	{
-		this.insets = insets;
-	}
-
-	public void setInsets(int top, int left, int bottom, int right)
-	{
-		setInsets(new Insets(top, left, bottom, right));
+		super.paintComponent(graphics, dirtyRect);
+		if (pointList.isEmpty())
+			return;
+		graphics.moveTo(pointList.get(0));
+		for (int i = 1; i < pointList.size(); i++)
+			graphics.lineTo(pointList.get(i));
+		graphics.setStrokeBackground(null);
+		graphics.setStrokeColor(pathColor);
+		graphics.setComposite(Composite.MULTIPLY);
+		graphics.setStrokeChar('.');
+		graphics.stroke();
 	}
 }

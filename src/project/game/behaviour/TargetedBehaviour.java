@@ -23,41 +23,68 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.behaviour;
 
-import project.gui.components.TComponent;
+import project.game.data.GameActor;
+import project.game.data.Level;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-
-public class FullSizeSubviewLayout implements TLayoutManager
+/**
+ * Abstrakte Klasse zur Implementierung eines Verhaltens,
+ * dass den kontrollierten Aktor abhaengig vom ausgewaehlten Ziel
+ * steuert.
+ */
+public abstract class TargetedBehaviour extends Behaviour
 {
-	private Insets insets = new Insets(0, 0, 0, 0);
+	/**
+	 * Ziel des Verhaltens
+	 */
+	private GameActor target;
 
-	public Insets getInsets()
+	public TargetedBehaviour(final GameActor controlledActor, Level level)
 	{
-		return insets;
+		super(controlledActor, level);
 	}
 
+	/**
+	 * Gibt das Ziel an, gegenueber welchem das Verhalten ausgerichtet wird
+	 * @return Ziel fuer das Verhalten
+	 */
+	public GameActor getTarget()
+	{
+		return target;
+	}
+
+	/**
+	 * Setzt das Ziel fuer das Verhalten zurueck.
+	 * Das Verhalten wird hiermit unterbunden.
+	 * Entspricht dem aufruf von setTarget(null)
+	 */
+	public void resetTarget()
+	{
+		setTarget(null);
+	}
+
+	/**
+	 * Setzt das Ziel fuer das Verhalten
+	 * @param actor Ziel fuer das Verhalten
+	 */
+	public void setTarget(GameActor actor)
+	{
+		this.target = actor;
+	}
+
+	/**
+	 * Aktualisiert das Verhalten.
+	 * Ist das Verhalten gestoppt oder kein Ziel angegeben,
+	 * wird der Aktor nicht veraendert.
+	 * @param time Updatezeit
+	 */
 	@Override
-	public void layoutComponent(final TComponent component)
+	public void update(final double time)
 	{
-		Dimension size = new Dimension(component.getSize());
-		size.setSize(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
-		for (TComponent child : component.getChildren())
-		{
-			child.setLocation(insets.left, insets.top);
-			child.setSize(size);
-		}
-	}
-
-	public void setInsets(final Insets insets)
-	{
-		this.insets = insets;
-	}
-
-	public void setInsets(int top, int left, int bottom, int right)
-	{
-		setInsets(new Insets(top, left, bottom, right));
+		if (target != null)
+			super.update(time);
+		else
+			skipExecution(time);
 	}
 }

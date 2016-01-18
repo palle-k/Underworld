@@ -25,35 +25,55 @@
 
 package project.game.data.skills;
 
+import project.audio.AudioPlayer;
+import project.game.controllers.SkillCoordinator;
 import project.game.data.GameActor;
-import project.game.data.SkillConfiguration;
-import project.gui.components.TComponent;
 
 import java.util.Properties;
 
-public class HealExecutor implements SkillExecutor
+/**
+ * Implementierung des SkillExecutors fuer einen Heilungsskill
+ */
+public class HealExecutor extends SkillExecutor
 {
+	/**
+	 * Anzahl wiederhergestellter Lebenspunkte
+	 */
+	private int restoredHealth;
+
+	/**
+	 * Fuehrt eine Heilung des Spielers durch
+	 * @param attackingActor Angreifer
+	 * @param attackTarget Ziel
+	 */
 	@Override
 	public void executeSkill(final GameActor attackingActor, final GameActor attackTarget)
 	{
-
+		String      soundSource  = getConfiguration().getSoundSource();
+		AudioPlayer soundPlayer = null;
+		if (soundSource != null)
+			soundPlayer = new AudioPlayer(AudioPlayer.class.getResource(soundSource));
+		SkillCoordinator skillCoordinator = new SkillCoordinator(
+				getTarget(),
+				getConfiguration().getOverlays(),
+				null,
+				null,
+				getConfiguration().getOverlayColor(),
+				null,
+				null,
+				getConfiguration().getOverlayAnimationTime(),
+				0,
+				0,
+				0,
+				soundPlayer,
+				null);
+		skillCoordinator.visualizeSkill(attackingActor, attackTarget);
+		attackingActor.regenerateHealth(restoredHealth);
 	}
 
 	@Override
 	public void loadAdditionalProperties(final Properties properties, final String prefix)
 	{
-
-	}
-
-	@Override
-	public void setConfiguration(final SkillConfiguration configuration)
-	{
-
-	}
-
-	@Override
-	public void setTarget(final TComponent visualizationTarget)
-	{
-
+		restoredHealth = Integer.parseInt(properties.getProperty(prefix + "restored_health", "0"));
 	}
 }

@@ -30,6 +30,7 @@ import project.gui.components.TBufferedView;
 import project.gui.components.TComponent;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.PathIterator;
@@ -219,9 +220,19 @@ public class TGraphics
 		currentState.path.lineTo(x, y);
 	}
 
+	public void lineTo(Point point)
+	{
+		lineTo(point.x, point.y);
+	}
+
 	public void moveTo(int x, int y)
 	{
 		currentState.path.moveTo(x, y);
+	}
+
+	public void moveTo(Point point)
+	{
+		moveTo(point.x ,point.y);
 	}
 
 	public void popState()
@@ -390,7 +401,7 @@ public class TGraphics
 		this.currentState.strokeColor = strokeColor;
 	}
 
-	public void stroke(char c)
+	public void stroke()
 	{
 		/*Rectangle bounds = currentState.path.getBounds();
 		boolean previous = false;

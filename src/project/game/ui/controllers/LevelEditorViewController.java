@@ -21,15 +21,10 @@
  *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,                      *
  *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
- ******************************************************************************/ ARISING FROM, OUT OF OR IN CONNECTION WITH THE                            *
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
 package project.game.ui.controllers;
 
-/**
- * Created by Palle on 14.01.16.
- */
 public class LevelEditorViewController
 {
 

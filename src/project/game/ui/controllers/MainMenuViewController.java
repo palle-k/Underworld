@@ -120,10 +120,11 @@ public class MainMenuViewController extends ViewController
 		});
 		getView().add(play);
 
-		TButton showProgress = new TButton();
-		showProgress.setSize(20, 1);
-		showProgress.setText(LocalizedString("settings_menu_show_progress"));
-		getView().add(showProgress);
+		TButton showHelp = new TButton();
+		showHelp.setSize(20, 1);
+		showHelp.setText(LocalizedString("main_menu_help"));
+		showHelp.setActionHandler(() -> getNavigationController().push(new HelpViewController()));
+		getView().add(showHelp);
 
 		TButton settings = new TButton();
 		settings.setSize(20, 1);
@@ -134,7 +135,10 @@ public class MainMenuViewController extends ViewController
 		TButton quit = new TButton();
 		quit.setSize(20, 1);
 		quit.setText(LocalizedString("main_menu_quit"));
-		quit.setActionHandler(() -> getNavigationController().getView().setVisible(false));
+		quit.setActionHandler(() -> {
+			player.stop();
+			getNavigationController().getView().setVisible(false);
+		});
 		getView().add(quit);
 
 		TLabel navigationHelpLabel = new TLabel();
@@ -145,7 +149,7 @@ public class MainMenuViewController extends ViewController
 
 		SelectableGroup buttonGroup = new SelectableGroup();
 		buttonGroup.addResponder(play);
-		buttonGroup.addResponder(showProgress);
+		buttonGroup.addResponder(showHelp);
 		buttonGroup.addResponder(settings);
 		buttonGroup.addResponder(quit);
 		getView().addResponder(buttonGroup);

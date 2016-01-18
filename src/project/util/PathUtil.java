@@ -29,9 +29,11 @@ import java.awt.Point;
 
 import static java.lang.Math.abs;
 
+/**
+ * Hilfsfunktionen fuer das Behandeln von Pfaden
+ */
 public class PathUtil
 {
-
 	/**
 	 * Gibt zurueck, ob der Pfad den angegeben Punkt enthaelt
 	 * @param path zu untersuchender Pfad
@@ -71,9 +73,20 @@ public class PathUtil
 		return -1;
 	}
 
+	/**
+	 * Gibt die Laenge des Pfades zwischen den angegebenen Indices mit den angegebenen Skalierungsfaktoren an.
+	 * @param path Pfad, der geprueft werden soll
+	 * @param start Index des Startpunktes auf dem Pfad
+	 * @param end Index des Endpunktes auf dem Pfad
+	 * @param horizontalFactor Skalierungsfaktor horizontal
+	 * @param verticalFactor Skalierungsfaktor vertikal
+	 * @return dx * horizontalFactor + dy * verticalFactor
+	 */
 	public static int pathLength(Point[] path, int start, int end, int horizontalFactor, int verticalFactor)
 	{
 		if (path == null)
+			return 0;
+		if (start < 0 || end < 0)
 			return 0;
 		if (start > end)
 			return pathLength(path, end, start, horizontalFactor, verticalFactor);
@@ -88,6 +101,13 @@ public class PathUtil
 
 	}
 
+	/**
+	 * Gibt die Laenge des Pfades an.
+	 * @param path Pfad, welcher geprueft werden soll
+	 * @param horizontalFactor Skalierungsfaktor horizontal
+	 * @param verticalFactor Skalierungsfaktor vertikal
+	 * @return dx * horizontalFactor + dy * verticalFactor
+	 */
 	public static int pathLength(Point[] path, int horizontalFactor, int verticalFactor)
 	{
 		return pathLength(path, 0, path.length - 1, horizontalFactor, verticalFactor);

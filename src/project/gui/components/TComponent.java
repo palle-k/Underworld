@@ -83,11 +83,8 @@ public class TComponent extends TResponder
 
 	public void add(TComponent child)
 	{
-		synchronized (children)
-		{
-			children.add(child);
-			addResponder(child);
-		}
+		children.add(child);
+		addResponder(child);
 		child.setParent(this);
 		setNeedsLayout();
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
@@ -96,11 +93,8 @@ public class TComponent extends TResponder
 
 	public void add(TComponent child, int index)
 	{
-		synchronized (children)
-		{
-			children.add(index, child);
-			addResponder(child);
-		}
+		children.add(index, child);
+		addResponder(child);
 		child.setParent(this);
 		setNeedsLayout();
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
@@ -109,16 +103,19 @@ public class TComponent extends TResponder
 
 	public void addAnimation(Animation animation)
 	{
-		animations.add(animation);
+		synchronized (animations)
+		{
+			animations.add(animation);
+		}
 	}
 
 	public boolean childrenNeedDisplay()
 	{
-		synchronized (children)
+		for (int i = 0; i < children.size(); i++)
 		{
-			for (TComponent child : children)
-				if (child.needsDisplay() || child.childrenNeedDisplay())
-					return true;
+			TComponent child = children.get(i);
+			if (child.needsDisplay() || child.childrenNeedDisplay())
+				return true;
 		}
 		return false;
 	}
@@ -145,10 +142,7 @@ public class TComponent extends TResponder
 
 	public TComponent[] getChildren()
 	{
-		synchronized (children)
-		{
-			return children.toArray(new TComponent[0]);
-		}
+		return children.toArray(new TComponent[0]);
 	}
 
 	public Composite getComposite()
@@ -232,11 +226,8 @@ public class TComponent extends TResponder
 
 	public void remove(TComponent child)
 	{
-		synchronized (children)
-		{
-			children.remove(child);
-			removeResponder(child);
-		}
+		children.remove(child);
+		removeResponder(child);
 		child.setParent(null);
 		setNeedsLayout();
 		setNeedsDisplay(new Rectangle(new Point(), getSize()));
@@ -245,16 +236,16 @@ public class TComponent extends TResponder
 	public void removeAll()
 	{
 		super.removeAll();
-		synchronized (children)
-		{
-			while (!children.isEmpty())
-				remove(children.get(0));
-		}
+		for (int i = 0; i < children.size(); i++)
+			children.get(i).removeFromSuperview();
 	}
 
 	public void removeAnimation(Animation animation)
 	{
-		animations.remove(animation);
+		synchronized (animations)
+		{
+			animations.remove(animation);
+		}
 	}
 
 	public void removeFromSuperview()
@@ -299,7 +290,7 @@ public class TComponent extends TResponder
 
 	public void setFrame(Rectangle frame)
 	{
-		if (this.frame == frame)
+		if (this.frame == frame || this.frame.equals(frame))
 			return;
 		Rectangle previousFrame = this.frame;
 		this.frame = frame;
@@ -367,10 +358,7 @@ public class TComponent extends TResponder
 		if (layoutManager != null)
 		{
 			modifyingLayout = true;
-			synchronized (children)
-			{
-				layoutManager.layoutComponent(this);
-			}
+			layoutManager.layoutComponent(this);
 			modifyingLayout = false;
 		}
 	}
@@ -415,8 +403,9 @@ public class TComponent extends TResponder
 	{
 		synchronized (animations)
 		{
-			for (Animation animation : animations)
+			for (int i = 0; i < animations.size(); i++)
 			{
+				Animation animation = animations.get(i);
 				if (!animation.isRunning())
 					animation.setStartTime(time);
 				animation.update(time, timeDelta);
@@ -428,13 +417,10 @@ public class TComponent extends TResponder
 					i--;
 				}
 		}
-		synchronized (children)
+		for (int i = 0; i < children.size(); i++)
 		{
-			for (int i = 0; i < children.size(); i++)
-			{
-				TComponent child = children.get(i);
-				child.updateAnimations(time, timeDelta);
-			}
+			TComponent child = children.get(i);
+			child.updateAnimations(time, timeDelta);
 		}
 		if (onAnimationUpdate != null)
 			onAnimationUpdate.update(time, timeDelta);
@@ -447,21 +433,21 @@ public class TComponent extends TResponder
 
 	protected void paintChildren(TGraphics graphics, Rectangle dirtyRect)
 	{
-		synchronized (children)
+		for (int i = 0; i < children.size(); i++)
 		{
-			for (TComponent child : children)
-				if (!child.isVisible())
-					continue;
-				else if (!child.maskToBounds || child.getFrame().intersects(dirtyRect))
-				{
-					Rectangle r = new Rectangle(dirtyRect);
-					if (child.maskToBounds)
-						r = r.intersection(child.getFrame());
-					r.translate(-child.getLocation().x, -child.getLocation().y);
-					TGraphics childContext = graphics.getChildContext(child.getFrame(), child.maskToBounds);
-					childContext.setComposite(child.getComposite());
-					child.dispatchRepaint(childContext, r);
-				}
+			TComponent child = children.get(i);
+			if (!child.isVisible())
+				continue;
+			else if (!child.maskToBounds || child.getFrame().intersects(dirtyRect))
+			{
+				Rectangle r = new Rectangle(dirtyRect);
+				if (child.maskToBounds)
+					r = r.intersection(child.getFrame());
+				r.translate(-child.getLocation().x, -child.getLocation().y);
+				TGraphics childContext = graphics.getChildContext(child.getFrame(), child.maskToBounds);
+				childContext.setComposite(child.getComposite());
+				child.dispatchRepaint(childContext, r);
+			}
 		}
 	}
 

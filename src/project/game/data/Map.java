@@ -458,7 +458,7 @@ public class Map
 		 */
 		private void setActorHeight(final int height)
 		{
-			this.height = max(height - 1, 1);
+			this.height = max(height, 1);
 		}
 
 		/**
@@ -467,7 +467,7 @@ public class Map
 		 */
 		private void setActorWidth(final int width)
 		{
-			this.width = max(width - 1, 1);
+			this.width = max(width, 1);
 		}
 	}
 

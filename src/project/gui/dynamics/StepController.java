@@ -35,6 +35,11 @@ public class StepController
 	private long    offsetValue;
 	private long    updateTime;
 
+	public StepController()
+	{
+
+	}
+
 	public StepController(final double frequency)
 	{
 		this.frequency = frequency;
@@ -78,7 +83,7 @@ public class StepController
 	public void setFrequency(final double frequency)
 	{
 		if (active)
-			throw new RuntimeException("Frequency of StepController must not be updated while active. Stop first.");
+			throw new IllegalStateException("Frequency of StepController must not be updated while active. Stop first.");
 		else if (frequency < 0)
 			throw new IllegalArgumentException("Frequency must be greater than or equal to 0");
 		this.frequency = frequency;

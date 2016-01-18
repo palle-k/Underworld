@@ -196,6 +196,10 @@ public class TFrame extends TBufferedView
 			return;
 		if (dirtyRect != null && dirtyRect.isEmpty())
 			return;
+		if (dirtyRect != null && (dirtyRect.getMaxX() <= 0 || dirtyRect.getMinX() >= getWidth()))
+			return;
+		if (dirtyRect != null && (dirtyRect.getMaxY() <= 0 || dirtyRect.getMinY() >= getHeight()))
+			return;
 		super.setNeedsDisplay(dirtyRect);
 		if (dirtyRect == null)
 		{

@@ -26,16 +26,39 @@
 package project.game.data.skills;
 
 import project.game.data.GameActor;
+import project.game.data.Level;
 import project.game.data.SkillConfiguration;
 import project.gui.components.TComponent;
 
 import java.util.Properties;
 
 /**
- * Interface, welches Methoden zum Ausfuehren eines Skills vorgibt.
+ * Abstrakte Klasse, welche Methoden zum Ausfuehren eines Skills vorgibt.
  */
-public interface SkillExecutor
+public abstract class SkillExecutor
 {
+	/**
+	 * Konfiguration des Skills
+	 */
+	private SkillConfiguration configuration;
+
+	/**
+	 * Level, welches die Umgebung bildet.
+	 * Ermoeglicht Reaktion auf Umgebung
+	 */
+	private Level level;
+
+	/**
+	 * Moegliche Ziele fuer Skill
+	 * Ermoeglicht Flaechenskills
+	 */
+	private GameActor[] possibleTargets;
+
+	/**
+	 * Ziel fuer die Darstellung
+	 */
+	private TComponent target;
+
 	/**
 	 * Fuehrt den Skill mit angegebenem Aktor und Ziel aus.
 	 * Das Ziel kann null sein, wenn
@@ -43,7 +66,47 @@ public interface SkillExecutor
 	 * @param attackingActor Angreifer
 	 * @param attackTarget Ziel
 	 */
-	void executeSkill(GameActor attackingActor, GameActor attackTarget);
+	public abstract void executeSkill(GameActor attackingActor, GameActor attackTarget);
+
+	/**
+	 * Gibt die Konfiguration des Skills an
+	 * @return Skillkonfiguration
+	 */
+	public SkillConfiguration getConfiguration()
+	{
+		return configuration;
+	}
+
+	/**
+	 * Gibt das Level an, in welchem der Skill ausgefuert werden soll
+	 * @return Level
+	 */
+	public Level getLevel()
+	{
+		return level;
+	}
+
+	/**
+	 * Gibt die moeglichen Angriffsziele an.
+	 * Dies ist fuer Flaechenskills erforderlich.
+	 * <br>
+	 * Anmerkung: attackTarget in executeSkill may be contained
+	 * in nearby targets.
+	 * @return moegliche Angriffsziele
+	 */
+	public GameActor[] getPossibleTargets()
+	{
+		return possibleTargets;
+	}
+
+	/**
+	 * Gibt das Ziel an, auf welchem der Skill angezeigt werden soll
+	 * @return Ziel
+	 */
+	public TComponent getTarget()
+	{
+		return target;
+	}
 
 	/**
 	 * Laed zusaetzliche, nicht standardmaessig geladene Properties
@@ -53,7 +116,7 @@ public interface SkillExecutor
 	 * @param properties Quelle fuer zusaetzliche Properties
 	 * @param prefix Prefix, welches vor Properties hinzugefuegt werden muss.
 	 */
-	default void loadAdditionalProperties(Properties properties, String prefix)
+	public void loadAdditionalProperties(Properties properties, String prefix)
 	{
 		//Default implementation makes this method optional.
 	}
@@ -63,11 +126,36 @@ public interface SkillExecutor
 	 * Diese enthaelt saemtliche Informationen zum Skill.
 	 * @param configuration Konfiguration des Skills
 	 */
-	void setConfiguration(SkillConfiguration configuration);
+	public void setConfiguration(SkillConfiguration configuration)
+	{
+		this.configuration = configuration;
+	}
+
+	/**
+	 * Setzt das level, in welchem der Skill ausgefuehrt werden soll
+	 * @param level Level
+	 */
+	public void setLevel(final Level level)
+	{
+		this.level = level;
+	}
+
+	/**
+	 * Setzt andere moegliche Angriffsziele, um Flaechenskills
+	 * zu ermoeglichen.
+	 * @param possibleTargets moegliche Angriffsziele
+	 */
+	public void setPossibleTargets(final GameActor[] possibleTargets)
+	{
+		this.possibleTargets = possibleTargets;
+	}
 
 	/**
 	 * Setzt das Ziel, auf welchem der Skill dargestellt werden soll.
 	 * @param visualizationTarget Ziel fuer die Darstellung
 	 */
-	void setTarget(TComponent visualizationTarget);
+	public void setTarget(TComponent visualizationTarget)
+	{
+		this.target = visualizationTarget;
+	}
 }

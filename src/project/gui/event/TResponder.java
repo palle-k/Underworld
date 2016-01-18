@@ -74,8 +74,9 @@ public abstract class TResponder
 	{
 		if (isFirstResponder)
 			return this;
-		for (TResponder child : subresponders)
+		for (int i = 0; i < subresponders.size(); i++)
 		{
+			TResponder child          = subresponders.get(i);
 			TResponder childResponder = child.getFirstResponder();
 			if (childResponder != null)
 				return childResponder;
@@ -86,8 +87,9 @@ public abstract class TResponder
 	public TResponder getNextResponder()
 	{
 		boolean foundFirstResponder = false;
-		for (TResponder subresponder : subresponders)
+		for (int i = 0; i < subresponders.size(); i++)
 		{
+			TResponder subresponder = subresponders.get(i);
 			foundFirstResponder |= subresponder.hasFirstResponder();
 			if (foundFirstResponder)
 			{
@@ -101,16 +103,15 @@ public abstract class TResponder
 		if (foundFirstResponder && allowsFirstResponder())
 			return this;
 		if (!foundFirstResponder)
-		{
-			for (TResponder subresponder : subresponders)
+			for (int i = 0; i < subresponders.size(); i++)
 			{
+				TResponder subresponder  = subresponders.get(i);
 				TResponder nextResponder = subresponder.getNextResponder();
 				if (nextResponder != null)
 				{
 					return nextResponder;
 				}
 			}
-		}
 		if (allowsFirstResponder())
 			return this;
 		else
@@ -203,8 +204,8 @@ public abstract class TResponder
 			return true;
 		}
 		boolean updatedFirstResponder = false;
-		for (TResponder child : subresponders)
-			updatedFirstResponder |= child.updateFirstResponder(newFirstResponder);
+		for (int i = 0; i < subresponders.size(); i++)
+			updatedFirstResponder |= subresponders.get(i).updateFirstResponder(newFirstResponder);
 		return updatedFirstResponder;
 	}
 

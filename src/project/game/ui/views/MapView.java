@@ -52,13 +52,14 @@ public class MapView extends TScrollView
 
 	public void setPointOfVision(Point point)
 	{
-		if (point != null)
+		if (point != null && (visionPoint == null || !visionPoint.equals(point)))
 		{
 			visibility = level.getMap()
 					.getVisiblePoints(
 							new Rectangle(getOffset().x, getOffset().y, getWidth(), getHeight()),
 							point);
 			visionPoint = point;
+			setNeedsDisplay();
 		}
 	}
 
@@ -67,7 +68,6 @@ public class MapView extends TScrollView
 	{
 		graphics.setMask(visibility);
 		super.paintChildren(graphics, dirtyRect);
-		graphics.setMask(null);
 	}
 
 	@Override
@@ -81,30 +81,70 @@ public class MapView extends TScrollView
 				if (x + getOffset().x >= 0 && x + getOffset().x < level.getWidth() && y + getOffset().y >= 0 &&
 				    y + getOffset().y < level.getHeight())
 				{
-					int pixel = level.getPixel(x + getOffset().x, y + getOffset().y);
-					if (pixel < 1 &&
-					    (visibility == null || (visibility.length > x && visibility[x].length > y && visibility[x][y])))
+					int offsetX = x + getOffset().x;
+					int offsetY = y + getOffset().y;
+					int pixel = level.getPixel(offsetX, offsetY);
+					if (visibility == null
+					    || (visibility.length > x
+					        && visibility[x].length > y))
 					{
-						if (showPaths && pixel == -1)
-							graphics.setPoint(x, y, null, Color.GREEN, ' ');
-						else
+						if (pixel <= 0)
 						{
-							Color color;
-							if (visionPoint != null)
+							if (visibility == null || visibility[x][y])
 							{
-								int dx = visionPoint.x - (x + getOffset().x);
-								int dy = visionPoint.y - (y + getOffset().y);
-								int value = Math.max(255 - (int) (Math.sqrt(dx * dx / 2 + dy * dy * 9) * 6), 0);
-								color = Color.getHSBColor(0.1f, 0.7f, value / 255.0f);
+								if (showPaths && pixel == -1)
+									graphics.setPoint(x, y, null, Color.GREEN, ' ');
+								else
+								{
+									Color color;
+									if (visionPoint != null)
+									{
+										int dx = visionPoint.x - (offsetX);
+										int dy = visionPoint.y - (offsetY);
+										int value = Math.max(255 - (int) (Math.sqrt(dx * dx / 2 + dy * dy * 9) * 6), 20);
+										color = Color.getHSBColor(0.1f, 0.5f, value / 255.0f);
+									}
+									else
+									{
+										color = Color.BLACK;
+									}
+
+									graphics.setPoint(x, y, null, color, ' ');
+								}
 							}
-							else
+						}
+						else if (visibility != null)
+						{
+							boolean visible = false;
+							visible |= offsetX > 0
+							           && x > 0
+							           && level.getPixel(offsetX - 1, offsetY) <= 0
+							           && visibility[x - 1][y];
+							visible |= offsetY > 0
+							           && y > 0
+							           && level.getPixel(offsetX, offsetY - 1) <= 0
+							           && visibility[x][y - 1];
+							visible |= offsetX < level.getWidth()-2
+							           && x < visibility.length - 1
+							           && level.getPixel(offsetX + 1, offsetY) <= 0
+							           && visibility[x + 1][y];
+							visible |= offsetY < level.getHeight()-2
+							           && y < visibility[x].length - 1
+							           && level.getPixel(offsetX, offsetY + 1) <= 0
+							           && visibility[x][y + 1];
+
+							if (visible)
 							{
-								color = Color.BLACK;
+								int dx = visionPoint.x - offsetX;
+								int dy = visionPoint.y - offsetY;
+								int value = Math.max(255 - (int) (Math.sqrt(dx * dx / 2 + dy * dy * 9) * 4), 0);
+								Color color = Color.getHSBColor(0.08f, 0.3f, value / 255.0f);
+								graphics.setPoint(x, y, null, color, ' ');
 							}
 
-							graphics.setPoint(x, y, null, color, ' ');
 						}
 					}
+
 				}
 				/*else
 				{

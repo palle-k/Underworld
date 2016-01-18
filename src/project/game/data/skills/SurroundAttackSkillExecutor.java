@@ -31,31 +31,15 @@ import project.game.data.Enemy;
 import project.game.data.GameActor;
 import project.game.data.Player;
 
-/**
- * Implementierung eines SkillExecutors zur
- * Ausfuehrung eines normalen Angriffs
- * Ein normaler Angriff zeigt ueber dem Aktor
- * ein Overlay, zwischen Aktor und Ziel ein Projektil
- * und beim Treffen des Ziels ein Overlay ueber diesem.
- * Einzelne Komponenten hiervon koennen weggelassen werden.
- */
-public class AttackSkillExecutor extends SkillExecutor
+import java.util.Properties;
+
+public class SurroundAttackSkillExecutor extends SkillExecutor
 {
-	/**
-	 * Fuehrt einen Angriff aus, wobei ueber dem Angreifer ein Overlay gezeigt wird,
-	 * zwischen Angreifer und Ziel ein Projektil und beim Treffen des Ziels
-	 * ueber diesem ein Overlay.<br>
-	 * Zusaetzlich wird beim Treffen des Ziels der Treffersound wiedergegeben,
-	 * falls dieser spezifiziert ist.
-	 * @param attackingActor Angreifer
-	 * @param attackTarget Ziel
-	 */
+	double damageRange;
+
 	@Override
 	public void executeSkill(final GameActor attackingActor, final GameActor attackTarget)
 	{
-		int damage = getConfiguration().getTargetDamage() +
-		             (int) (Math.random() * getConfiguration().getAttackDamageVariation() -
-		                    0.5 * getConfiguration().getAttackDamageVariation());
 		String      soundSource  = getConfiguration().getSoundSource();
 		AudioPlayer attackPlayer = null;
 		if (soundSource != null)
@@ -63,20 +47,69 @@ public class AttackSkillExecutor extends SkillExecutor
 		SkillCoordinator skillCoordinator = new SkillCoordinator(
 				getTarget(),
 				getConfiguration().getOverlays(),
-				getConfiguration().getAttackProjectilesForDirection(attackingActor.getCenter(), attackTarget.getCenter()),
-				getConfiguration().getTargetOverlays(),
+				null,
+				null,
 				getConfiguration().getOverlayColor(),
-				getConfiguration().getAttackProjectileColor(),
-				getConfiguration().getTargetOverlayColor(),
+				null,
+				null,
 				getConfiguration().getOverlayAnimationTime(),
-				getConfiguration().getAttackProjectileAnimationTime(attackingActor.getCenter(), attackTarget.getCenter()),
-				getConfiguration().getTargetOverlayAnimationTime(),
-				damage,
+				0,
+				0,
+				0,
 				attackPlayer,
 				null);
 		skillCoordinator.visualizeSkill(attackingActor, attackTarget);
-		//FIXME: This is executed before the damage is applied
-		if (!attackTarget.isAlive() && attackingActor instanceof Player && attackTarget instanceof Enemy)
-			((Player) attackingActor).earnExperience(((Enemy)attackTarget).getEarnedExperience());
+
+//		String[] overlays = getConfiguration().getOverlays();
+//
+//		TLabel overlayLabel = new TLabel();
+//		overlayLabel.setColor(getConfiguration().getOverlayColor());
+//		overlayLabel.setText("");
+//		overlayLabel.setLocation(attackingActor.getCenter());
+//		getTarget().add(overlayLabel);
+//
+//		Point location = attackingActor.getCenter();
+//
+//		Animation overlayAnimation = new Animation((AnimationHandler) value -> {
+//			String newValue = overlays[(int) value];
+//			if (newValue == null)
+//				return;
+//			overlayLabel.setText(newValue);
+//			Dimension newSize = StringUtils.getStringDimensions(newValue);
+//			overlayLabel.setLocation(
+//					location.x - newSize.width / 2,
+//					location.y - newSize.height / 2);
+//			overlayLabel.setSize(newSize);
+//		});
+//		overlayAnimation.setCompletionHandler(animation -> overlayLabel.removeFromSuperview());
+//		overlayAnimation.setFromValue(0);
+//		overlayAnimation.setToValue(overlays.length - 1);
+//		overlayAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
+//		overlayAnimation.setDuration(getConfiguration().getOverlayAnimationTime());
+//		overlayLabel.addAnimation(overlayAnimation);
+
+//		Arrays.stream(getPossibleTargets())
+//				.filter(actor -> actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
+//				.peek(actor -> actor.decreaseHealth(getConfiguration().getRandomizedDamage()))
+//				.filter(actor -> attackingActor instanceof Player)
+//				.forEach();
+
+		for (GameActor actor : getPossibleTargets())
+		{
+			if (actor.isAlive() && actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
+			{
+				actor.decreaseHealth(getConfiguration().getRandomizedDamage());
+				//TODO implement this in an OnKill-Interface
+				if (!actor.isAlive() && actor instanceof Enemy && attackingActor instanceof Player)
+					((Player) attackingActor).earnExperience(((Enemy) actor).getEarnedExperience());
+			}
+		}
+	}
+
+	@Override
+	public void loadAdditionalProperties(final Properties properties, final String prefix)
+	{
+		super.loadAdditionalProperties(properties, prefix);
+		damageRange = Double.parseDouble(properties.getProperty(prefix + "attack_damage_range", "0"));
 	}
 }

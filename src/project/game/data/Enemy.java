@@ -25,6 +25,8 @@
 
 package project.game.data;
 
+import project.game.controllers.EnemyController;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
@@ -38,7 +40,7 @@ import static project.game.localization.LocalizedString.LocalizedString;
  * Ein Gegner kann ueber einen EnemyController gesteuert werden.
  * Moegliche Gegner sind dynamische oder statische Gegner. Diese
  * werden aus entsprechenden Property-Files geladen.
- * @see project.game.ui.controllers.EnemyController
+ * @see EnemyController
  */
 public class Enemy extends GameActor implements Serializable
 {

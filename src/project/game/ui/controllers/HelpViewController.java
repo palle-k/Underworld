@@ -25,68 +25,66 @@
 
 package project.game.ui.controllers;
 
-import project.audio.AudioPlayer;
 import project.gui.components.TLabel;
+import project.gui.components.TScrollView;
 import project.gui.controller.ViewController;
-import project.gui.layout.VerticalFlowLayout;
+import project.gui.event.TEvent;
+import project.gui.event.TEventHandler;
+import project.gui.layout.FullSizeSubviewLayout;
 
-import java.awt.Color;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
-public class LaunchViewController extends ViewController
+public class HelpViewController extends ViewController
 {
-
 	@Override
 	protected void initializeView()
 	{
 		super.initializeView();
+		TScrollView scrollView = new TScrollView();
+		getView().add(scrollView);
 
-		VerticalFlowLayout layout = new VerticalFlowLayout();
-		layout.setSpacing(5);
-		layout.setLayoutInsets(10, 0, 0, 0);
+		FullSizeSubviewLayout layout = new FullSizeSubviewLayout();
+		layout.setInsets(1, 2, 1, 2);
 		getView().setLayoutManager(layout);
 
-		TLabel label = new TLabel();
-		label.setText("           )  (           (                 )   (    (    (     \n" +
-		              "        ( /(  )\\ )        )\\ )  (  (     ( /(   )\\ ) )\\ ) )\\ )  \n" +
-		              "    (   )\\())(()/(   (   (()/(  )\\))(   ')\\()) (()/((()/((()/(  \n" +
-		              "    )\\ ((_)\\  /(_))  )\\   /(_))((_)()\\ )((_)\\   /(_))/(_))/(_)) \n" +
-		              " _ ((_) _((_)(_))_  ((_) (_))  _(())\\_)() ((_) (_)) (_)) (_))_  \n" +
-		              "| | | || \\| | |   \\ | __|| _ \\ \\ \\((_)/ // _ \\ | _ \\| |   |   \\ \n" +
-		              "| |_| || .` | | |) || _| |   /  \\ \\/\\/ /| (_) ||   /| |__ | |) |\n" +
-		              " \\___/ |_|\\_| |___/ |___||_|_\\   \\_/\\_/  \\___/ |_|_\\|____||___/ ");
-		label.setColor(new Color(255, 100, 0));
-		getView().add(label);
+		TLabel helpLabel = new TLabel();
+		helpLabel.setText(LocalizedString("help_view_help_text"));
+		scrollView.add(helpLabel);
 
-		TLabel copyright = new TLabel();
-		copyright.setText(LocalizedString("launch_copyright"));
-		copyright.setColor(Color.LIGHT_GRAY);
-		getView().add(copyright);
-
-		AudioPlayer player = new AudioPlayer(AudioPlayer.class.getResource("Intro Sound.aif"));
-		player.play();
-
-//		new Thread(() -> {
-//			try
-//			{
-//				Thread.sleep(3500);
-//			}
-//			catch (InterruptedException e)
-//			{
-//				e.printStackTrace();
-//			}
-//			getNavigationController().push(new MainMenuViewController());
-//		}).start();
-		new Timer().schedule(new TimerTask()
+		scrollView.setAllowsFirstResponder(true);
+		scrollView.setEventHandler(new TEventHandler()
 		{
 			@Override
-			public void run()
+			public void keyDown(final TEvent event)
 			{
-				getNavigationController().push(new MainMenuViewController());
+				if (event.getKey() == KeyEvent.VK_DOWN)
+				{
+					Point offset = new Point(scrollView.getOffset());
+					offset.translate(0, 1);
+					if (offset.y > scrollView.getContentViewSize().height - scrollView.getHeight())
+						offset.y = scrollView.getContentViewSize().height - scrollView.getHeight();
+					scrollView.setOffset(offset);
+				}
+				else if (event.getKey() == KeyEvent.VK_UP)
+				{
+					Point offset = new Point(scrollView.getOffset());
+					offset.translate(0, -1);
+					if (offset.y < 0)
+						offset.y = 0;
+					scrollView.setOffset(offset);
+				}
 			}
-		}, 3500);
+
+			@Override
+			public void keyUp(final TEvent event)
+			{
+				if (event.getKey() == KeyEvent.VK_ESCAPE)
+					getNavigationController().pop();
+			}
+		});
+		scrollView.requestFirstResponder();
 	}
 }

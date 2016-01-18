@@ -23,41 +23,53 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.data.skills;
 
-import project.gui.components.TComponent;
+import project.audio.AudioPlayer;
+import project.game.data.GameActor;
+import project.gui.dynamics.animation.Animation;
+import project.gui.dynamics.animation.AnimationHandler;
 
-import java.awt.Dimension;
-import java.awt.Insets;
+import java.awt.Point;
+import java.util.Properties;
 
-public class FullSizeSubviewLayout implements TLayoutManager
+public class JumpToTargetSkillExecutor extends SkillExecutor
 {
-	private Insets insets = new Insets(0, 0, 0, 0);
+	private double jumpDuration;
 
-	public Insets getInsets()
-	{
-		return insets;
-	}
+	private int targetDistance;
 
 	@Override
-	public void layoutComponent(final TComponent component)
+	public void executeSkill(final GameActor attackingActor, final GameActor attackTarget)
 	{
-		Dimension size = new Dimension(component.getSize());
-		size.setSize(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
-		for (TComponent child : component.getChildren())
+		Point[] pathToTarget = getLevel()
+				.getMap()
+				.findPath(
+						attackingActor.getCenter(),
+						attackTarget.getCenter(),
+						attackingActor.getBounds().width,
+						attackingActor.getBounds().height);
+		if (pathToTarget != null)
 		{
-			child.setLocation(insets.left, insets.top);
-			child.setSize(size);
+			//attackingActor.setCenter(pathToTarget[pathToTarget.length - 1 - targetDistance]);
+			Animation pathAnimation = new Animation((AnimationHandler) value ->
+					attackingActor.setCenter(pathToTarget[(int) value]));
+			pathAnimation.setFromValue(0);
+			pathAnimation.setToValue(Math.max(pathToTarget.length - 1 - targetDistance, 0));
+			pathAnimation.setDuration(jumpDuration);
+			pathAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_EASE);
+			getTarget().addAnimation(pathAnimation);
+			String soundSource = getConfiguration().getSoundSource();
+			if (soundSource != null)
+				new AudioPlayer(AudioPlayer.class.getResource(soundSource)).play();
 		}
 	}
 
-	public void setInsets(final Insets insets)
+	@Override
+	public void loadAdditionalProperties(final Properties properties, final String prefix)
 	{
-		this.insets = insets;
-	}
-
-	public void setInsets(int top, int left, int bottom, int right)
-	{
-		setInsets(new Insets(top, left, bottom, right));
+		super.loadAdditionalProperties(properties, prefix);
+		targetDistance = Integer.parseInt(properties.getProperty(prefix + "target_distance", "0"));
+		jumpDuration = Double.parseDouble(properties.getProperty(prefix + "jump_duration", "0"));
 	}
 }

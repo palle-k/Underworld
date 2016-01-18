@@ -37,22 +37,58 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Audioplayer
+ * Wiedergabe von Sounddateien
+ */
 public class AudioPlayer
 {
-	private static Map<String, AudioClip> cachedClips = new HashMap<>();
-	private double          delay;
-	private Point           location;
-	private AudioClip       player;
-	private ExecutorService soundExecutor;
+	/**
+	 * Executor zum Ausfuehren des AudioClips in separatem Thread
+	 */
+	private static final ExecutorService soundExecutor = Executors.newSingleThreadExecutor();
 
+	/**
+	 * Cache fuer AudioClips zur Verringerung von Ladezeiten
+	 */
+	private static Map<String, AudioClip> cachedClips = new HashMap<>();
+
+	/**
+	 * Verzoegerung, mit der der AudioClip abgespielt wird
+	 */
+	private double          delay;
+
+	/**
+	 * Punkt im Raum, an dem sich die Quelle des Tons befindet
+	 */
+	private Point           location;
+
+	/**
+	 * AudioClip zur Wiedergabe
+	 */
+	private AudioClip       player;
+
+	/**
+	 * Erzeugt einen neuen AudioPlayer fuer die Sounddatei,
+	 * die sich an angegebener Quelle befindet.
+	 * Wurde die Audiodatei an dieser URL schon geladen,
+	 * wird eine gecachete Version verwendet.
+	 * @param source Sounddatei
+	 */
 	public AudioPlayer(URL source)
 	{
 		this(source, true);
 	}
 
+	/**
+	 * Erstellt einen neuen AudioPlayer fuer die Sounddatei,
+	 * die sich an angegebener Quelle befindet.
+	 * Dabei kann die Audiodatei optional gecacht werden
+	 * @param source Quelldatei
+	 * @param useCache gibt an, ob die Audiodatei gecacht werden soll.
+	 */
 	public AudioPlayer(URL source, boolean useCache)
 	{
-		soundExecutor = Executors.newSingleThreadExecutor();
 		soundExecutor.execute(() -> {
 			if (useCache && cachedClips.containsKey(source.toString()))
 				player = cachedClips.get(source.toString());
@@ -61,15 +97,21 @@ public class AudioPlayer
 				if (useCache)
 					cachedClips.put(source.toString(), player);
 			}
-
 		});
 	}
 
+	/**
+	 * Gibt die Verzoegerung an, mit der die Audiodatei wiedergegeben wird
+	 * @return Verzoegerung in Sekunden
+	 */
 	public double getDelay()
 	{
 		return delay;
 	}
 
+	/**
+	 * Spielt die Audiodatei ab.
+	 */
 	public void play()
 	{
 		soundExecutor.execute(() -> {
@@ -87,9 +129,12 @@ public class AudioPlayer
 			else
 				player.play();
 		});
-
 	}
 
+	/**
+	 * Setzt die Position der Soundquelle relativ zum angegebenen Punkt
+	 * @param relativeToPoint Punkt, zu dem die Soundquelle relativ ausgerichtet werden soll
+	 */
 	public void setBalance(Point relativeToPoint)
 	{
 		double dx = location.x - relativeToPoint.x;
@@ -97,21 +142,40 @@ public class AudioPlayer
 		soundExecutor.execute(() -> player.setPan(dx / dy));
 	}
 
+	/**
+	 * Setzt die Balance der Soundquelle.
+	 * <br>-1.0 -> ganz links<br>
+	 * 0.0 -> mittig<br>
+	 * 1.0 -> ganz rechts
+	 * @param balance Balance
+	 */
 	public void setBalance(double balance)
 	{
 		soundExecutor.execute(() -> player.setBalance(balance));
 	}
 
+	/**
+	 * Setzt die Verzoegerung, mit der die Audiodatei wiedergegeben wird.
+	 * @param delay Verzoegerung in Sekunden
+	 */
 	public void setDelay(final double delay)
 	{
 		this.delay = delay;
 	}
 
+	/**
+	 * Setzt den Ort, an dem sich die Soundquelle befindet
+	 * @param location Ort der Soundquelle
+	 */
 	public void setLocation(final Point location)
 	{
 		this.location = location;
 	}
 
+	/**
+	 * Stellt ein, ob sich der Sound wiederholen soll.
+	 * @param repeats Wiederholung
+	 */
 	public void setRepeats(boolean repeats)
 	{
 		soundExecutor.execute(() -> {
@@ -122,12 +186,19 @@ public class AudioPlayer
 		});
 	}
 
+	/**
+	 * Setzt die Lautstaerke der Soundquelle relativ zum angegebenen Punkt
+	 * @param relativeToPoint Punkt
+	 */
 	public void setVolume(Point relativeToPoint)
 	{
 		double dist = relativeToPoint.distance(location) + 1.0;
 		soundExecutor.execute(() -> player.setVolume(1.0 / dist));
 	}
 
+	/**
+	 * Beendet die Wiedergabe des Sounds.
+	 */
 	public void stop()
 	{
 		//soundExecutor.execute(player::stop);

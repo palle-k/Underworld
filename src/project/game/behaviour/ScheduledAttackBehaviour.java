@@ -23,41 +23,63 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.gui.layout;
+package project.game.behaviour;
 
-import project.gui.components.TComponent;
+import project.game.data.GameActor;
+import project.game.data.Level;
+import project.game.data.SkillConfiguration;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-
-public class FullSizeSubviewLayout implements TLayoutManager
+public class ScheduledAttackBehaviour extends TargetedBehaviour
 {
-	private Insets insets = new Insets(0, 0, 0, 0);
+	private SkillConfiguration configuration;
 
-	public Insets getInsets()
+	private boolean            executed;
+
+	public ScheduledAttackBehaviour(final GameActor controlledActor, final Level level)
 	{
-		return insets;
+		super(controlledActor, level);
+	}
+
+	/**
+	 * Gibt die Angriffskonfiguration an
+	 * @return Angriffskonfiguration
+	 */
+	public SkillConfiguration getConfiguration()
+	{
+		return configuration;
+	}
+
+	public void resetExecution()
+	{
+		executed = false;
+	}
+
+	/**
+	 * Setzt den Skill, welcher vom Verhalten ausgefuehrt werden soll
+	 * @param configuration Skill
+	 */
+	public void setConfiguration(final SkillConfiguration configuration)
+	{
+		this.configuration = configuration;
 	}
 
 	@Override
-	public void layoutComponent(final TComponent component)
+	protected void executeBehaviour(final double time)
 	{
-		Dimension size = new Dimension(component.getSize());
-		size.setSize(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
-		for (TComponent child : component.getChildren())
+		if (!executed
+		    && Math.abs(getTarget().getCenter().x - getControlledActor().getCenter().x)
+		       + Math.abs(getTarget().getCenter().y - getControlledActor().getCenter().y) * 2
+		       <= configuration.getAttackRange()
+		    && getLevel().getMap().canSee(getControlledActor().getCenter(), getTarget().getCenter()))
 		{
-			child.setLocation(insets.left, insets.top);
-			child.setSize(size);
+			executed = true;
+
 		}
 	}
 
-	public void setInsets(final Insets insets)
+	@Override
+	protected void skipExecution(final double time)
 	{
-		this.insets = insets;
-	}
 
-	public void setInsets(int top, int left, int bottom, int right)
-	{
-		setInsets(new Insets(top, left, bottom, right));
 	}
 }

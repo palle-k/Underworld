@@ -23,7 +23,7 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.ui.controllers;
+package project.game.controllers;
 
 import project.audio.AudioPlayer;
 import project.game.data.GameActor;
@@ -180,6 +180,7 @@ public class SkillCoordinator
 				overlayLabel.setLocation(
 						from.getCenter().x - newSize.width / 2,
 						from.getCenter().y - newSize.height / 2);
+				overlayLabel.setSize(newSize);
 			});
 			overlayAnimation.setCompletionHandler(animation -> overlayLabel.removeFromSuperview());
 			overlayAnimation.setFromValue(0);

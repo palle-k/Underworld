@@ -27,6 +27,7 @@ package project.gui.components;
 
 import project.gui.layout.TLayoutManager;
 
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -64,6 +65,11 @@ public class TScrollView extends TComponent
 	{
 		contentView.add(child, index);
 		resizeContentView();
+	}
+
+	public Dimension getContentViewSize()
+	{
+		return contentView.getSize();
 	}
 
 /*
@@ -147,5 +153,4 @@ public class TScrollView extends TComponent
 		}
 		contentView.setSize(maxX, maxY);
 	}
-
 }
