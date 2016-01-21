@@ -28,6 +28,10 @@ package project.gui.event;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Klasse zur Verarbeitung von KeyEvents und zur Verwaltung und
+ * Steuerung eines Responder Models.
+ */
 public abstract class TResponder
 {
 	private final List<TResponder> subresponders;
@@ -37,11 +41,18 @@ public abstract class TResponder
 	private       boolean          isSingleFirstResponder;
 	private       TResponder       parentResponder;
 
+	/**
+	 * Erstellt einen neuen TResponder
+	 */
 	protected TResponder()
 	{
 		subresponders = new ArrayList<>();
 	}
 
+	/**
+	 * Fuegt dem Responder einen neuen Kind-Responder hinzu.
+	 * @param responder Kindresponder
+	 */
 	public void addResponder(TResponder responder)
 	{
 		subresponders.add(responder);
@@ -49,11 +60,20 @@ public abstract class TResponder
 		responderChainUpdated();
 	}
 
+	/**
+	 * Gibt an, ob der Responder First Responder werden kann
+	 * @return true, wenn der Responder First Responder sein kann, sonst false
+	 */
 	public boolean allowsFirstResponder()
 	{
 		return allowsFirstResponder;
 	}
 
+	/**
+	 * Verarbeitet ein KeyEvent. Ist der Responder nicht
+	 * First Responder, wird das Event ignoriert.
+	 * @param event zu verarbeitendes Event
+	 */
 	public void dispatchEvent(TEvent event)
 	{
 		if (isFirstResponder)
@@ -65,11 +85,20 @@ public abstract class TResponder
 		}
 	}
 
+	/**
+	 * Gibt den EventHandler zurueck, der KeyEvents verarbeitet
+	 * @return EventHandler
+	 */
 	public TEventHandler getEventHandler()
 	{
 		return eventHandler;
 	}
 
+	/**
+	 * Gibt den First Responder zurueck, falls dieser ein Kindresponder
+	 * dieses Responders ist. Andernfalls wird null zurueckgegeben.
+	 * @return First Responder oder null
+	 */
 	public TResponder getFirstResponder()
 	{
 		if (isFirstResponder)
@@ -84,6 +113,11 @@ public abstract class TResponder
 		return null;
 	}
 
+	/**
+	 * Gibt den naechstmoeglichen First Responder zurueck.
+	 * @return naechstmoeglicher First Responder oder null,
+	 * falls kein naechster gefunden wurde.
+	 */
 	public TResponder getNextResponder()
 	{
 		boolean foundFirstResponder = false;
@@ -118,22 +152,40 @@ public abstract class TResponder
 			return null;
 	}
 
+	/**
+	 * Gibt an, ob es sich bei dem Responder um den First Responder handelt.
+	 * @return true, wenn der Responder First Responder ist, sonst false
+	 */
 	public boolean isFirstResponder()
 	{
 		return isFirstResponder;
 	}
 
+	/**
+	 * Gibt an, ob der Responder alleiniger First Responder ist und kein anderer
+	 * Responder First Responder werden kann
+	 * @return true, wenn der Responder alleiniger First Responder ist, sonst false
+	 */
 	public boolean isSingleFirstResponder()
 	{
 		return isSingleFirstResponder;
 	}
 
+	/**
+	 * Entfernt alle Kindresponder.
+	 * Wenn ein Kindresponder First Responder ist, wird ein neuer FirstResponder gesucht.
+	 */
 	public void removeAll()
 	{
 		while (!subresponders.isEmpty())
 			removeResponder(subresponders.get(0));
 	}
 
+	/**
+	 * Entfernt einen Kindresponder. Wenn das Kind First Responder ist, wird ein
+	 * neuer First Responder gesucht.
+	 * @param responder zu entferndender Kind-Responder
+	 */
 	public void removeResponder(TResponder responder)
 	{
 		if (subresponders.remove(responder))
@@ -151,27 +203,48 @@ public abstract class TResponder
 		}
 	}
 
+	/**
+	 * Erlange First Responder-Status wenn moeglich.
+	 */
 	public void requestFirstResponder()
 	{
 		childRequestsFirstResponder(this);
 	}
 
+	/**
+	 * Gebe First Responder-Status auf.
+	 */
 	public void resignFirstResponder()
 	{
 		isFirstResponder = false;
+		responderChainUpdated();
 	}
 
+	/**
+	 * Lege fest, ob dieser Responder First Responder werden kann.
+	 * @param allowsFirstResponder true, wenn der Responder First Responder werden kann, sonst false
+	 */
 	public void setAllowsFirstResponder(final boolean allowsFirstResponder)
 	{
 		this.allowsFirstResponder = allowsFirstResponder;
 		responderChainUpdated();
 	}
 
+	/**
+	 * Setzt den EventHandler, der KeyEvents verarbeitet
+	 * @param eventHandler zu verwendender EventHandler
+	 */
 	public void setEventHandler(final TEventHandler eventHandler)
 	{
 		this.eventHandler = eventHandler;
 	}
 
+	/**
+	 * Legel fest, ob der Responder alleiniger First Responder sein soll
+	 * und den Status als First Responder nicht verlieren kann.
+	 * @param singleFirstResponder true, wenn der Responder alleiniger FirstResponder
+	 *                             sein kann, sonst false
+	 */
 	public void setSingleFirstResponder(final boolean singleFirstResponder)
 	{
 		isSingleFirstResponder = singleFirstResponder;
@@ -179,56 +252,71 @@ public abstract class TResponder
 			requestFirstResponder();
 	}
 
+	/**
+	 * Der Responder wird First Responder und nimmt KeyEvents entgegen
+	 */
 	protected void becomeFirstResponder()
 	{
 		isFirstResponder = true;
 	}
 
+	/**
+	 * Der Responder ist First Responder und eine Taste wurde gedrueckt
+	 * @param event KeyEvent
+	 */
 	protected void keyDown(TEvent event)
 	{
 		if (eventHandler != null)
 			eventHandler.keyDown(event);
 	}
 
+	/**
+	 * Der Responder ist First Responder und eine Taste wurde losgelassen
+	 * @param event KeyEvent
+	 */
 	protected void keyUp(TEvent event)
 	{
 		if (eventHandler != null)
 			eventHandler.keyUp(event);
 	}
 
-	protected boolean updateFirstResponder(TResponder newFirstResponder)
-	{
-		if (this == newFirstResponder)
-		{
-			becomeFirstResponder();
-			return true;
-		}
-		boolean updatedFirstResponder = false;
-		for (int i = 0; i < subresponders.size(); i++)
-			updatedFirstResponder |= subresponders.get(i).updateFirstResponder(newFirstResponder);
-		return updatedFirstResponder;
-	}
-
+	/**
+	 * Verarbeite einen First Responder-Request.
+	 * Suche den First Responder und deaktiviere ihn, wenn moeglich.
+	 * child wird neuer First Responder
+	 * @param child neuer First Responder
+	 */
 	private void childRequestsFirstResponder(TResponder child)
 	{
 		if (parentResponder != null)
-		{
 			parentResponder.childRequestsFirstResponder(child);
-		}
 		else
 		{
 			TResponder firstResponder = getFirstResponder();
 			if (firstResponder != null)
+			{
+				if (firstResponder.isSingleFirstResponder())
+					return;
 				firstResponder.resignFirstResponder();
-			updateFirstResponder(child);
+			}
+			child.becomeFirstResponder();
 		}
 	}
 
+	/**
+	 * Gibt an, ob der First Responder ein Kindresponder
+	 * dieses Responders ist.
+	 * @return true, wenn der First Responder ein Kindelement ist, sonst false
+	 */
 	private boolean hasFirstResponder()
 	{
 		return getFirstResponder() != null;
 	}
 
+	/**
+	 * Die Responderkette wurde aktualisiert. Wenn kein First Responder mehr vorhanden
+	 * ist, wird ein neuer First Responder gesucht.
+	 */
 	private void responderChainUpdated()
 	{
 		if (parentResponder != null)
@@ -239,7 +327,7 @@ public abstract class TResponder
 			{
 				TResponder nextResponder = getNextResponder();
 				if (nextResponder != null)
-					nextResponder.requestFirstResponder();
+					nextResponder.becomeFirstResponder();
 			}
 		}
 	}

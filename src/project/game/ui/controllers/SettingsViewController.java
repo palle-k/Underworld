@@ -38,6 +38,9 @@ import project.gui.layout.VerticalFlowLayout;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * ViewController zur Darstellung von Einstellungen fuer das Spiel
+ */
 public class SettingsViewController extends ViewController
 {
 	@Override

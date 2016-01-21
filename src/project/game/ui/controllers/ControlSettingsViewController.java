@@ -35,8 +35,14 @@ import project.gui.layout.VerticalFlowLayout;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * ViewController fuer die Darstellung von Steuerungszuweisungen
+ */
 public class ControlSettingsViewController extends ViewController
 {
+	/**
+	 * Beschreibungen von Tasten
+	 */
 	public static final String[] keycodeDescriptions =
 			{
 					"Space",
@@ -187,11 +193,11 @@ public class ControlSettingsViewController extends ViewController
 
 		TButton healthPotion = new TButton();
 		healthPotion.setSize(30, 1);
-		getView().add(healthPotion);
+		//getView().add(healthPotion);
 
 		TButton attackPotion = new TButton();
 		attackPotion.setSize(30, 1);
-		getView().add(attackPotion);
+		//getView().add(attackPotion);
 
 		TButton back = new TButton();
 		back.setSize(30, 1);
@@ -209,8 +215,8 @@ public class ControlSettingsViewController extends ViewController
 		buttonGroup.addResponder(skill2);
 		buttonGroup.addResponder(skill3);
 		buttonGroup.addResponder(skill4);
-		buttonGroup.addResponder(healthPotion);
-		buttonGroup.addResponder(attackPotion);
+//		buttonGroup.addResponder(healthPotion);
+//		buttonGroup.addResponder(attackPotion);
 		buttonGroup.addResponder(back);
 		getView().addResponder(buttonGroup);
 

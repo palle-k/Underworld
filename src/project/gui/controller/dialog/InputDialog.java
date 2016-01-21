@@ -34,27 +34,25 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
+/**
+ * Dialog zur Eingabe von Text
+ */
 public class InputDialog extends Dialog
 {
-	private String inputMessage = "";
 	private TLabel inputMessageLabel;
 	private String response;
-
-	public String getInputMessage()
-	{
-		return inputMessage;
-	}
 
 	public String getResponse()
 	{
 		return response;
 	}
 
-	public void setInputMessage(final String inputMessage)
+	@Override
+	public void setMessage(final String message)
 	{
-		this.inputMessage = inputMessage;
+		super.setMessage(message);
 		if (inputMessageLabel != null)
-			inputMessageLabel.setText(inputMessage);
+			inputMessageLabel.setText(message);
 	}
 
 	@Override
@@ -66,7 +64,7 @@ public class InputDialog extends Dialog
 		inputMessageLabel.setFrame(new Rectangle(2, 2, 46, 2));
 		inputMessageLabel.setColor(Color.BLACK);
 		inputMessageLabel.setBackgroundColor(Color.LIGHT_GRAY);
-		inputMessageLabel.setText(getInputMessage());
+		inputMessageLabel.setText(getMessage());
 		getDialogView().add(inputMessageLabel);
 
 		TTextField inputField = new TTextField();

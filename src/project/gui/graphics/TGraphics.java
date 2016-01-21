@@ -35,8 +35,17 @@ import java.awt.Rectangle;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.PathIterator;
 
+/**
+ * Grafikkontext zum Zeichnen von geometrischen
+ * Objekten.
+ */
 public class TGraphics
 {
+	/**
+	 * Grafikstatus:
+	 * Speicherung des des aktuellen Pfades, sowie Farbeinstellungen und
+	 * Kompositionseinstellungen
+	 */
 	private class TGraphicsState
 	{
 		private TComponent.Composite composite;
@@ -82,11 +91,13 @@ public class TGraphics
 		}
 	}
 
+	//Moegliche Ziele sind: Ein TChar-Array-Buffer, ein Parent-TGraphics-Objekt oder ein Terminal
+
 	private TBufferedView.TChar[][] buffer;
 	private TGraphicsState          currentState;
 	private Rectangle               dirtyRect;
 	private int                     height;
-	private boolean[][] mask;
+	private boolean[][]             mask;
 	private boolean                 maskToBounds;
 	private int                     offsetX;
 	private int                     offsetY;
@@ -94,6 +105,12 @@ public class TGraphics
 	private Terminal                target;
 	private int                     width;
 
+	/**
+	 * Erstellt einen neuen Grafikkontext mit target als Ziel fuer
+	 * Zeichenoperationen. Diese sind auf den Bereich dirtyRect beschraenkt.
+	 * @param target Ziel fuer Zeichenoperationen
+	 * @param dirtyRect Dreckiger Bereich, der neu gezeichnet werden kann
+	 */
 	public TGraphics(Terminal target, Rectangle dirtyRect)
 	{
 		this.target = target;
@@ -106,6 +123,15 @@ public class TGraphics
 		this.dirtyRect = dirtyRect;
 	}
 
+	/**
+	 * Erstellt einen neuen Grafikkontext mit einem Grafikkontext als Ziel
+	 * @param target Zielkontext
+	 * @param offsetX Verschiebung x-Achse
+	 * @param offsetY Verschiebung y-Achse
+	 * @param width Breite des Kontexts
+	 * @param height Hoehe des Kontexts
+	 * @param maskToBounds true, wenn Zeichenoperationen nicht ueber die Begrenzungen des Kontexts hinausgehen koennen.
+	 */
 	private TGraphics(TGraphics target, int offsetX, int offsetY, int width, int height, boolean maskToBounds)
 	{
 		this.parent = target;
@@ -114,9 +140,17 @@ public class TGraphics
 		this.width = width;
 		this.height = height;
 		this.maskToBounds = maskToBounds;
-		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), TComponent.SRC_OVER, null);
+		currentState = new TGraphicsState(Color.BLACK, Color.BLACK, null, null, ' ', ' ', new GeneralPath(), TComponent.SRC_OVER,
+		                                  null);
 	}
 
+	/**
+	 * Erstellt einen neuen Grafikkontext mit einem Zeichenpuffer als Ziel
+	 * @param buffer Zielpuffer
+	 * @param dirtyRect Dreckiger Bereich, der neu gezeichnet werden kann
+	 * @param width Hoehe des Kontexts
+	 * @param height Breite des Kontexts
+	 */
 	public TGraphics(TBufferedView.TChar[][] buffer, Rectangle dirtyRect, int width, int height)
 	{
 		this.buffer = buffer;
@@ -127,11 +161,20 @@ public class TGraphics
 		this.dirtyRect = dirtyRect;
 	}
 
+	/**
+	 * Schliesst den aktuellen Pfad
+	 */
 	public void closePath()
 	{
 		currentState.path.closePath();
 	}
 
+	/**
+	 * Zeichnet einen Text an der gegebenen Position.
+	 * @param text zu zeichnender Text
+	 * @param x x-Komponente Startposition
+	 * @param y y-Komponente Startposition
+	 */
 	public void drawText(String text, int x, int y)
 	{
 		if (text == null)
@@ -155,7 +198,11 @@ public class TGraphics
 		}
 	}
 
-	public void fill(char c)
+	/**
+	 * Fuellt den aktuellen Pfad.
+	 * Der Pfad wird anschliessend zurueckgesetzt
+	 */
+	public void fill()
 	{
 		Rectangle bounds = currentState.path.getBounds();
 		for (int y = 0; y < bounds.getMaxY(); y++)
@@ -169,6 +216,10 @@ public class TGraphics
 		currentState.path.reset();
 	}
 
+	/**
+	 * Fuellt das angegebene Rechteck
+	 * @param rect zu fuellendes Rechteck
+	 */
 	public void fillRect(Rectangle rect)
 	{
 		for (int y = (int) rect.getMinY(); y < rect.getMaxY(); y++)
@@ -180,11 +231,21 @@ public class TGraphics
 		}
 	}
 
+	/**
+	 * Erstellt einen Kind-Kontext fuer das angegebene Rechteck
+	 * @param childRect Begrenzungen des Kindkontext
+	 * @param maskToBounds true, wenn nicht ueber die Begrenzungen hinaus gezeichnet werden darf, sonst false
+	 * @return Kind-Kontext
+	 */
 	public TGraphics getChildContext(Rectangle childRect, boolean maskToBounds)
 	{
 		return new TGraphics(this, childRect.x, childRect.y, childRect.width, childRect.height, maskToBounds);
 	}
 
+	/**
+	 * Gibt den Compositing-Modus
+	 * @return
+	 */
 	public TComponent.Composite getComposite()
 	{
 		return currentState.composite;
@@ -252,7 +313,7 @@ public class TGraphics
 				currentState.strokeBackground,
 				currentState.fillChar,
 				currentState.strokeChar,
-				currentState.path,
+				new GeneralPath(currentState.path),
 				currentState.composite,
 				currentState);
 	}

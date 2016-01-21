@@ -28,7 +28,7 @@ package project.game.data.skills;
 import project.game.data.GameActor;
 import project.game.data.Level;
 import project.game.data.SkillConfiguration;
-import project.gui.components.TComponent;
+import project.game.ui.views.MapView;
 
 import java.util.Properties;
 
@@ -49,6 +49,12 @@ public abstract class SkillExecutor
 	private Level level;
 
 	/**
+	 * Aktion, die beim Besiegen eines Gegners
+	 * ausgefuehrt wird
+	 */
+	private KillAction onKillAction;
+
+	/**
 	 * Moegliche Ziele fuer Skill
 	 * Ermoeglicht Flaechenskills
 	 */
@@ -57,7 +63,7 @@ public abstract class SkillExecutor
 	/**
 	 * Ziel fuer die Darstellung
 	 */
-	private TComponent target;
+	private MapView target;
 
 	/**
 	 * Fuehrt den Skill mit angegebenem Aktor und Ziel aus.
@@ -87,6 +93,15 @@ public abstract class SkillExecutor
 	}
 
 	/**
+	 * Gibt die Aktion an, die beim besiegen eines Gegners ausgefuehrt wird
+	 * @return Aktion bei Besiegen
+	 */
+	public KillAction getOnKillAction()
+	{
+		return onKillAction;
+	}
+
+	/**
 	 * Gibt die moeglichen Angriffsziele an.
 	 * Dies ist fuer Flaechenskills erforderlich.
 	 * <br>
@@ -103,7 +118,7 @@ public abstract class SkillExecutor
 	 * Gibt das Ziel an, auf welchem der Skill angezeigt werden soll
 	 * @return Ziel
 	 */
-	public TComponent getTarget()
+	public MapView getTarget()
 	{
 		return target;
 	}
@@ -141,6 +156,15 @@ public abstract class SkillExecutor
 	}
 
 	/**
+	 * Setzt die Aktion, die beim besiegen eines Gegners ausgefuehrt werden soll
+	 * @param onKillAction Aktion beim Besiegen
+	 */
+	public void setOnKillAction(final KillAction onKillAction)
+	{
+		this.onKillAction = onKillAction;
+	}
+
+	/**
 	 * Setzt andere moegliche Angriffsziele, um Flaechenskills
 	 * zu ermoeglichen.
 	 * @param possibleTargets moegliche Angriffsziele
@@ -154,8 +178,17 @@ public abstract class SkillExecutor
 	 * Setzt das Ziel, auf welchem der Skill dargestellt werden soll.
 	 * @param visualizationTarget Ziel fuer die Darstellung
 	 */
-	public void setTarget(TComponent visualizationTarget)
+	public void setTarget(MapView visualizationTarget)
 	{
 		this.target = visualizationTarget;
+	}
+
+	/**
+	 * Fuehre die Aktion beim Besiegen eines Gegners aus
+	 */
+	protected void runKillAction(GameActor killedActor)
+	{
+		if (onKillAction != null)
+			onKillAction.actorKilled(killedActor);
 	}
 }

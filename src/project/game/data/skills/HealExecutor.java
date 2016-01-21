@@ -26,7 +26,7 @@
 package project.game.data.skills;
 
 import project.audio.AudioPlayer;
-import project.game.controllers.SkillCoordinator;
+import project.game.controllers.SkillVisualizationController;
 import project.game.data.GameActor;
 
 import java.util.Properties;
@@ -53,7 +53,7 @@ public class HealExecutor extends SkillExecutor
 		AudioPlayer soundPlayer = null;
 		if (soundSource != null)
 			soundPlayer = new AudioPlayer(AudioPlayer.class.getResource(soundSource));
-		SkillCoordinator skillCoordinator = new SkillCoordinator(
+		SkillVisualizationController skillVisualizationController = new SkillVisualizationController(
 				getTarget(),
 				getConfiguration().getOverlays(),
 				null,
@@ -67,7 +67,7 @@ public class HealExecutor extends SkillExecutor
 				0,
 				soundPlayer,
 				null);
-		skillCoordinator.visualizeSkill(attackingActor, attackTarget);
+		skillVisualizationController.visualizeSkill(attackingActor, attackTarget);
 		attackingActor.regenerateHealth(restoredHealth);
 	}
 

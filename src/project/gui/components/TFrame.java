@@ -41,7 +41,6 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -55,7 +54,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Method;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
+/**
+ * Fenster, welches als Komponente verwendet werden kann.
+ */
 public class TFrame extends TBufferedView
 {
 	private class TFrameListener implements ComponentListener, KeyListener
@@ -75,7 +79,10 @@ public class TFrame extends TBufferedView
 		@Override
 		public void componentResized(ComponentEvent e)
 		{
-			SwingUtilities.invokeLater(() -> setNeedsDisplay(null));
+			SwingUtilities.invokeLater(() -> {
+				setNeedsLayout();
+				setNeedsDisplay();
+			});
 		}
 
 		@Override
@@ -124,41 +131,59 @@ public class TFrame extends TBufferedView
 		}
 	}
 
-	private static Font createDefaultNormalFont()
-	{
-		if (System.getProperty("os.name", "").toLowerCase().contains("win"))
-		{
-			return new Font("Courier New", 0, 14);
-		}
-		return new Font("Monospaced", 0, 14);
-	}
+	private final Stack<Rectangle> repaintStack;
 
-	private boolean          addedListener;
-	private GameLoop         gameLoop;
-	private long             renderCount;
-	private long             renderingTime;
-	private long             repaintCount;
-	private Stack<Rectangle> repaintStack;
-	private long             repaintTime;
-	private SwingTerminal    terminal;
-	private long             totalRenderingTime;
-	private long             totalRepaintTime;
+	private final SwingTerminal terminal;
 
+	private boolean addedListener;
+
+	private GameLoop gameLoop;
+
+	private long renderCount;
+
+	private long renderingTime;
+
+	private long repaintCount;
+
+	private long repaintTime;
+
+	private long totalRenderingTime;
+
+	private long totalRepaintTime;
+
+	/**
+	 * Erstellt ein neues Fenster, welches durch ein Lanterna-Swing-Terminal
+	 * gestuetzt wird.
+	 */
 	public TFrame()
 	{
 		super();
 		addedListener = false;
 		TerminalAppearance appearance = TerminalAppearance.DEFAULT_APPEARANCE;
+		appearance.getNormalTextFont();
 		terminal = TerminalFacade.createSwingTerminal(appearance, 80, 25);
 		setMaskToBounds(true);
 		repaintStack = new Stack<>();
 	}
 
+	/**
+	 * Gibt die GameLoop zurueck, welche Animationsaktualisierungen in diesem
+	 * Fenster steuert.<br>
+	 * Die GameLoop kann erst erhalten werden, nachdem das Fenster sichtbar gemacht
+	 * wurde
+	 * @return GameLoop
+	 */
 	public GameLoop getGameLoop()
 	{
 		return gameLoop;
 	}
 
+	/**
+	 * Gibt den Titel des Fensters zurueck<br>
+	 * Der Titel kann erst nach Sichtbarmachen
+	 * des Fensters erhalten werden.
+	 * @return Fenstertitel
+	 */
 	public String getTitle()
 	{
 		JFrame underlyingFrame = getUnderlyingFrame();
@@ -175,7 +200,8 @@ public class TFrame extends TBufferedView
 		JFrame underlyingFrame = getUnderlyingFrame();
 		if (underlyingFrame != null)
 		{
-			FontMetrics fontMetrics = underlyingFrame.getGraphics().getFontMetrics(createDefaultNormalFont());
+			FontMetrics fontMetrics = underlyingFrame.getGraphics()
+					.getFontMetrics(TerminalAppearance.DEFAULT_NORMAL_FONT);
 			underlyingFrame.setSize(
 					fontMetrics.charWidth(' ') * frame.getSize().width,
 					fontMetrics.getHeight() * frame.getSize().height + 22);
@@ -192,6 +218,8 @@ public class TFrame extends TBufferedView
 	@Override
 	public void setNeedsDisplay(Rectangle dirtyRect)
 	{
+		/* Ueberpruefe, ob ein Neuzeichnen ueberhaupt notwendig ist */
+
 		if (terminal == null || getUnderlyingFrame() == null)
 			return;
 		if (dirtyRect != null && dirtyRect.isEmpty())
@@ -202,25 +230,11 @@ public class TFrame extends TBufferedView
 			return;
 		super.setNeedsDisplay(dirtyRect);
 		if (dirtyRect == null)
-		{
-			//terminal.clearScreen();
-			//clearFramebuffer();
 			dirtyRect = new Rectangle(0, 0, getWidth(), getHeight());
-		}
-		/*Iterator<Rectangle> dirtyRectIterator = repaintStack.iterator();
-		while (dirtyRectIterator.hasNext())
-		{
-			Rectangle next = dirtyRectIterator.next();
-			if (dirtyRect.contains(next))
-				dirtyRectIterator.remove();
-			else if (next.contains(dirtyRect))
-				return;
-			else if (next.equals(dirtyRect))
-				return;
-		}*/
+
+		/* Ueberpruefe, ob der dreckige Bereich schon als dreckig markiert ist */
 
 		for (int i = 0; i < repaintStack.size(); i++)
-		{
 			synchronized (repaintStack)
 			{
 				if (repaintStack.size() <= i)
@@ -228,7 +242,6 @@ public class TFrame extends TBufferedView
 				Rectangle next = repaintStack.get(i);
 				if (dirtyRect.contains(next))
 				{
-
 					repaintStack.remove(i);
 					i--;
 				}
@@ -237,14 +250,33 @@ public class TFrame extends TBufferedView
 				else if (next.equals(dirtyRect))
 					return;
 			}
-		}
+
+		/*
+		Fuege den dreckigen Bereich dem Repaintstack hinzu,
+		in dem saemtliche dreckige Bereiche gespeichert werden
+		*/
 
 		repaintStack.add(dirtyRect);
+
+		/*
+		Fuehre ein Neuzeichnen im Swing-Thread durch
+		Verhindert Flackern, da Lanterna erst aktualisieren kann, wenn
+		die Engine den Zeichenvorgang beendet hat
+		Erlaubt ausserdem das Zusammenfassen mehrerer Renderbereiche und
+		Besseres Multithreading der Engine
+		*/
+
 		SwingUtilities.invokeLater(() -> {
+			/* Ueberpruefe, ob ein anderer repaint-Befehl schon saemtliche Arbeit erledigt hat */
 			if (repaintStack.isEmpty())
 				return;
+
+			/* Performance metrics */
 			renderCount++;
 			long    repaintStart = System.currentTimeMillis();
+
+			/* Ueberpruefe, ob Fenstergroesse geaendert */
+
 			boolean needsLayout = false;
 			if (frame.width != terminal.getTerminalSize().getColumns())
 			{
@@ -261,9 +293,17 @@ public class TFrame extends TBufferedView
 
 			if (!needsDisplay())
 				return;
+
+			/* Zeichne alle dreckigen Bereiche neu */
+
 			while (!repaintStack.isEmpty())
 			{
 				Rectangle dirtyRect1;
+
+				/*
+				Verhindere, dass der RepaintStack von einem anderen Ort
+				modifiziert wird ohne dass die ganze Schleife andere Threads blockiert
+				*/
 				synchronized (repaintStack)
 				{
 					if (!repaintStack.isEmpty())
@@ -271,10 +311,11 @@ public class TFrame extends TBufferedView
 					else
 						break;
 				}
-				TGraphics g          = new TGraphics(terminal, dirtyRect1);
+				TGraphics g = new TGraphics(terminal, dirtyRect1);
 				dispatchRepaint(g, dirtyRect1);
-				terminal.moveCursor(getWidth(), getHeight());
 			}
+
+			//Performance metrics
 			long repaintEnd = System.currentTimeMillis();
 			renderingTime = repaintEnd - repaintStart;
 			totalRenderingTime += renderingTime;
@@ -288,11 +329,18 @@ public class TFrame extends TBufferedView
 		JFrame underlyingFrame = getUnderlyingFrame();
 		if (underlyingFrame != null)
 		{
-			FontMetrics fontMetrics = underlyingFrame.getGraphics().getFontMetrics(createDefaultNormalFont());
+			FontMetrics fontMetrics = underlyingFrame.getGraphics()
+					.getFontMetrics(TerminalAppearance.DEFAULT_NORMAL_FONT);
 			underlyingFrame.setSize(fontMetrics.charWidth(' ') * size.width, fontMetrics.getHeight() * size.height);
 		}
 	}
 
+	/**
+	 * Setzt den Titel des Fensters.<br>
+	 * Der Titel des Fenster kann erst veraendert werden,
+	 * wenn das Fenster sichtbar ist.
+	 * @param title neuer Titel
+	 */
 	public void setTitle(String title)
 	{
 		JFrame underlyingFrame = getUnderlyingFrame();
@@ -300,6 +348,12 @@ public class TFrame extends TBufferedView
 			underlyingFrame.setTitle(title);
 	}
 
+	/**
+	 * Legt fest, ob die Titelleiste des Fensters versteckt werden soll.
+	 * Dies ist erst moeglich, wenn das Fenster sichtbar ist.
+	 * @param undecorated true, wenn die Titelleiste versteckt werden soll,
+	 *                    sonst false
+	 */
 	public void setUndecorated(boolean undecorated)
 	{
 		JFrame underlyingFrame = getUnderlyingFrame();
@@ -323,6 +377,7 @@ public class TFrame extends TBufferedView
 		terminal.setCursorVisible(false);
 		if (visible)
 		{
+			getUnderlyingFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			if (!addedListener)
 			{
 				TFrameListener listener = new TFrameListener();
@@ -330,39 +385,50 @@ public class TFrame extends TBufferedView
 				getUnderlyingFrame().addKeyListener(listener);
 				gameLoop = new GameLoop();
 				gameLoop.addAction(this::updateAnimations);
+
+				//Performance metrics
 				if (System.getProperty("com.palleklewitz.underworld.performancemetrics", "false")
 						.equalsIgnoreCase("true"))
-					gameLoop.addAction((time, timeDelta) -> setTitle(String.format(                                                       "Rendering (total %d frames):" +
-					                                                               "last: %d avg: %dms, Animation: last: %d, avg: %dms, " +
-					                                                               "Swing Repaint: last: %d, avg: %dms",
-					                                                               renderCount,
-					                                                               renderingTime,
-					                                                               totalRenderingTime / Math.max(
-							                                                               renderCount, 1),
-					                                                                                                                      gameLoop.getUpdateTimeDelta(),
-					                                                               gameLoop.getTotalUpdateTime()
-					                                                               / Math.max(
-							                                                               gameLoop.getNumberOfUpdates(),
-							                                                               0),
-					                                                               repaintTime,
-					                                                               totalRepaintTime
-					                                                               / Math.max(repaintCount, 1))));
+					gameLoop.addAction((time) -> setTitle(
+							String.format(
+									"Rendering (total %d frames):" +
+									"last: %d avg: %dms, Animation: last: %d, avg: %dms, " +
+									"Swing Repaint: last: %d, avg: %dms",
+									renderCount,
+									renderingTime,
+									totalRenderingTime / Math.max(
+											renderCount, 1),
+									gameLoop.getUpdateTimeDelta(),
+									gameLoop.getTotalUpdateTime()
+									/ Math.max(gameLoop.getNumberOfUpdates(), 0),
+									repaintTime,
+									totalRepaintTime
+									/ Math.max(repaintCount, 1))));
 				gameLoop.start();
 				addedListener = true;
 
 				Component terminalRenderer = getUnderlyingFrame().getContentPane().getComponent(0);
 				getUnderlyingFrame().getContentPane().remove(terminalRenderer);
 
+				//Antialiasing ueber Einschieben von antialiasedPanel
+
 				JComponent antialiasedPanel = new JPanel()
 				{
 					@Override
 					protected void paintChildren(final Graphics g)
 					{
+						//Performance metrics
 						long time1 = System.currentTimeMillis();
+
+						//Antialiasing aktivieren
 						((Graphics2D) g).setRenderingHint(
 								RenderingHints.KEY_TEXT_ANTIALIASING,
 								RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+						//SwingTerminal zeichnen
 						super.paintChildren(g);
+
+						//Performance metrics
 						repaintTime = System.currentTimeMillis() - time1;
 						repaintCount++;
 						totalRepaintTime += repaintTime;
@@ -376,6 +442,7 @@ public class TFrame extends TBufferedView
 			}
 			try
 			{
+				//Mac OS X FullScreen support
 				@SuppressWarnings("rawtypes")
 				Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
 				@SuppressWarnings("rawtypes")
@@ -386,11 +453,20 @@ public class TFrame extends TBufferedView
 			}
 			catch (Exception e)
 			{
-				//Don't care about exception (fullscreen not supported)
+				//Exception kann nicht verhindert werden
+				//Ignorieren
 			}
 			setSize(getSize());
 			setDrawsBackground(true);
-			setNeedsDisplay(null);
+			new Timer().schedule(new TimerTask()
+			{
+				@Override
+				public void run()
+				{
+					SwingUtilities.invokeLater(TFrame.this::setNeedsLayout);
+				}
+			}, 100);
+			setNeedsDisplay();
 			TResponder nextResponder = getNextResponder();
 			if (nextResponder != null)
 				nextResponder.requestFirstResponder();

@@ -25,7 +25,16 @@
 
 package project.gui.dynamics.animation;
 
+/**
+ * Interface zur Benachrichtigung ueber die Beendigung einer Animation
+ */
 public interface CompletionHandler
 {
+	/**
+	 * Die angegebene Animation hat ihr Ende erreicht. Sie wird automatisch
+	 * aus der Komponente entfernt, der sie hinzugefuegt wurde.
+	 *
+	 * @param animation beendete Animation
+	 */
 	void animationCompleted(Animation animation);
 }

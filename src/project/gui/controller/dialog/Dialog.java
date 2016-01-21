@@ -31,12 +31,24 @@ import project.gui.layout.VerticalFlowLayout;
 
 import java.awt.Color;
 
-public class Dialog extends ViewController
+/**
+ * Dialog-Basisklasse
+ * Ein Dialog kann als ViewController in einen NavigationController gepusht werden
+ * und wird beim Schliessen automatisch wieder gepopt, sofern dies nicht deaktiviert
+ * wurde.
+ */
+public abstract class Dialog extends ViewController
 {
 	private DialogDelegate delegate;
 	private TComponent     dialogView;
+
+	private String message = "";
+
 	private boolean popOnEnd;
 
+	/**
+	 * Erstelllt einen neuen Dialog
+	 */
 	public Dialog()
 	{
 		super();
@@ -44,26 +56,71 @@ public class Dialog extends ViewController
 		setReplacesParentViewController(false);
 	}
 
+	/**
+	 * Gibt das Delegate-Objekt zurueck, welches ueber Nutzeraktionen
+	 * informiert wird
+	 * @return DialogDelgate
+	 */
 	public DialogDelegate getDelegate()
 	{
 		return delegate;
 	}
 
+	/**
+	 * Gibt die Nachricht zurueck, die dem Nutzer praesentiert werden soll
+	 *
+	 * @return zu prasentierende Nachricht
+	 */
+	public String getMessage()
+	{
+		return message;
+	}
+
+	/**
+	 * Gibt an, ob der Dialog nach Bestaetigung durch den Nutzer aus der Navigationshierarchie
+	 * durch eine pop-Operation entfernt werden soll.
+	 * @return true, wenn der Dialog beim Schliessen aus dem aktuellen NavigationController entfernt werden
+	 * soll, sonst false
+	 */
 	public boolean popsOnEnd()
 	{
 		return popOnEnd;
 	}
 
+	/**
+	 * Setzt das Delegate-Objekt, welches ueber Nutzereingaben benachrichtigt wird
+	 * @param delegate DialogDelegate
+	 */
 	public void setDelegate(final DialogDelegate delegate)
 	{
 		this.delegate = delegate;
 	}
 
+	/**
+	 * Setzt die Nachricht, die dem Nutzer praesentiert werden soll
+	 *
+	 * @param message zu praesentierende Nachricht
+	 */
+	public void setMessage(final String message)
+	{
+		this.message = message;
+	}
+
+	/**
+	 * Legt fest, ob der Dialog nach Bestaetigung durch den Nutzer aus der Navigationshierarchie
+	 * durch eine pop-Operation entfernt werden soll.
+	 * @param popOnEnd true, wenn der Dialog beim Schliessen aus dem aktuellen NavigationController entfernt werden
+	 * soll, sonst false
+	 */
 	public void setPopOnEnd(final boolean popOnEnd)
 	{
 		this.popOnEnd = popOnEnd;
 	}
 
+	/**
+	 * Schliesst den Dialog und benachrichtigt das DialogDelegate-Objekt, dass der Dialog abgebrochen wurde.
+	 * Wenn popsOnEnd() true ist, wird der Dialog aus der Navigationshierarchie entfernt.
+	 */
 	protected void cancelDialog()
 	{
 		if (popOnEnd)
@@ -72,6 +129,10 @@ public class Dialog extends ViewController
 			getDelegate().dialogDidCancel(this);
 	}
 
+	/**
+	 * Gibt die Komponente an, die Dialoginhalte zeigt
+	 * @return Dialoginhaltskomponente
+	 */
 	protected TComponent getDialogView()
 	{
 		return dialogView;
@@ -92,9 +153,14 @@ public class Dialog extends ViewController
 		getView().setLayoutManager(new VerticalFlowLayout());
 	}
 
+	/**
+	 * Schliesst den Dialog und benachrichtigt das DialogDelegate-Objekt, dass der Dialog bestaetigt wurde.
+	 * Wenn popsOnEnd() true ist, wird der Dialog aus der Navigationshierarchie entfernt.
+	 */
 	protected void returnDialog()
 	{
-		getNavigationController().pop();
+		if (popOnEnd)
+			getNavigationController().pop();
 		if (getDelegate() != null)
 			getDelegate().dialogDidReturn(this);
 	}

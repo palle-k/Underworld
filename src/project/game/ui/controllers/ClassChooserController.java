@@ -39,26 +39,46 @@ import java.awt.event.KeyEvent;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * Controller, welcher zur Auswahl einer Spielerklasse dient
+ */
 public class ClassChooserController extends ViewController
 {
 	private Runnable onCancel;
 	private Runnable onClassChoose;
 
+	/**
+	 * Aktion, die beim Abbrechen der Auswahl ausgefuehrt werden soll
+	 *
+	 * @return auszufuehrende Aktion
+	 */
 	public Runnable getOnCancel()
 	{
 		return onCancel;
 	}
 
+	/**
+	 * Aktion, die bei Wahl einer Klasse ausgefuehrt werden soll
+	 * @return auszufuehrende Aktion
+	 */
 	public Runnable getOnClassChoose()
 	{
 		return onClassChoose;
 	}
 
+	/**
+	 * Setzt die Aktion, die beim Abbrechen der Auswahl ausgefuehrt werden soll
+	 * @param onCancel Abbruchaktion
+	 */
 	public void setOnCancel(final Runnable onCancel)
 	{
 		this.onCancel = onCancel;
 	}
 
+	/**
+	 * Setzt die Aktion, die bei Wahl einer Klasse ausgefuehrt werden soll
+	 * @param onClassChoose Wahlaktion
+	 */
 	public void setOnClassChoose(final Runnable onClassChoose)
 	{
 		this.onClassChoose = onClassChoose;

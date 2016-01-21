@@ -210,9 +210,8 @@ public class Map
 		 */
 		private int distance(Point p1, Point p2)
 		{
-			//return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
-			int dx = p1.x - p2.x;
-			int dy = p1.y - p2.y;
+			double dx = p1.x - p2.x;
+			double dy = p1.y - p2.y * horizontalScale / verticalScale;
 			return (int) sqrt(dx * dx + dy * dy);
 		}
 
@@ -224,6 +223,9 @@ public class Map
 		 */
 		private Point[] findPath()
 		{
+			//FIXME Pathfinding terminiert erst, wenn gesamte Map getestet wurde, wenn die Groesse des
+			//Objekts zu gross ist, um an die Position des
+
 			/*
 			Der Startpunkt wird der Liste nicht ueberpruefter Punkte hinzugefuegt
 			 */
@@ -265,9 +267,9 @@ public class Map
 					{
 						if (lastCalculatedPath != null)
 							for (Point point : lastCalculatedPath)
-								points[point.x][point.y] = 0;
+								setPoint(point.x, point.y, EMPTY);
 						for (Point node : nodes)
-							points[node.x][node.y] = -1;
+							setPoint(node.x, node.y, -1);
 						lastCalculatedPath = nodes.toArray(new Point[nodes.size()]);
 					}
 
@@ -294,7 +296,11 @@ public class Map
 					/*
 					Berechne zurueckgelegte Strecke
 					 */
-					int stepCost = current.stepCost + 1;
+					int stepCost;
+					if (current.y == point.y)
+						stepCost = current.stepCost + 1;
+					else
+						stepCost = current.stepCost + horizontalScale / verticalScale;
 
 					/*
 					Falls der Punkt schon ueberprueft wurde und die zurueckgelegte
@@ -368,66 +374,6 @@ public class Map
 			int         x          = point.x;
 			int         y          = point.y;
 
-			/*
-			if (x > 0 && points[x - 1][y] <= 0)
-				neighbours.add(new Point(x - 1, y));
-			if (x + 1 < getWidth() && points[x + 1][y] <= 0)
-				neighbours.add(new Point(x + 1, y));
-			if (y > 0 && points[x][y - 1] <= 0)
-				neighbours.add(new Point(x, y - 1));
-			if (y + 1 < getHeight() && points[x + 1][y] <= 0)
-				neighbours.add(new Point(x, y + 1));
-				*/
-/*
-			boolean blockedLeft   = false;
-			boolean blockedRight  = false;
-			boolean blockedTop    = false;
-			boolean blockedBottom = false;
-			/*
-			for (int i = 1; i <= width; i++)
-			{
-				if (!blockedLeft && (x - i < 0 || points[x - i][y] > 0))
-					blockedLeft = true;
-				if (!blockedRight && (x + i > getWidth() || points[x + i][y] > 0))
-					blockedRight = true;
-			}
-			for (int i = 1; i <= height; i++)
-			{
-				if (!blockedTop && (y - i < 0 || points[x][y - i] > 0))
-					blockedTop = true;
-				if (!blockedBottom && (y + i > getHeight() || points[x][y + i] > 0))
-					blockedBottom = true;
-			}
-			if (!blockedLeft)
-				neighbours.add(new Point(x - 1, y));
-			if (!blockedRight)
-				neighbours.add(new Point(x + 1, y));
-			if (!blockedTop)
-				neighbours.add(new Point(x, y - 1));
-			if (!blockedBottom)
-				neighbours.add(new Point(x, y + 1));
-*/
-/*
-			for (int x2 = 0; x2 < width; x2++)
-				for (int y2 = 0; y2 < height; y2++)
-				{
-					int dx = x - width / 2 + x2;
-					int dy = y - height / 2 + y2;
-					blockedLeft = blockedLeft || dx - 1 < 0 || dx - 1 >= getWidth() || points[dx - 1][y] > 0;
-					blockedRight = blockedRight || dx + 1 < 0 || dx + 1 >= getWidth() || points[dx + 1][y] > 0;
-					blockedTop = blockedTop || dy - 1 < 0 || dy - 1 >= getHeight() || points[x][dy - 1] > 0;
-					blockedBottom = blockedBottom || dy + 1 < 0 || dy + 1 >= getHeight() || points[x][dy + 1] > 0;
-				}
-
-			if (!blockedLeft)
-				neighbours.add(new Point(x - 1, y));
-			if (!blockedRight)
-				neighbours.add(new Point(x + 1, y));
-			if (!blockedTop)
-				neighbours.add(new Point(x, y - 1));
-			if (!blockedBottom)
-				neighbours.add(new Point(x, y + 1));
-*/
 			int baseX = point.x - width / 2;
 			int baseY = point.y - height / 2;
 
@@ -481,7 +427,7 @@ public class Map
 		private Rectangle calculationBounds;
 		private Point     pointOfVision;
 		//0: not calculated, 1: invisible, 2: visible
-		private int[][]   visibilityData;
+		private byte[][]  visibilityData;
 
 		/**
 		 * Initialisiert eine neue Instanz zur Berechnung von Sichtbarkeiten
@@ -500,7 +446,7 @@ public class Map
 				calculationBounds.width = 0;
 			if (calculationBounds.height < 0)
 				calculationBounds.height = 0;
-			visibilityData = new int[calculationBounds.width][calculationBounds.height];
+			visibilityData = new byte[calculationBounds.width][calculationBounds.height];
 		}
 
 		/**
@@ -510,8 +456,12 @@ public class Map
 		 */
 		private void calculateVisibilty(Point toPoint)
 		{
-			//double dx   = pointOfVision.x - toPoint.x;
-			//double dy   = pointOfVision.y - toPoint.y;
+			/*
+			Generiere parametrische Gerade:
+			(OV: Ortsvektor Sichtpunkt; VP: Vektor von Sichtpunkt zu getestetem Punkt)
+			OX:=OV+VP*x
+			mit 0<=x<=1
+			 */
 			double dx   = toPoint.x - pointOfVision.x;
 			double dy   = toPoint.y - pointOfVision.y;
 			double dist = sqrt(dx * dx + dy * dy);
@@ -539,13 +489,9 @@ public class Map
 				}
 				else
 					visibilityData[arrayX][arrayY] = 2;
-				/*if ((getPoint(x, y) > 0 || visibilityData[arrayX][arrayY] == 1))
-				{
-					interrupted = true;
-					break;
-				}*/
 			}
-			visibilityData[toPoint.x - calculationBounds.x][toPoint.y - calculationBounds.y] = interrupted ? 1 : 2;
+			visibilityData[toPoint.x - calculationBounds.x][toPoint.y - calculationBounds.y] = (byte) (interrupted ? 1 :
+					2);
 		}
 
 		/**
@@ -570,6 +516,14 @@ public class Map
 		}
 	}
 
+	public static final int EMPTY = 0;
+
+	public static final int PATH = -1;
+
+	public static final int WALL = 1;
+
+	public static final int WATER = -2;
+
 	private int horizontalScale;
 	private Point[] lastCalculatedPath;
 	private int[][] points;
@@ -583,6 +537,8 @@ public class Map
 	public Map(int width, int height)
 	{
 		points = new int[width][height];
+		verticalScale = 1;
+		horizontalScale = 1;
 	}
 
 	/**
@@ -617,7 +573,7 @@ public class Map
 	 */
 	public boolean canMoveTo(Point point)
 	{
-		return !isOutOfBounds(point) && points[point.x][point.y] <= 0;
+		return !isOutOfBounds(point) && points[point.x][point.y] == 0;
 	}
 
 	/**
@@ -835,8 +791,8 @@ public class Map
 	 */
 	public void removeFeatures()
 	{
-		for (int x = 0; x < getWidth(); x++)
-			for (int y = 0; y < getHeight(); y++)
+		for (int x = 0; x < points.length; x++)
+			for (int y = 0; y < points[x].length; y++)
 				if (points[x][y] > 1)
 					points[x][y] = 0;
 	}
@@ -847,9 +803,9 @@ public class Map
 	 * @param y y-Koordinate
 	 * @param value neuer Wert
 	 */
-	protected void setPoint(int x, int y, int value)
+	public void setPoint(int x, int y, int value)
 	{
-		if (!isOutOfBounds(new Point(x, y)))
+		if (!isOutOfBounds(new Point(x, y)) && x > 0 && y > 0 && x < getWidth() - 1 && y < getHeight() - 1)
 			points[x][y] = value;
 	}
 

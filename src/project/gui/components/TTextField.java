@@ -29,8 +29,16 @@ import project.gui.event.TEvent;
 
 import java.awt.event.KeyEvent;
 
+/**
+ * Textfeld<br>
+ * Label mit durch den Nutzer veraenderbaren Text
+ */
 public class TTextField extends TLabel
 {
+	/**
+	 * Erstellt ein neues Textfeld.
+	 * Das Textfeld kann First Responder werden.
+	 */
 	public TTextField()
 	{
 		super();
@@ -48,7 +56,7 @@ public class TTextField extends TLabel
 		}
 		else if (event.getKey() != '\n' && event.getKey() != KeyEvent.VK_CONTROL && event.getKey() != KeyEvent.VK_ALT &&
 		         event.getKey() != KeyEvent.VK_SHIFT)
-			setText(getText() + Character.toString(event.getKey()));
+			setText(getText() + Character.toString((char) event.getKey()));
 		super.keyUp(event);
 	}
 }

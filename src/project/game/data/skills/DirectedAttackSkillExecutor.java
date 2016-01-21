@@ -26,9 +26,7 @@
 package project.game.data.skills;
 
 import project.audio.AudioPlayer;
-import project.game.data.Enemy;
 import project.game.data.GameActor;
-import project.game.data.Player;
 import project.gui.components.TLabel;
 import project.gui.dynamics.animation.Animation;
 import project.gui.dynamics.animation.AnimationHandler;
@@ -42,12 +40,24 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * SkillExecutor fuer die Ausfuehrung einer gerichteten Attacke
+ * Saemtliche Gegner auf dem Weg des Angriffs erleiden Schaden.
+ */
 public class DirectedAttackSkillExecutor extends SkillExecutor
 {
-	private double dissolveDelay;
-
+	/**
+	 * Radius, in welchem Gegner Schaden erleiden.
+	 * Dieser wird von den dargestellten Projektilen aus gemessen
+	 */
 	private double projectileDamageRange;
 
+	/**
+	 * Distanz, ueber welche der Angriff ueber das Ziel hinausgeht.
+	 * 1: Der Angriff erreicht das Ziel
+	 * < 1: Der Angriff endet vor dem Ziel
+	 * > 1: Gegner hinter dem Ziel erleiden Schaden
+	 */
 	private double rangeExtension;
 
 	@Override
@@ -84,16 +94,14 @@ public class DirectedAttackSkillExecutor extends SkillExecutor
 			for (int i = 0; i < targets.size(); i++)
 			{
 				GameActor target = targets.get(i);
-				if (target.getCenter().distance(location) <= projectileDamageRange)
-				{
-					int damage = getConfiguration().getRandomizedDamage();
-					target.decreaseHealth(damage);
-					//TODO implement this with an OnKill-Interface
-					if (!target.isAlive() && target instanceof Enemy && attackingActor instanceof Player)
-						((Player) attackingActor).earnExperience(((Enemy) target).getEarnedExperience());
-					targets.remove(target);
-					i--;
-				}
+				if (!target.isAlive() || target.getCenter().distance(location) > projectileDamageRange)
+					continue;
+				int damage = getConfiguration().getRandomizedDamage();
+				target.decreaseHealth(damage);
+				if (!target.isAlive())
+					runKillAction(target);
+				targets.remove(target);
+				i--;
 			}
 
 			location.translate(-projectileSize.width / 2, -projectileSize.height / 2);
@@ -117,7 +125,7 @@ public class DirectedAttackSkillExecutor extends SkillExecutor
 		projectileDissolveAnimation.setToValue(1);
 		projectileDissolveAnimation.setDuration(projectileDuration);
 		projectileDissolveAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
-		projectileDissolveAnimation.setDelay(dissolveDelay);
+		projectileDissolveAnimation.setDelay(getConfiguration().getProjectileDissolveDelay());
 		projectileDissolveAnimation.setCompletionHandler(animation -> projectileLabels.forEach(TLabel::removeFromSuperview));
 		getTarget().addAnimation(projectileDissolveAnimation);
 
@@ -134,7 +142,6 @@ public class DirectedAttackSkillExecutor extends SkillExecutor
 	public void loadAdditionalProperties(final Properties properties, final String prefix)
 	{
 		super.loadAdditionalProperties(properties, prefix);
-		dissolveDelay = Double.parseDouble(properties.getProperty(prefix + "attack_dissolve_delay", "0"));
 		rangeExtension = Double.parseDouble(properties.getProperty(prefix + "attack_range_extension", "0"));
 		projectileDamageRange = Double.parseDouble(properties.getProperty(prefix + "attack_damage_range", "0"));
 	}

@@ -35,6 +35,11 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+/**
+ * Standard-Textkomponente
+ * Anzeigen eines Textes, Unterstuetzung von Mehrzeiligem Text,
+ * Automatische Groessenanpassung
+ */
 public class TLabel extends TComponent
 {
 	private boolean modifiedBounds;
@@ -42,6 +47,9 @@ public class TLabel extends TComponent
 	private Color  textColor;
 	private Insets textInsets;
 
+	/**
+	 * Erstellt ein neues TLabel
+	 */
 	public TLabel()
 	{
 		super();
@@ -52,24 +60,41 @@ public class TLabel extends TComponent
 		modifiedBounds = false;
 	}
 
+	/**
+	 * Gibt die Textfarbe an
+	 * @return Textfarbe
+	 */
 	public Color getColor()
 	{
 		return textColor;
 	}
 
+	/**
+	 * Gibt den Text an, welcher dargestellt wird
+	 * @return dargestellter Text
+	 */
 	public String getText()
 	{
 		return text;
 	}
 
+	/**
+	 * Gibt die Einrueckungen des Textes an
+	 * @return Texteinrueckungen
+	 */
 	public Insets getTextInsets()
 	{
 		return textInsets;
 	}
 
+	/**
+	 * Setzt die Textfarbe
+	 * @param textColor neue Textfarbe
+	 */
 	public void setColor(Color textColor)
 	{
 		this.textColor = textColor;
+		setNeedsDisplay();
 	}
 
 	@Override
@@ -79,6 +104,12 @@ public class TLabel extends TComponent
 		modifiedBounds = true;
 	}
 
+	/**
+	 * Setzt den Text, welcher dargestellt werden soll.
+	 * Wurden die Begrenzungen der Komponente noch nicht modifiziert,
+	 * wird die Groesse des Labels automatisch an die Groesse des Texts angepasst
+	 * @param text neuer Text
+	 */
 	public void setText(String text)
 	{
 		if (this.text.equals(text))
@@ -97,6 +128,10 @@ public class TLabel extends TComponent
 		//setNeedsDisplay(new Rectangle(new Point(), getSize()));
 	}
 
+	/**
+	 * Setzt die Texteinrueckungen
+	 * @param textInsets neue Texteinrueckungen
+	 */
 	public void setTextInsets(Insets textInsets)
 	{
 		this.textInsets = textInsets;
@@ -105,7 +140,7 @@ public class TLabel extends TComponent
 		newSize.height += textInsets.top + textInsets.bottom;
 		if (!modifiedBounds)
 			super.setSize(newSize);
-		setNeedsDisplay(new Rectangle(new Point(), newSize));
+		setNeedsDisplay();
 	}
 
 	@Override

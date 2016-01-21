@@ -32,7 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller for ViewControllers on the same level
+ * Controller zur Praesentation von ViewControllern,
+ * die sich hierarchisch auf einer Ebene befinden
  */
 public class PageController extends ViewController
 {
@@ -40,6 +41,13 @@ public class PageController extends ViewController
 	private ViewController currentController;
 	private int currentControllerIndex = 0;
 
+	/**
+	 * Erstellt einen neuen PageController mit angegebenem uebergeordneten ViewController
+	 * und angegeber, zu steuernder Komponente
+	 *
+	 * @param parent uebergeordneter ViewController
+	 * @param view   zu steuernde Komponente
+	 */
 	public PageController(final ViewController parent, final TComponent view)
 	{
 		super(parent, view);
@@ -47,6 +55,10 @@ public class PageController extends ViewController
 		viewControllerList = new ArrayList<>();
 	}
 
+	/**
+	 * Erstellt einen neuen PageController mit angegebener, zu steuernder Komponente
+	 * @param view zu steuernde Komponente
+	 */
 	public PageController(final TComponent view)
 	{
 		super(view);
@@ -54,28 +66,66 @@ public class PageController extends ViewController
 		viewControllerList = new ArrayList<>();
 	}
 
+	/**
+	 * Erstellt einen neuen PageController
+	 */
+	public PageController()
+	{
+		super();
+		getView().setLayoutManager(new FullSizeSubviewLayout());
+		viewControllerList = new ArrayList<>();
+	}
+
+	/**
+	 * Fuegt einen neuen ViewController hinzu.
+	 * Dieser wird nach einer endlichen Anzahl von Aufrufen von next() oder previous()
+	 * erscheinen.
+	 * @param controller neuer ViewController.
+	 */
 	public void addController(ViewController controller)
 	{
 		viewControllerList.add(controller);
 		controller.setParent(this);
 	}
 
+	/**
+	 * Fuegt einen neuen ViewController an gegebenem Index hinzu.
+	 * Dieser wird nach einer endlichen Anzahl von Aufrufen von next() oder previous()
+	 * erscheinen
+	 * @param controller neuer ViewController
+	 * @param index Index, an dem der neue ViewController eingefuegt werden soll
+	 */
 	public void addController(ViewController controller, int index)
 	{
 		viewControllerList.add(index, controller);
 		controller.setParent(this);
 	}
 
+	/**
+	 * Gibt an, ob ein naechster ViewController mit next() gezeigt werden kann.
+	 * Die Standardimplementierung zeigt, nachdem der letzte ViewController gezeigt wurde,
+	 * den ersten ViewController erneut.
+	 * @return true, wenn ein naechster ViewController exisitiert, sonst false
+	 */
 	public boolean hasNext()
 	{
 		return true;
 	}
 
+	/**
+	 * Gibt an, ob ein vorheriger ViewController mit previous() gezeigt werden kann.
+	 * Die Standardimplementierung zeigt, wenn der erste ViewController gezeigt wurde,
+	 * den letzten ViewController.
+	 * @return true, wenn ein vorheriger ViewController existiert, sonst false
+	 */
 	public boolean hasPrevious()
 	{
 		return true;
 	}
 
+	/**
+	 * Zeigt den naechsten ViewController.
+	 */
 	public void next()
 	{
 		if (!hasNext())
@@ -88,6 +138,9 @@ public class PageController extends ViewController
 		showCurrentPage();
 	}
 
+	/**
+	 * Zeigt den vorherigen ViewController
+	 */
 	public void previous()
 	{
 		if (!hasPrevious())
@@ -100,6 +153,10 @@ public class PageController extends ViewController
 		showCurrentPage();
 	}
 
+	/**
+	 * Entfernt den angegebenen ViewController aus der Liste der zu zeigenden Controller.
+	 * @param controller zu entfernender ViewController
+	 */
 	public void removeController(ViewController controller)
 	{
 		viewControllerList.remove(controller);
@@ -122,6 +179,11 @@ public class PageController extends ViewController
 		hideCurrentPage();
 	}
 
+	/**
+	 * Gibt die naechste Seite an.
+	 * Ueberschreiben dieser Methode in Subklassen empfohlen.
+	 * @return naechste Seite
+	 */
 	protected ViewController getNextPage()
 	{
 		if (currentController == null)
@@ -130,6 +192,11 @@ public class PageController extends ViewController
 		return viewControllerList.get(currentControllerIndex);
 	}
 
+	/**
+	 * Gibt die vorherige Seite an.
+	 * Ueberschreiben dieser Methode in Subklassen empfohlen.
+	 * @return vorherige Seite
+	 */
 	protected ViewController getPreviousPage()
 	{
 		if (currentControllerIndex <= 0)
@@ -138,6 +205,9 @@ public class PageController extends ViewController
 		return viewControllerList.get(currentControllerIndex);
 	}
 
+	/**
+	 * Versteckt die aktuelle Seite
+	 */
 	private void hideCurrentPage()
 	{
 		if (currentController == null)
@@ -147,6 +217,9 @@ public class PageController extends ViewController
 		currentController.viewDidDisappear();
 	}
 
+	/**
+	 * Zeigt die aktuelle Seite
+	 */
 	private void showCurrentPage()
 	{
 		if (currentController == null)

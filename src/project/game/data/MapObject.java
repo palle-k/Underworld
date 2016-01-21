@@ -135,7 +135,7 @@ public abstract class MapObject implements Serializable
 	 */
 	public Rectangle getBounds()
 	{
-		return new Rectangle(bounds);
+		return bounds.getBounds();
 	}
 
 	/**
@@ -229,7 +229,7 @@ public abstract class MapObject implements Serializable
 	 */
 	public void setSize(Dimension size)
 	{
-		Rectangle bounds = new Rectangle(getBounds());
+		Rectangle bounds = getBounds();
 		bounds.setSize(size);
 		setBounds(bounds);
 	}

@@ -34,18 +34,35 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerPathView extends TComponent
+/**
+ * Pfadansicht<br>
+ * Stellt einen Pfad dar, der z.B. von einem Aktor zurueckgelegt wird.
+ * Ein Punkt kann mit addPoint(Point) hinzugefuegt werden.
+ */
+public class PathView extends TComponent
 {
+	private Color pathBackground;
+
 	private Color pathColor;
 
 	private List<Point> pointList;
 
-	public PlayerPathView()
+	private char        strokeChar;
+
+	/**
+	 * Erstellt eine neue Pfadansicht
+	 */
+	public PathView()
 	{
 		this.pointList = new ArrayList<>();
 		pathColor = new Color(200, 200, 200);
+		strokeChar = '.';
 	}
 
+	/**
+	 * Fuegt einen Punkt als letzten Punkt dem Pfad hinzu
+	 * @param point hinzuzufuegender Punkt
+	 */
 	public void addPoint(Point point)
 	{
 		if (!pointList.isEmpty() && pointList.get(pointList.size() - 1).equals(point))
@@ -58,14 +75,62 @@ public class PlayerPathView extends TComponent
 		setNeedsDisplay();
 	}
 
+	/**
+	 * Gibt die Pfadhintergrundfarbe an
+	 *
+	 * @return Pfadhintergrundfarbe
+	 */
+	public Color getPathBackground()
+	{
+		return pathBackground;
+	}
+
+	/**
+	 * Gibt die Pfadfarbe an
+	 * @return Pfadfarbe
+	 */
 	public Color getPathColor()
 	{
 		return pathColor;
 	}
 
+	/**
+	 * Gibt das Zeichen an, mit welchem der Pfad gezeichnet werden soll
+	 *
+	 * @return Pfadzeichen
+	 */
+	public char getStrokeChar()
+	{
+		return strokeChar;
+	}
+
+	/**
+	 * Setzt die Pfadhintergrundfarbe
+	 *
+	 * @param pathBackground neue Pfadhintergrundfarbe
+	 */
+	public void setPathBackground(final Color pathBackground)
+	{
+		this.pathBackground = pathBackground;
+	}
+	
+	/**
+	 * Setzt die Pfadfarbe
+	 * @param pathColor neue Pfadfarbe
+	 */
 	public void setPathColor(final Color pathColor)
 	{
 		this.pathColor = pathColor;
+	}
+
+	/**
+	 * Setzt das Zeichen, mit welchem der Pfad gezeichnet werden soll
+	 *
+	 * @param strokeChar Pfadzeichen
+	 */
+	public void setStrokeChar(final char strokeChar)
+	{
+		this.strokeChar = strokeChar;
 	}
 
 	@Override
@@ -77,10 +142,10 @@ public class PlayerPathView extends TComponent
 		graphics.moveTo(pointList.get(0));
 		for (int i = 1; i < pointList.size(); i++)
 			graphics.lineTo(pointList.get(i));
-		graphics.setStrokeBackground(null);
+		graphics.setStrokeBackground(pathBackground);
 		graphics.setStrokeColor(pathColor);
 		graphics.setComposite(Composite.MULTIPLY);
-		graphics.setStrokeChar('.');
+		graphics.setStrokeChar(strokeChar);
 		graphics.stroke();
 	}
 }

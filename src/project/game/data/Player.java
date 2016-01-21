@@ -84,7 +84,6 @@ public class Player extends GameActor implements Serializable
 	protected Player(Properties playerProperties)
 	{
 		super(playerProperties);
-		//TODO parse attacks etc...
 	}
 
 	/**

@@ -26,10 +26,8 @@
 package project.game.data.skills;
 
 import project.audio.AudioPlayer;
-import project.game.controllers.SkillCoordinator;
-import project.game.data.Enemy;
+import project.game.controllers.SkillVisualizationController;
 import project.game.data.GameActor;
-import project.game.data.Player;
 
 /**
  * Implementierung eines SkillExecutors zur
@@ -53,14 +51,13 @@ public class AttackSkillExecutor extends SkillExecutor
 	@Override
 	public void executeSkill(final GameActor attackingActor, final GameActor attackTarget)
 	{
-		int damage = getConfiguration().getTargetDamage() +
-		             (int) (Math.random() * getConfiguration().getAttackDamageVariation() -
-		                    0.5 * getConfiguration().getAttackDamageVariation());
+		if (!attackTarget.isAlive())
+			return;
 		String      soundSource  = getConfiguration().getSoundSource();
 		AudioPlayer attackPlayer = null;
 		if (soundSource != null)
 			attackPlayer = new AudioPlayer(AudioPlayer.class.getResource(soundSource));
-		SkillCoordinator skillCoordinator = new SkillCoordinator(
+		SkillVisualizationController skillVisualizationController = new SkillVisualizationController(
 				getTarget(),
 				getConfiguration().getOverlays(),
 				getConfiguration().getAttackProjectilesForDirection(attackingActor.getCenter(), attackTarget.getCenter()),
@@ -70,13 +67,17 @@ public class AttackSkillExecutor extends SkillExecutor
 				getConfiguration().getTargetOverlayColor(),
 				getConfiguration().getOverlayAnimationTime(),
 				getConfiguration().getAttackProjectileAnimationTime(attackingActor.getCenter(), attackTarget.getCenter()),
+				getConfiguration().getProjectileDissolveDelay(),
 				getConfiguration().getTargetOverlayAnimationTime(),
-				damage,
 				attackPlayer,
 				null);
-		skillCoordinator.visualizeSkill(attackingActor, attackTarget);
-		//FIXME: This is executed before the damage is applied
-		if (!attackTarget.isAlive() && attackingActor instanceof Player && attackTarget instanceof Enemy)
-			((Player) attackingActor).earnExperience(((Enemy)attackTarget).getEarnedExperience());
+		skillVisualizationController.setOnHitAction(() -> {
+			if (!attackTarget.isAlive())
+				return;
+			attackTarget.decreaseHealth(getConfiguration().getRandomizedDamage());
+			if (!attackTarget.isAlive())
+				runKillAction(attackTarget);
+		});
+		skillVisualizationController.visualizeSkill(attackingActor, attackTarget);
 	}
 }

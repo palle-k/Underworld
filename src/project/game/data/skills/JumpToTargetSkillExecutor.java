@@ -33,10 +33,19 @@ import project.gui.dynamics.animation.AnimationHandler;
 import java.awt.Point;
 import java.util.Properties;
 
+/**
+ * SkillExecutor, welcher den Angreifer zum Ziel hinspringen laesst
+ */
 public class JumpToTargetSkillExecutor extends SkillExecutor
 {
+	/**
+	 * Dauer des Sprungs
+	 */
 	private double jumpDuration;
 
+	/**
+	 * Distanz, auf welche sich der Angreifer dem Ziel naehert
+	 */
 	private int targetDistance;
 
 	@Override

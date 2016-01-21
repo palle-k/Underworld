@@ -75,10 +75,12 @@ public class PlayerState implements StateSaving
 	 * Mittleres Leben, Fernkampf, Unterstuetzungsskills
 	 */
 	public static final PlayerClass WIZARD = PlayerClass.WIZARD;
+
 	/**
 	 * Gewaehlte Spielerklasse (Jaeger, Krieger oder Magier)
 	 */
 	private PlayerClass playerClass;
+
 	/**
 	 * Vom Spieler gesammelte Erfahrung
 	 */

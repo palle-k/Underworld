@@ -31,12 +31,20 @@ import project.gui.layout.FullSizeSubviewLayout;
 import java.util.Stack;
 
 /**
- * Controller for hierarchical structures
+ * Controller zur Praesentation von hierarchischen
+ * Strukturen (Menus, Submenus, ...)
  */
 public class NavigationController extends ViewController
 {
 	private Stack<ViewController> navigationStack;
 
+	/**
+	 * Erstellt einen neuen NavigationController mit angegebenem
+	 * uebergeordneten ViewController und der zu steuernden Komponente
+	 *
+	 * @param parent uebergeordneter ViewController
+	 * @param view   zu steuernde Komponente
+	 */
 	public NavigationController(ViewController parent, TComponent view)
 	{
 		super(parent, view);
@@ -44,6 +52,11 @@ public class NavigationController extends ViewController
 		navigationStack = new Stack<>();
 	}
 
+	/**
+	 * Erstellt einen neuen NavigationController mit angegebener,
+	 * zu steuernder Komponente
+	 * @param view zu steuernde Komponente
+	 */
 	public NavigationController(TComponent view)
 	{
 		super(view);
@@ -51,6 +64,19 @@ public class NavigationController extends ViewController
 		navigationStack = new Stack<>();
 	}
 
+	/**
+	 * Erstellt einen neuen NavigationController
+	 */
+	public NavigationController()
+	{
+		super();
+		getView().setLayoutManager(new FullSizeSubviewLayout());
+		navigationStack = new Stack<>();
+	}
+
+	/**
+	 * Entfernt den obersten ViewController aus der Navigationshierarchie
+	 */
 	public void pop()
 	{
 		if (!navigationStack.isEmpty())
@@ -72,6 +98,10 @@ public class NavigationController extends ViewController
 		}
 	}
 
+	/**
+	 * Fuegt einen neuen ViewController der Navigationshierarchie hinzu.
+	 * @param controller zu praesentierender ViewController
+	 */
 	public void push(ViewController controller)
 	{
 		if (!navigationStack.isEmpty() && controller.replacesParentViewController())

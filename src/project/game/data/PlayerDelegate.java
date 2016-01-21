@@ -32,12 +32,16 @@ package project.game.data;
 public interface PlayerDelegate extends GameActorDelegate
 {
 	/**
-	 * Rueckmeldung darueber, dass der
-	 *
-	 * @param player
+	 * Rueckmeldung darueber, dass der Spieler Erfahrung erhalten hat
+	 * @param player Spieler, welcher die Erfahrung erhalten hat
 	 */
 	void playerDidEarnExperience(Player player);
 
+	/**
+	 * Rueckmeldung darueber, dass der Spieler ein neues Level erreicht hat
+	 *
+	 * @param player Spieler, welcher ein neues Level erreicht hat
+	 */
 	void playerLevelDidChange(Player player);
 
 }

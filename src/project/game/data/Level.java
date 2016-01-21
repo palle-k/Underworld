@@ -39,13 +39,23 @@ import java.util.Properties;
  */
 public class Level implements Serializable
 {
+	private final String dynamicEnemySource;
+
+	private final URL source;
+
+	private final String staticEnemySource;
+
 	private Enemy[] enemies;
+
 	private transient Rectangle entranceBounds;
+
 	private transient Rectangle[] exitBounds;
+
 	private Key[]   keys;
+
 	private transient Map     map;
+
 	private Player  player;
-	private URL     source;
 
 	/**
 	 * Erstellt ein neues Level mit der Karten-Properties-File an gegebener URL.
@@ -65,11 +75,15 @@ public class Level implements Serializable
 	 *     </li>
 	 * </ul>
 	 * @param url Pfad zur Quelldatei
+	 * @param staticEnemySource Quelldatei fuer statische Gegner
+	 * @param dynamicEnemySource Quelldatei fuer dynamische Gegner
 	 * @throws IOException wenn die Quelldatei nicht vorhanden oder lesbar ist.
 	 */
-	public Level(URL url) throws IOException
+	public Level(final URL url, final String staticEnemySource, final String dynamicEnemySource) throws IOException
 	{
 		source = url;
+		this.staticEnemySource = staticEnemySource;
+		this.dynamicEnemySource = dynamicEnemySource;
 		load();
 	}
 
@@ -306,7 +320,7 @@ public class Level implements Serializable
 			for (int i = 0, staticEnemyBoundsLength = staticEnemyBounds.length; i < staticEnemyBoundsLength; i++)
 			{
 				Rectangle enemyBounds = staticEnemyBounds[i];
-				Enemy enemy = Enemy.createStatic();
+				Enemy     enemy       = Enemy.create(staticEnemySource);
 				enemy.setLocation(enemyBounds.getLocation());
 				enemies[i] = enemy;
 			}
@@ -314,7 +328,7 @@ public class Level implements Serializable
 			for (int i = 0, dynamicEnemyBoundsLength = dynamicEnemyBounds.length; i < dynamicEnemyBoundsLength; i++)
 			{
 				Rectangle enemyBounds = dynamicEnemyBounds[i];
-				Enemy enemy = Enemy.createDynamic();
+				Enemy     enemy       = Enemy.create(dynamicEnemySource);
 				enemy.setLocation(enemyBounds.getLocation());
 				enemies[i + staticEnemyBounds.length] = enemy;
 			}

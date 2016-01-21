@@ -29,12 +29,22 @@ import project.game.data.GameActor;
 import project.game.data.Level;
 import project.game.data.SkillConfiguration;
 
+/**
+ * Verhalten zum Ausloesen eines Skills sobald das Ziel in Reichweite ist
+ */
 public class ScheduledAttackBehaviour extends TargetedBehaviour
 {
 	private SkillConfiguration configuration;
 
 	private boolean            executed;
 
+	/**
+	 * Erstellt ein neues Verhalten zum Ausloesen eines Skills sobald das Ziel in
+	 * Reichweite ist
+	 *
+	 * @param controlledActor gesteuerter Aktor
+	 * @param level           umgebendes Level
+	 */
 	public ScheduledAttackBehaviour(final GameActor controlledActor, final Level level)
 	{
 		super(controlledActor, level);
@@ -49,6 +59,10 @@ public class ScheduledAttackBehaviour extends TargetedBehaviour
 		return configuration;
 	}
 
+	/**
+	 * Setzt die Ausloesung zurueck.
+	 * Notwendig, wenn der Skill ein weiteres mal ausgeloest werden soll.
+	 */
 	public void resetExecution()
 	{
 		executed = false;

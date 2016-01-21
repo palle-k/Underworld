@@ -27,26 +27,21 @@ package project.gui.components;
 
 import project.gui.event.Selectable;
 
+/**
+ * Button:
+ * Kann ueber SelectableGroup angewaehlt und aufgerufen werden.
+ */
 public class TButton extends TLabel implements Selectable
 {
-	private enum ButtonStyle
-	{
-		LIGHT_LEFT_INDICATOR,
-		BACKGROUND_INDICATOR,
-		BORDER_INDICATOR,
-		BACKGROUND_BORDER_INDICATOR
-	}
-
-	public static final ButtonStyle BACKGROUND_BORDER_INDICATOR = ButtonStyle.BACKGROUND_BORDER_INDICATOR;
-	public static final ButtonStyle BACKGROUND_INDICATOR        = ButtonStyle.BACKGROUND_INDICATOR;
-	public static final ButtonStyle BORDER_INDICATOR            = ButtonStyle.BORDER_INDICATOR;
-	public static final ButtonStyle LIGHT_LEFT_INDICATOR        = ButtonStyle.LIGHT_LEFT_INDICATOR;
 	private Runnable actionHandler;
 	private String   originalText;
 	private boolean  selected;
 	private boolean  selectionEnabled;
 	private Runnable selectionHandler;
 
+	/**
+	 * Erzeugt einen neuen Button
+	 */
 	public TButton()
 	{
 		super();
@@ -60,11 +55,20 @@ public class TButton extends TLabel implements Selectable
 		setText(originalText);
 	}
 
+	/**
+	 * Runnable-Objekt, welches beim Aufrufen eines Buttons ausgefuehrt wird.
+	 * Dies ist der Fall, wenn der Nutzer die Enter-Taste drueckt.
+	 * @return Aktionshandler
+	 */
 	public Runnable getActionHandler()
 	{
 		return actionHandler;
 	}
 
+	/**
+	 * Runnable-Objekt, welches beim Auswaehlen eines Buttons ausgefuehrt wird
+	 * @return Selektionshandler
+	 */
 	public Runnable getSelectionHandler()
 	{
 		return selectionHandler;
@@ -98,16 +102,28 @@ public class TButton extends TLabel implements Selectable
 		return selectionEnabled;
 	}
 
+	/**
+	 * Setzt das Runnable-Objekt, welches beim Druecken der Enter-Taste ausgefuehrt wird
+	 * @param actionHandler Aktionshandler
+	 */
 	public void setActionHandler(final Runnable actionHandler)
 	{
 		this.actionHandler = actionHandler;
 	}
 
+	/**
+	 * Setzt, ob die Auswahl des Buttons moeglich ist
+	 * @param selectionEnabled true, wenn die Auswahl moeglich sein soll, sonst false
+	 */
 	public void setSelectionEnabled(final boolean selectionEnabled)
 	{
 		this.selectionEnabled = selectionEnabled;
 	}
 
+	/**
+	 * Setzt das Runnable-Objekt, welches bei Auswahl des Buttons ausgefuehrt werden soll
+	 * @param selectionHandler Selektionshandler
+	 */
 	public void setSelectionHandler(final Runnable selectionHandler)
 	{
 		this.selectionHandler = selectionHandler;

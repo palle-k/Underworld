@@ -26,16 +26,32 @@
 package project.game.data.skills;
 
 import project.audio.AudioPlayer;
-import project.game.controllers.SkillCoordinator;
-import project.game.data.Enemy;
+import project.game.controllers.SkillVisualizationController;
 import project.game.data.GameActor;
-import project.game.data.Player;
+import project.game.data.Map;
 
+import java.awt.Point;
+import java.util.Arrays;
 import java.util.Properties;
 
+/**
+ * SkillExecutor fuer die Ausfuehrung eines Rundumangriffs.
+ * Alle Gegner in einem angegebenen Radius um den Angreifer herum erleiden Schaden
+ */
 public class SurroundAttackSkillExecutor extends SkillExecutor
 {
+	/**
+	 * Schadensradius
+	 * Befindet sich ein Gegner innerhalb dieser Entfernung zum Angreifer,
+	 * erleidet er Schaden.
+	 */
 	double damageRange;
+
+	/**
+	 * Gibt an, ob der Angriff Waende zerstoert
+	 */
+	private boolean destroysWalls;
+
 
 	@Override
 	public void executeSkill(final GameActor attackingActor, final GameActor attackTarget)
@@ -44,7 +60,7 @@ public class SurroundAttackSkillExecutor extends SkillExecutor
 		AudioPlayer attackPlayer = null;
 		if (soundSource != null)
 			attackPlayer = new AudioPlayer(AudioPlayer.class.getResource(soundSource));
-		SkillCoordinator skillCoordinator = new SkillCoordinator(
+		SkillVisualizationController skillVisualizationController = new SkillVisualizationController(
 				getTarget(),
 				getConfiguration().getOverlays(),
 				null,
@@ -58,51 +74,43 @@ public class SurroundAttackSkillExecutor extends SkillExecutor
 				0,
 				attackPlayer,
 				null);
-		skillCoordinator.visualizeSkill(attackingActor, attackTarget);
+		skillVisualizationController.visualizeSkill(attackingActor, attackTarget);
+		skillVisualizationController.visualizeSkill(attackingActor, attackTarget);
 
-//		String[] overlays = getConfiguration().getOverlays();
-//
-//		TLabel overlayLabel = new TLabel();
-//		overlayLabel.setColor(getConfiguration().getOverlayColor());
-//		overlayLabel.setText("");
-//		overlayLabel.setLocation(attackingActor.getCenter());
-//		getTarget().add(overlayLabel);
-//
-//		Point location = attackingActor.getCenter();
-//
-//		Animation overlayAnimation = new Animation((AnimationHandler) value -> {
-//			String newValue = overlays[(int) value];
-//			if (newValue == null)
-//				return;
-//			overlayLabel.setText(newValue);
-//			Dimension newSize = StringUtils.getStringDimensions(newValue);
-//			overlayLabel.setLocation(
-//					location.x - newSize.width / 2,
-//					location.y - newSize.height / 2);
-//			overlayLabel.setSize(newSize);
-//		});
-//		overlayAnimation.setCompletionHandler(animation -> overlayLabel.removeFromSuperview());
-//		overlayAnimation.setFromValue(0);
-//		overlayAnimation.setToValue(overlays.length - 1);
-//		overlayAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
-//		overlayAnimation.setDuration(getConfiguration().getOverlayAnimationTime());
-//		overlayLabel.addAnimation(overlayAnimation);
+		Arrays.stream(getPossibleTargets())
+				.filter(GameActor::isAlive)
+				.filter(actor -> actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
+				.forEach(actor -> {
+					actor.decreaseHealth(getConfiguration().getRandomizedDamage());
+					if (!actor.isAlive())
+						runKillAction(actor);
+				});
 
-//		Arrays.stream(getPossibleTargets())
-//				.filter(actor -> actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
-//				.peek(actor -> actor.decreaseHealth(getConfiguration().getRandomizedDamage()))
-//				.filter(actor -> attackingActor instanceof Player)
-//				.forEach();
+//		for (GameActor actor : getPossibleTargets())
+//		{
+//			if (actor.isAlive() && actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
+//			{
+//				actor.decreaseHealth(getConfiguration().getRandomizedDamage());
+////				if (!actor.isAlive() && actor instanceof Enemy && attackingActor instanceof Player)
+////					((Player) attackingActor).earnExperience(((Enemy) actor).getEarnedExperience());
+//				if (!actor.isAlive())
+//			}
+//		}
 
-		for (GameActor actor : getPossibleTargets())
+		if (destroysWalls)
 		{
-			if (actor.isAlive() && actor.getCenter().distance(attackingActor.getCenter()) <= damageRange)
-			{
-				actor.decreaseHealth(getConfiguration().getRandomizedDamage());
-				//TODO implement this in an OnKill-Interface
-				if (!actor.isAlive() && actor instanceof Enemy && attackingActor instanceof Player)
-					((Player) attackingActor).earnExperience(((Enemy) actor).getEarnedExperience());
-			}
+			Point damageCenter = attackingActor.getCenter();
+			for (int x = damageCenter.x - (int) damageRange; x < damageCenter.x + (int) damageRange; x++)
+				for (int y = damageCenter.y - (int) damageRange / 2; y < damageCenter.y + (int) damageRange / 2; y++)
+				{
+					int dx = x - damageCenter.x;
+					int dy = (y - damageCenter.y) * 2;
+					if (Math.sqrt(dx * dx + dy * dy) <= damageRange)
+						if (getLevel().getMap().getPoint(x, y) == Map.WALL)
+							getLevel().getMap().setPoint(x, y, Map.WATER);
+				}
+			getTarget().invalidateVisiblity();
+			getTarget().setNeedsDisplay();
 		}
 	}
 
@@ -111,5 +119,6 @@ public class SurroundAttackSkillExecutor extends SkillExecutor
 	{
 		super.loadAdditionalProperties(properties, prefix);
 		damageRange = Double.parseDouble(properties.getProperty(prefix + "attack_damage_range", "0"));
+		destroysWalls = Boolean.parseBoolean(properties.getProperty(prefix + "attack_destroys_walls", "false"));
 	}
 }

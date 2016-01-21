@@ -31,6 +31,9 @@ import project.gui.dynamics.StepController;
 
 import java.awt.Rectangle;
 
+/**
+ * Verhalten fuer zufaellige Bewegung
+ */
 public class RandomMovementBehaviour extends Behaviour
 {
 	private StepController horizontalMovementController;
@@ -41,6 +44,12 @@ public class RandomMovementBehaviour extends Behaviour
 
 	private double verticalSpeed;
 
+	/**
+	 * Erstellt ein neues Zufallsbewegungsverhalten fuer den angegebenen Aktor
+	 *
+	 * @param controlledActor gesteuerter Aktor
+	 * @param level           Umgebendes Level
+	 */
 	public RandomMovementBehaviour(final GameActor controlledActor, final Level level)
 	{
 		super(controlledActor, level);
@@ -48,21 +57,39 @@ public class RandomMovementBehaviour extends Behaviour
 		verticalMovementController = new StepController();
 	}
 
+	/**
+	 * Gibt die horizontale Geschwindigkeit des Aktors an
+	 * @return horizontale Geschwindigkeit
+	 */
 	public double getHorizontalSpeed()
 	{
 		return horizontalSpeed;
 	}
 
+	/**
+	 * Gibt die vertikale Geschwindigkeit des Aktors an
+	 * @return vertikale Geschwindigkeit
+	 */
 	public double getVerticalSpeed()
 	{
 		return verticalSpeed;
 	}
 
+	/**
+	 * Setzt die horizontale Geschwindigkeit des Aktors.
+	 * Aenderungen werden erst nach einem Neustart des Verhaltens wirksam
+	 * @param horizontalSpeed neue horizontale Geschwindigkeit
+	 */
 	public void setHorizontalSpeed(final double horizontalSpeed)
 	{
 		this.horizontalSpeed = horizontalSpeed;
 	}
 
+	/**
+	 * Setzt die vertikale Geschwindigkeit des Aktors.
+	 * Aenderungen werden erst nach einem Neustart des Verhaltens wirksam
+	 * @param verticalSpeed neue vertikale Geschwindigkeit
+	 */
 	public void setVerticalSpeed(final double verticalSpeed)
 	{
 		this.verticalSpeed = verticalSpeed;
@@ -93,7 +120,7 @@ public class RandomMovementBehaviour extends Behaviour
 	{
 		horizontalMovementController.updateTime(time);
 		verticalMovementController.updateTime(time);
-		Rectangle bounds = new Rectangle(getControlledActor().getBounds());
+		Rectangle bounds = getControlledActor().getBounds();
 		for (int i = 0; i < horizontalMovementController.getNumberOfSteps(); i++)
 		{
 			Rectangle newBounds = new Rectangle(bounds);
@@ -123,4 +150,5 @@ public class RandomMovementBehaviour extends Behaviour
 		horizontalMovementController.updateTime(time);
 		verticalMovementController.updateTime(time);
 	}
+
 }

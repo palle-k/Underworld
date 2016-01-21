@@ -25,9 +25,6 @@
 
 package project.game.data;
 
-import project.util.StringUtils;
-
-import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
@@ -101,6 +98,11 @@ public abstract class GameActor extends MapObject implements Serializable
 	protected transient String defenseState;
 
 	/**
+	 * Verdiente Erfarhung beim Toeten dieses Aktors
+	 */
+	protected transient int earnedExperience;
+
+	/**
 	 * Wert, der die Regeneration von Leben angibt.
 	 * (Wiederhergestellte Lebenspunkte pro Sekunde)
 	 */
@@ -147,7 +149,6 @@ public abstract class GameActor extends MapObject implements Serializable
 	protected GameActor(Properties properties)
 	{
 		super(properties);
-
 		this.properties = properties;
 		restore();
 	}
@@ -240,6 +241,15 @@ public abstract class GameActor extends MapObject implements Serializable
 	public String getDefenseState()
 	{
 		return defenseState;
+	}
+
+	/**
+	 * Gibt die Erfahrung an, die beim Besiegen des Gegners erlangt wird.
+	 * @return Erlangte Erfahrung durch Besiegen
+	 */
+	public int getEarnedExperience()
+	{
+		return earnedExperience;
 	}
 
 	/**
@@ -339,7 +349,7 @@ public abstract class GameActor extends MapObject implements Serializable
 	{
 		super.restore();
 
-		speed = Double.parseDouble(properties.getProperty("speed"));
+		speed = Double.parseDouble(properties.getProperty("speed", "0"));
 
 		defenseState = properties.getProperty("defend");
 		deadState = properties.getProperty("dead", "");
@@ -352,7 +362,9 @@ public abstract class GameActor extends MapObject implements Serializable
 
 		maxHealth = Integer.parseInt(properties.getProperty("max_health"));
 		currentHealth = maxHealth;
-		healthRegeneration = Double.parseDouble(properties.getProperty("health_regeneration"));
+		healthRegeneration = Double.parseDouble(properties.getProperty("health_regeneration", "0"));
+
+		earnedExperience = Integer.parseInt(properties.getProperty("earned_experience", "0"));
 
 		attackState = properties.getProperty("attack");
 
@@ -403,15 +415,15 @@ public abstract class GameActor extends MapObject implements Serializable
 	private void setState(ActorState state)
 	{
 		this.state = state;
-		Rectangle newBounds = new Rectangle(bounds);
-		if (state == ActorState.RESTING)
-			newBounds.setSize(StringUtils.getStringDimensions(getRestingState()));
-		else if (state == ActorState.ATTACKING)
-			newBounds.setSize(StringUtils.getStringDimensions(getAttackState()));
-		else if (state == ActorState.DEFENDING)
-			newBounds.setSize(StringUtils.getStringDimensions(getDefenseState()));
-		else if (state == ActorState.DEAD)
-			newBounds.setSize(StringUtils.getStringDimensions(getDeadState()));
-		setBounds(newBounds);
+		//Rectangle newBounds = getBounds();
+//		if (state == ActorState.RESTING)
+//			newBounds.setSize(StringUtils.getStringDimensions(getRestingState()));
+//		else if (state == ActorState.ATTACKING)
+//			newBounds.setSize(StringUtils.getStringDimensions(getAttackState()));
+//		else if (state == ActorState.DEFENDING)
+//			newBounds.setSize(StringUtils.getStringDimensions(getDefenseState()));
+//		else if (state == ActorState.DEAD)
+//			newBounds.setSize(StringUtils.getStringDimensions(getDeadState()));
+		//setBounds(newBounds);
 	}
 }

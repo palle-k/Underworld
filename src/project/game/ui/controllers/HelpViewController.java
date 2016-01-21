@@ -37,6 +37,9 @@ import java.awt.event.KeyEvent;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * ViewController fuer die Darstellung eines Hilfetexts
+ */
 public class HelpViewController extends ViewController
 {
 	@Override
@@ -47,7 +50,7 @@ public class HelpViewController extends ViewController
 		getView().add(scrollView);
 
 		FullSizeSubviewLayout layout = new FullSizeSubviewLayout();
-		layout.setInsets(1, 2, 1, 2);
+		layout.setInsets(0, 2, 0, 2);
 		getView().setLayoutManager(layout);
 
 		TLabel helpLabel = new TLabel();
@@ -55,6 +58,7 @@ public class HelpViewController extends ViewController
 		scrollView.add(helpLabel);
 
 		scrollView.setAllowsFirstResponder(true);
+		scrollView.setScrollInsets(2, 0, 2, 0);
 		scrollView.setEventHandler(new TEventHandler()
 		{
 			@Override
@@ -64,8 +68,10 @@ public class HelpViewController extends ViewController
 				{
 					Point offset = new Point(scrollView.getOffset());
 					offset.translate(0, 1);
-					if (offset.y > scrollView.getContentViewSize().height - scrollView.getHeight())
-						offset.y = scrollView.getContentViewSize().height - scrollView.getHeight();
+					if (offset.y > scrollView.getContentViewSize().height - scrollView.getHeight() +
+					               scrollView.getScrollInsets().top + scrollView.getScrollInsets().bottom)
+						offset.y = scrollView.getContentViewSize().height - scrollView.getHeight() +
+						           scrollView.getScrollInsets().top + scrollView.getScrollInsets().bottom;
 					scrollView.setOffset(offset);
 				}
 				else if (event.getKey() == KeyEvent.VK_UP)

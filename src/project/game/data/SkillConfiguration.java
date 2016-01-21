@@ -46,115 +46,120 @@ public class SkillConfiguration
 	 * Der tatsaechliche Schaden liegt zwischen targetDamage - attackDamageVariation / 2
 	 * und targetDamage + attackDamageVariation / 2
 	 */
-	protected transient int attackDamageVariation;
+	protected int attackDamageVariation;
 
 	/**
 	 * Farbe der Angriffsprojektile.
 	 */
-	protected transient Color attackProjectileColor;
+	protected Color attackProjectileColor;
 
 	/**
 	 * Maximalradius, den die Basisattacke ueberbruecken kann.
 	 */
-	protected transient int attackRange;
+	protected int attackRange;
 
 	/**
 	 * Boolean, welcher angibt, ob die verwendeten Projektile der
 	 * Basisattacke abhaengig von der Bewegungsrichtung sind.
 	 */
-	protected transient boolean directionDependentProjectiles;
+	protected boolean directionDependentProjectiles;
 
 	/**
 	 * Icon fuer den Skill
 	 */
-	protected transient String icon;
+	protected String icon;
 
 	/**
 	 * Animationszeit der Overlays eines Angriffs ueber dem Angreifer
 	 */
-	protected transient double overlayAnimationTime;
+	protected double overlayAnimationTime;
 
 	/**
 	 * Farbe des Overlays eines Angriffs.
 	 * Dieses Overlay wird ueber dem Angreifer angezeigt.
 	 */
-	protected transient Color overlayColor;
+	protected Color overlayColor;
 
 	/**
 	 * Ebenen, die ueber dem Aktor bei der Ausfuehrung eines Angriffs angezeigt werden sollen
 	 */
-	protected transient String[] overlays;
+	protected String[] overlays;
 
 	/**
 	 * Animationszeit von Projektilen (Geschwindigkeit zum Gegner)
 	 * Wird mit Distanz multipliziert.
 	 */
-	protected transient double projectileAnimationTime;
+	protected double projectileAnimationTime;
+
+	/**
+	 * Verzoegerung, mit der Projektile aufgeloest werden
+	 */
+	protected double projectileDissolveDelay;
 
 	/**
 	 * Ebenen, welche Projektile darstellen, welche beim Angriff vom angreifenden Aktor
 	 * auf den angegriffenen Aktor geschossen werden.
 	 * Diese koennen Richtungsabhaengig sein.
 	 */
-	protected transient String[] projectiles;
+	protected String[] projectiles;
 
 	/**
 	 * Projektilebenen pro Richtung
 	 */
-	protected transient int projectilesPerDirection;
+	protected int projectilesPerDirection;
 
 	/**
 	 * Angriffsrate (Wiederholrate fuer Basisangriffe)
 	 */
-	protected transient double rate;
+	protected double rate;
 
 	/**
 	 * Gibt das Level an, welches mindestens zur ausfuehrung des Skills erforderlich ist.
 	 */
-	protected transient int requiredLevel;
+	protected int requiredLevel;
 
 	/**
 	 * Gibt an, ob ein Gegner bekannt sein muss, damit dieser Skill ausgefuehrt werden kann.
 	 */
-	protected transient boolean requiresFocus;
+	protected boolean requiresFocus;
 
 	/**
 	 * Klasse, welche den SkillExecutor ausfuehrt
 	 */
-	protected transient SkillExecutor skillExecutor;
+	protected SkillExecutor skillExecutor;
 
 	/**
 	 * Quelle fuer den Sound, welcher bei einem Standardangriff gespielt werden soll.
 	 */
-	protected transient String soundSource;
+	protected String soundSource;
 
 	/**
 	 * Schaden, der durch eine Basisattacke erzielt wird.
 	 * Der tatsaechliche Schaden kann variieren.
 	 */
-	protected transient int targetDamage;
+	protected int targetDamage;
 
 	/**
 	 * Animationszeit der Overlays eines Angriffs ueber dem Ziel
 	 */
-	protected transient double targetOverlayAnimationTime;
+	protected double targetOverlayAnimationTime;
 
 	/**
 	 * Farbe der Overlays eines Treffers.
 	 * Dieses Overlay wird ueber dem angegriffenen Aktor gezeigt.
 	 */
-	protected transient Color targetOverlayColor;
+	protected Color targetOverlayColor;
 
 	/**
 	 * Overlays, welche bei einem Angriff ueber dem Gegner gezeigt werden.
 	 */
-	protected transient String[] targetOverlays;
+	protected String[] targetOverlays;
 
 	/**
 	 * Angabe, ob fuer die Darstellung von Standardangriffen
 	 * Projektile angezeigt werden sollen.
 	 */
-	protected transient boolean useProjectiles;
+	protected boolean useProjectiles;
 
 	/**
 	 * Gibt die Abweichung des Schadens des Aktors an.
@@ -273,6 +278,18 @@ public class SkillConfiguration
 	}
 
 	/**
+	 * Gibt die Verzoegerung an, mit der sich Projektile aufloesen.
+	 * Diese Verzoegerung gibt an, wie lange es dauert, bis ein Projektil,
+	 * welches an einer bestimmten Kartenposition angezeigt wird,
+	 * an dieser Position wieder verschwindet.
+	 * @return Verzoegerung der Projektilaufloesung in Sekunden
+	 */
+	public double getProjectileDissolveDelay()
+	{
+		return projectileDissolveDelay;
+	}
+
+	/**
 	 * Gibt zufaellig einen moeglichen Schadenswert zurueck.
 	 * @return zufaelliger Schadenswert
 	 */
@@ -359,6 +376,15 @@ public class SkillConfiguration
 	}
 
 	/**
+	 * Gibt die Gesamtangriffszeit an, die der Angriff benoetigt.
+	 * @return Gesamtangriffszeit
+	 */
+	public double getTotalAnimationTime()
+	{
+		return Math.max(overlayAnimationTime, targetOverlayAnimationTime);
+	}
+
+	/**
 	 * Laed einen Angriff (oder ein beliebigen SkillExecutor)
 	 * aus den angegebenen Properties. Dabei werden die Schluessel
 	 * mit dem angegebenen Prefix versehen.
@@ -390,6 +416,7 @@ public class SkillConfiguration
 			projectileAnimationTime = Double.parseDouble(properties.getProperty(
 					prefix + "attack_projectile_duration",
 					"0"));
+			projectileDissolveDelay = Double.parseDouble(properties.getProperty(prefix + "attack_dissolve_delay", "0"));
 			if (directionDependentProjectiles)
 			{
 				for (int i = 0; i < projectilesPerDirection; i++)

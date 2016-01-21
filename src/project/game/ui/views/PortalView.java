@@ -23,16 +23,81 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
  ******************************************************************************/
 
-package project.game.ui.controllers;
+package project.game.ui.views;
 
-import project.gui.controller.ViewController;
+import project.gui.components.TComponent;
+import project.gui.graphics.TGraphics;
 
-public class ProgressViewController extends ViewController
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+
+public class PortalView extends TComponent
 {
-	@Override
-	protected void initializeView()
-	{
-		super.initializeView();
+	private float baseHue;
 
+	private float hueFactor;
+
+	private double time;
+
+	private float timeFactor;
+
+	public PortalView()
+	{
+		super();
+		addOnAnimationUpdate(time -> {
+			this.time = time;
+			setNeedsDisplay();
+		});
+	}
+
+	public float getBaseHue()
+	{
+		return baseHue;
+	}
+
+	public float getHueFactor()
+	{
+		return hueFactor;
+	}
+
+	public float getTimeFactor()
+	{
+		return timeFactor;
+	}
+
+	public void setBaseHue(final float baseHue)
+	{
+		this.baseHue = baseHue;
+	}
+
+	public void setHueFactor(final float hueFactor)
+	{
+		this.hueFactor = hueFactor;
+	}
+
+	public void setTimeFactor(final float timeFactor)
+	{
+		this.timeFactor = timeFactor;
+	}
+
+	@Override
+	protected void paintComponent(final TGraphics graphics, final Rectangle dirtyRect)
+	{
+		Dimension size    = getSize();
+		double    centerX = (size.width - 1) * 0.5;
+		double    centerY = (size.height - 1) * 0.5;
+		super.paintComponent(graphics, dirtyRect);
+		for (int x = dirtyRect.x; x < dirtyRect.x + dirtyRect.width; x++)
+		{
+			for (int y = dirtyRect.y; y < dirtyRect.y + dirtyRect.height; y++)
+			{
+				double dx = x - centerX;
+				double dy = y - centerY;
+				dy *= 2;
+				float hue = (float) Math.sin(Math.sqrt(dx * dx + dy * dy) + timeFactor * time) * hueFactor + baseHue;
+				graphics.setPoint(x, y, null, Color.getHSBColor(hue, 1.0f, 1.0f), ' ');
+			}
+		}
 	}
 }

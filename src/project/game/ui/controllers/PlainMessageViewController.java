@@ -33,25 +33,43 @@ import project.gui.layout.VerticalFlowLayout;
 import project.util.StringUtils;
 
 import java.awt.Color;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * ViewController, der eine Einfache Nachricht anzeigt
+ */
 public class PlainMessageViewController extends ViewController
 {
 	private String   message;
 	private TLabel   messageLabel;
 	private Runnable onKeyPress;
 
+	/**
+	 * Nachricht, die angezeigt werden soll
+	 *
+	 * @return Anzuzeigende Nachricht
+	 */
 	public String getMessage()
 	{
 		return message;
 	}
 
+	/**
+	 * Aktion, welche bei Tastendruck ausgefuehrt werden soll
+	 * @return Tastendruckation
+	 */
 	public Runnable getOnKeyPress()
 	{
 		return onKeyPress;
 	}
 
+	/**
+	 * Setzt die Nachricht, die dem Nutzer angezeigt werden soll
+	 * @param message anzuzeigende Nachricht
+	 */
 	public void setMessage(final String message)
 	{
 		this.message = message;
@@ -62,6 +80,10 @@ public class PlainMessageViewController extends ViewController
 		getView().setNeedsLayout();
 	}
 
+	/**
+	 * Setzt die Aktion, welche bei Tastendruck ausgefuehrt werden soll
+	 * @param onKeyPress Tastendruckation
+	 */
 	public void setOnKeyPress(final Runnable onKeyPress)
 	{
 		this.onKeyPress = onKeyPress;
@@ -81,6 +103,7 @@ public class PlainMessageViewController extends ViewController
 		continuationLabel.setText(LocalizedString("plain_message_continue"));
 		continuationLabel.setSize(StringUtils.getStringDimensions(LocalizedString("plain_message_continue")));
 		continuationLabel.setColor(Color.GRAY);
+		continuationLabel.setVisible(false);
 		getView().add(continuationLabel);
 
 		VerticalFlowLayout layout = new VerticalFlowLayout();
@@ -88,30 +111,28 @@ public class PlainMessageViewController extends ViewController
 		getView().setLayoutManager(layout);
 		getView().setAllowsFirstResponder(true);
 		getView().setSingleFirstResponder(true);
-		new Thread(() -> {
-			try
+		new Timer().schedule(new TimerTask()
+		{
+			@Override
+			public void run()
 			{
-				Thread.sleep(1000);
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-			getView().setEventHandler(new TEventHandler()
-			{
-				@Override
-				public void keyDown(final TEvent event)
+				continuationLabel.setVisible(true);
+				getView().setEventHandler(new TEventHandler()
 				{
+					@Override
+					public void keyDown(final TEvent event)
+					{
 
-				}
+					}
 
-				@Override
-				public void keyUp(final TEvent event)
-				{
-					if (onKeyPress != null)
-						onKeyPress.run();
-				}
-			});
-		}).start();
+					@Override
+					public void keyUp(final TEvent event)
+					{
+						if (onKeyPress != null)
+							onKeyPress.run();
+					}
+				});
+			}
+		}, 1000);
 	}
 }

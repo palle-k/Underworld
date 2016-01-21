@@ -32,11 +32,20 @@ import project.gui.controller.dialog.SingleKeyInputDialog;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * Klasse zur Darstellung des Dialogs fuer eine Tastenzuweisung
+ */
 public class ControlSettingsChange implements DialogDelegate, Runnable
 {
 	private NavigationController  navigationController;
 	private ControlSettingsUpdate onReturn;
 
+	/**
+	 * Erstellt einen neuen Controller zur Darstellung eines Dialogs zur Wahl einer Taste
+	 *
+	 * @param navigationController NavigationController, auf welchen der Dialog gepusht werden soll
+	 * @param onReturn             Aktion bei erfolgreicher Wahl einer Tastenzuweisung
+	 */
 	public ControlSettingsChange(NavigationController navigationController, final ControlSettingsUpdate onReturn)
 	{
 		this.navigationController = navigationController;

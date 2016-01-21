@@ -32,6 +32,7 @@ import project.game.data.Key;
 import project.game.data.Level;
 import project.game.data.state.SavedGameState;
 import project.game.ui.views.MapView;
+import project.game.ui.views.PortalView;
 import project.gui.components.TComponent;
 import project.gui.components.TLabel;
 import project.gui.components.TProgressBar;
@@ -98,6 +99,8 @@ public class LevelViewController extends ViewController
 	private Runnable                       onLevelFailure;
 
 	private Runnable                       onLevelFinish;
+
+	private Runnable onReachEntrance;
 
 	private PlayerController               playerController;
 
@@ -178,7 +181,7 @@ public class LevelViewController extends ViewController
 
 	/**
 	 * Gibt das Runnable-Objekt zurueck, welches ausgefuehrt wird,
-	 * fallse der Spielers das Level beendet.
+	 * falls der Spielers das Level beendet.
 	 * Kann mit setOnLevelFinish(Runnable) modifiziert werden.
 	 * @return Runnable, welches beim Beenden des Levels ausgefuehrt wird.
 	 */
@@ -188,13 +191,24 @@ public class LevelViewController extends ViewController
 	}
 
 	/**
+	 * Gibt das Runnable-Objekt zurueck, welches ausgefuehrt wird,
+	 * wenn der Spieler den Eingang erreicht.
+	 * Kann mit setOnLevelFinish(Runnable) modifiziert werden.
+	 * @return Runnable, welches beim Erreichen des Eingangs ausfe
+	 */
+	public Runnable getOnReachEntrance()
+	{
+		return onReachEntrance;
+	}
+
+	/**
 	 * Rueckmeldungsmethode fuer den PlayerController, um dem Hauptcontroller zu aktualisieren
 	 * Wird aufgerufen, falls der Spieler den Eingang erreicht
 	 */
 	public void playerDidReachEntrance()
 	{
-		//TODO put this into a PlayerControllerDelegate-Interface
-		//TODO implement going to previous level
+		if (onReachEntrance != null)
+			onReachEntrance.run();
 	}
 
 	/**
@@ -203,12 +217,13 @@ public class LevelViewController extends ViewController
 	 */
 	public void playerDidReachExit()
 	{
-		if (onLevelFinish == null)
+		if (onLevelFinish == null || finished)
 			return;
 		//prevent comodification of getView().updateAnimations()
 		//by scheduling the execution of the message dialog on
 		//the swing thread.
-		SwingUtilities.invokeLater(onLevelFinish);
+		onLevelFinish.run();
+		finished = true;
 	}
 
 	/**
@@ -260,6 +275,16 @@ public class LevelViewController extends ViewController
 	public void setOnLevelFinish(final Runnable onLevelFinish)
 	{
 		this.onLevelFinish = onLevelFinish;
+	}
+
+	/**
+	 * Setzt das Runnable-Objekt, welches beim Erreichen des Einganges
+	 * ausgefuehrt wird.
+	 * @param onReachEntrance Runnable, welches beim Erreichen des Einganges erreicht wird
+	 */
+	public void setOnReachEntrance(final Runnable onReachEntrance)
+	{
+		this.onReachEntrance = onReachEntrance;
 	}
 
 	/**
@@ -441,14 +466,14 @@ public class LevelViewController extends ViewController
 		topBar.add(playerLevel);
 
 		enemyName = new TLabel();
-		enemyName.setFrame(new Rectangle(76, 1, 20, 1));
+		enemyName.setFrame(new Rectangle(76, 1, 30, 1));
 		enemyName.setText("Enemy Name");
 		enemyName.setVisible(false);
 		topBar.add(enemyName);
 
 		enemyLevel = new TLabel();
 		enemyLevel.setText("Level 3");
-		enemyLevel.setFrame(new Rectangle(98, 1, 20, 1));
+		enemyLevel.setFrame(new Rectangle(108, 1, 20, 1));
 		enemyLevel.setVisible(false);
 		topBar.add(enemyLevel);
 
@@ -469,19 +494,22 @@ public class LevelViewController extends ViewController
 		getView().add(mapView);
 
 		Rectangle  entranceBounds = level.getEntranceBounds();
-		TComponent entrance       = new TComponent();
+		PortalView entrance       = new PortalView();
 		entrance.setFrame(entranceBounds);
-		entrance.setBackgroundColor(new Color(0, 100, 150));
-		entrance.setDrawsBackground(true);
+		entrance.setFrame(entranceBounds);
+		entrance.setBaseHue(0.6f);
+		entrance.setTimeFactor(-2);
+		entrance.setHueFactor(0.1f);
 		mapView.add(entrance);
 
 		Rectangle[] exitBounds = level.getExitBounds();
 		for (Rectangle bounds : exitBounds)
 		{
-			TComponent finishView = new TComponent();
-			finishView.setDrawsBackground(true);
-			finishView.setBackgroundColor(new Color(150, 50, 50));
+			PortalView finishView = new PortalView();
 			finishView.setFrame(bounds);
+			finishView.setBaseHue(0.05f);
+			finishView.setTimeFactor(2);
+			finishView.setHueFactor(0.05f);
 			mapView.add(finishView);
 		}
 
@@ -672,9 +700,9 @@ public class LevelViewController extends ViewController
 	}
 
 	@Override
-	protected void updateViews(final double time, final double timeDelta)
+	protected void updateViews(final double time)
 	{
-		super.updateViews(time, timeDelta);
+		super.updateViews(time);
 		if (!initialized || finished)
 			return;
 		if (!level.getPlayer().isAlive())
@@ -703,18 +731,26 @@ public class LevelViewController extends ViewController
 
 		updateSkillLabels();
 
-		Point scrollCenter = level.getPlayer().getBounds().getLocation();
+		Point scrollCenter = level.getPlayer().getCenter();
 		scrollCenter.translate(-mapView.getWidth() / 2, -mapView.getHeight() / 2);
 		mapView.setOffset(scrollCenter);
 		mapView.setPointOfVision(level.getPlayer().getCenter());
-		playerLabel.setFrame(level.getPlayer().getBounds());
 	}
 
+	/**
+	 * Gibt ein Ladeicon fuer den agegebenen Fortschritt an
+	 *
+	 * @param reloadPercentage Fortschritt 0 <= reloadPercentage < 1
+	 * @return Ladeicon
+	 */
 	private String getReloadString(double reloadPercentage)
 	{
 		return LocalizedString("skill_reload_" + (int) (reloadPercentage * 7));
 	}
 
+	/**
+	 * Aktualisiert die Darstellung der SkillLabels
+	 */
 	private void updateSkillLabels()
 	{
 		double skill1Reload = playerController.getSkill1Reload();

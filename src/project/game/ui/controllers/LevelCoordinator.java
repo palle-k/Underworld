@@ -36,6 +36,7 @@ import project.gui.controller.dialog.ConfirmDialog;
 import project.gui.controller.dialog.Dialog;
 import project.gui.controller.dialog.DialogDelegate;
 import project.gui.controller.dialog.MessageDialog;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -43,6 +44,10 @@ import java.util.Properties;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * Controller fuer die Darstellung mehrerer Level
+ * Der LevelCoordinator uebernimmt die Auswahl des naechsten Levels.
+ */
 public class LevelCoordinator extends PageController
 {
 	private static Properties levelProperties;
@@ -61,14 +66,21 @@ public class LevelCoordinator extends PageController
 	}
 
 	private boolean askedForTutorial;
-	private Level   currentLevel;
+
+	private Level currentLevel;
+
 	private boolean didExit;
-	private boolean gameFinished;
+
+	private boolean didPlayTutorial;
+
 	private int     levelIndex;
-	//private Properties levelProperties;
-	private boolean shouldPlayTutorial;
+
+	private boolean shownLevel;
+
 	private boolean shownPostLevelText;
+
 	private boolean shownPreLevelText;
+
 	private int     tutorialIndex;
 
 	public LevelCoordinator(final ViewController parent, final TComponent view)
@@ -86,7 +98,7 @@ public class LevelCoordinator extends PageController
 	@Override
 	public boolean hasNext()
 	{
-		return super.hasNext();
+		return true;
 	}
 
 	@Override
@@ -98,6 +110,8 @@ public class LevelCoordinator extends PageController
 	@Override
 	protected ViewController getNextPage()
 	{
+		currentLevel = null;
+
 		if (!SavedGameState.getPlayerState().playerClassChosen())
 		{
 			ClassChooserController classChooser = new ClassChooserController();
@@ -106,31 +120,20 @@ public class LevelCoordinator extends PageController
 			return classChooser;
 		}
 
-		if (gameFinished)
-		{
-			getNavigationController().pop();
-			return null;
-		}
-
 //		try
 //		{
-//			return new LevelViewController(new Level(Level.class.getResource("levels/level.properties")));
+//			Level debugLevel = new Level(Level.class.getResource("levels/final_boss.properties"), "GiantHogweed", "DarkGuardian");
+//			LevelViewController levelViewController = new LevelViewController(debugLevel);
+//			return levelViewController;
 //		}
 //		catch (IOException e)
 //		{
 //			e.printStackTrace();
 //		}
 
-		Level savedLevel = SavedGameState.getLevelState().getSavedLevel();
-		if (savedLevel != null)
+
+		if (!askedForTutorial && !didPlayTutorial)
 		{
-			SavedGameState.getLevelState().setSavedLevel(null);
-			shownPreLevelText = true;
-			shownPostLevelText = false;
-		}
-		else if (!askedForTutorial && !shouldPlayTutorial && !SavedGameState.getLevelState().tutorialWasPlayed())
-		{
-			askedForTutorial = true;
 			ConfirmDialog tutorialDialog = new ConfirmDialog();
 			tutorialDialog.setMessage(LocalizedString("confirm_play_tutorial"));
 			tutorialDialog.setDelegate(new DialogDelegate()
@@ -138,137 +141,173 @@ public class LevelCoordinator extends PageController
 				@Override
 				public void dialogDidCancel(final Dialog dialog)
 				{
-					SavedGameState.getLevelState().setTutorialPlayed(true);
+					didPlayTutorial = true;
+					askedForTutorial = true;
 					next();
 				}
 
 				@Override
 				public void dialogDidReturn(final Dialog dialog)
 				{
-					shouldPlayTutorial = true;
+					askedForTutorial = true;
 					next();
 				}
 			});
-			getNavigationController().push(tutorialDialog);
-			return null;
+			tutorialDialog.setPopOnEnd(false);
+			return tutorialDialog;
 		}
 
 		String propertiesPrefix = null;
 
-		if (savedLevel == null)
+		Level nextLevel = SavedGameState.getLevelState().getSavedLevel();
+		if (nextLevel != null)
 		{
-			if (askedForTutorial && shouldPlayTutorial && !SavedGameState.getLevelState().tutorialWasPlayed())
+			SavedGameState.getLevelState().setSavedLevel(null);
+			if (didPlayTutorial)
 			{
-				if (shownPostLevelText)
+				propertiesPrefix = "level_" + levelIndex + "_";
+			}
+			else
+			{
+				propertiesPrefix = "tutorial_level_" + tutorialIndex + "_";
+			}
+
+			shownLevel = true;
+			shownPreLevelText = true;
+			shownPostLevelText = levelProperties.getProperty(propertiesPrefix + "_post_text") == null;
+		}
+		else
+		{
+			if (!didPlayTutorial)
+			{
+				if (shownPreLevelText && shownPostLevelText && shownLevel)
 				{
-					int tutorialLevelCount = Integer.parseInt(levelProperties.getProperty("tutorial_level_count"));
-					shownPreLevelText = false;
-					shownPostLevelText = false;
 					tutorialIndex++;
-					if (tutorialIndex > tutorialLevelCount)
-					{
-						SavedGameState.getLevelState().setTutorialPlayed(true);
-						shouldPlayTutorial = false;
-					}
+
+					if (tutorialIndex > Integer.parseInt(levelProperties.getProperty("tutorial_level_count")))
+						didPlayTutorial = true;
+
+					shownPreLevelText = levelProperties.getProperty("tutorial_level_" + tutorialIndex + "_pre_text") ==
+					                    null;
+					shownPostLevelText =
+							levelProperties.getProperty("tutorial_level_" + tutorialIndex + "_post_text") == null;
+					shownLevel = false;
 				}
 				propertiesPrefix = "tutorial_level_" + tutorialIndex + "_";
 			}
-			else
+
+			if (didPlayTutorial)
 			{
-				if (shownPostLevelText)
+				System.out.printf(
+						"Shown pre text? %b, level? %b, post text? %b\n",
+						shownPreLevelText,
+						shownLevel,
+						shownPostLevelText);
+				if (shownPreLevelText && shownPostLevelText && shownLevel)
 				{
-					int levelCount = Integer.parseInt(levelProperties.getProperty("level_count"));
-					shownPreLevelText = false;
-					shownPostLevelText = false;
+					System.out.printf("Incrementing Level index\n");
 					levelIndex++;
-					if (levelIndex > levelCount)
-						gameFinished = true;
+
+					if (levelIndex > Integer.parseInt(levelProperties.getProperty("level_count")))
+					{
+						PlainMessageViewController finishedMessage = new PlainMessageViewController();
+						finishedMessage.setMessage(LocalizedString("game_finished_message"));
+						finishedMessage.setOnKeyPress(() -> getNavigationController().pop());
+						return finishedMessage;
+					}
+
+					shownPreLevelText = levelProperties.getProperty("level_" + levelIndex + "_pre_text") == null;
+					shownPostLevelText = levelProperties.getProperty("level_" + levelIndex + "_post_text") == null;
+					shownLevel = false;
 				}
 				propertiesPrefix = "level_" + levelIndex + "_";
 			}
-		}
 
-		if (!shownPreLevelText)
-		{
-			shownPreLevelText = true;
-			String preText = levelProperties.getProperty(propertiesPrefix + "pre_text");
-			if (preText != null)
+			if (!shownPreLevelText)
 			{
-				PlainMessageViewController plainMessageController = new PlainMessageViewController();
-				plainMessageController.setMessage(LocalizedString(preText));
-				plainMessageController.setOnKeyPress(this::next);
-				return plainMessageController;
+				shownPreLevelText = true;
+				String preText = levelProperties.getProperty(propertiesPrefix + "pre_text");
+				if (preText != null)
+				{
+					PlainMessageViewController plainMessageController = new PlainMessageViewController();
+					plainMessageController.setMessage(LocalizedString(preText));
+					plainMessageController.setOnKeyPress(this::next);
+					return plainMessageController;
+				}
 			}
-		}
-		if (!shownPostLevelText)
-		{
-			shownPostLevelText = true;
-			String postText = levelProperties.getProperty(propertiesPrefix + "post_text");
-			if (postText != null)
+			else if (!shownLevel)
 			{
-				PlainMessageViewController plainMessageController = new PlainMessageViewController();
-				plainMessageController.setMessage(LocalizedString(postText));
-				plainMessageController.setOnKeyPress(this::next);
-				return plainMessageController;
+				shownLevel = true;
 			}
-		}
-		try
-		{
-			if (savedLevel == null)
+			else if (!shownPostLevelText)
 			{
-				URL levelURL = Level.class.getResource(
-						"levels/" + levelProperties.getProperty(propertiesPrefix + "filename") + ".properties");
-				System.out.printf(
-						"Level URL: %s, filename: %s\n",
-						levelURL,
-						levelProperties.getProperty(propertiesPrefix + "filename"));
-				currentLevel = new Level(levelURL);
+				shownPostLevelText = true;
+				String postText = levelProperties.getProperty(propertiesPrefix + "post_text");
+				if (postText != null)
+				{
+					PlainMessageViewController plainMessageController = new PlainMessageViewController();
+					plainMessageController.setMessage(LocalizedString(postText));
+					plainMessageController.setOnKeyPress(this::next);
+					return plainMessageController;
+				}
 			}
 			else
-				currentLevel = savedLevel;
-			LevelViewController levelVC = new LevelViewController(currentLevel);
-			levelVC.setAttacksEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
-					propertiesPrefix + "attacks_disabled", "false")));
-			levelVC.setSkillsEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
-					propertiesPrefix + "skills_disabled", "false")));
-			levelVC.setDamageEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
-					propertiesPrefix + "damage_disabled", "false")));
-			levelVC.setOnLevelCancel(() -> {
-				save();
-				getNavigationController().pop();
-				didExit = true;
-			});
-			levelVC.setOnLevelFailure(() ->
-			                          {
-				                          currentLevel = null;
-				                          save();
-				                          getNavigationController().pop();
-			                          });
-			levelVC.setOnLevelFinish(this::next);
-			return levelVC;
-		}
-		catch (Throwable e)
-		{
-			e.printStackTrace();
-			MessageDialog dialog = new MessageDialog();
-			dialog.setMessage(
-					LocalizedString("level_configuration_loading_fault") + "\n" + e.getLocalizedMessage());
-			dialog.setDelegate(new DialogDelegate()
-			{
-				@Override
-				public void dialogDidCancel(final Dialog dialog)
-				{
-				}
+				throw new InvalidStateException("already shown all states of the current level");
 
-				@Override
-				public void dialogDidReturn(final Dialog dialog)
+			shownPreLevelText = true;
+			shownLevel = true;
+
+			try
+			{
+				nextLevel = loadLevel(propertiesPrefix);
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+				MessageDialog dialog = new MessageDialog();
+				dialog.setMessage(
+						LocalizedString("level_configuration_loading_fault") + "\n" + e.getLocalizedMessage());
+				dialog.setDelegate(new DialogDelegate()
 				{
-					getNavigationController().getView().setVisible(false);
-				}
-			});
-			getNavigationController().push(dialog);
-			return null;
+					@Override
+					public void dialogDidCancel(final Dialog dialog)
+					{
+						getNavigationController().pop();
+					}
+
+					@Override
+					public void dialogDidReturn(final Dialog dialog)
+					{
+						getNavigationController().pop();
+					}
+				});
+				dialog.setPopOnEnd(false);
+				return dialog;
+			}
 		}
+
+		currentLevel = nextLevel;
+
+		LevelViewController levelVC = new LevelViewController(nextLevel);
+//		levelVC.setAttacksEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
+//				propertiesPrefix + "attacks_disabled", "false")));
+//		levelVC.setSkillsEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
+//				propertiesPrefix + "skills_disabled", "false")));
+//		levelVC.setDamageEnabled(!Boolean.parseBoolean(levelProperties.getProperty(
+//				propertiesPrefix + "damage_disabled", "false")));
+		levelVC.setOnLevelCancel(() -> {
+			save();
+			getNavigationController().pop();
+			didExit = true;
+		});
+		levelVC.setOnLevelFailure(() -> {
+			currentLevel = null;
+			save();
+			getNavigationController().pop();
+		});
+		levelVC.setOnLevelFinish(this::next);
+		levelVC.setOnReachEntrance(this::previous);
+		return levelVC;
 	}
 
 	@Override
@@ -283,16 +322,61 @@ public class LevelCoordinator extends PageController
 		super.initializeView();
 	}
 
+	/**
+	 * Initialisiert den LevelCoordinator und laed den Spielstand
+	 */
 	private void init()
 	{
 		LevelState levelState = SavedGameState.getLevelState();
 		levelIndex = levelState.getLevelIndex();
 		tutorialIndex = levelState.getTutorialIndex();
-		shouldPlayTutorial = levelState.isPlayingTutorial();
+		askedForTutorial = levelState.askedForTutorial();
+		shownPreLevelText = levelState.didShowPreLevelText();
+		shownPostLevelText = levelState.didShowPostLevelText();
+		didPlayTutorial = levelState.tutorialWasPlayed();
+		shownLevel = levelState.levelPlayed();
+
+		String propertiesPrefix;
+
+		if (didPlayTutorial)
+		{
+			propertiesPrefix = "level_" + levelIndex;
+		}
+		else
+		{
+			propertiesPrefix = "tutorial_level_" + tutorialIndex;
+		}
+		shownPreLevelText |= levelProperties.getProperty(propertiesPrefix + "_pre_text") == null;
+		shownPostLevelText |= levelProperties.getProperty(propertiesPrefix + "_post_text") == null;
+		shownLevel |= levelState.getSavedLevel() != null;
 
 		Runtime.getRuntime().addShutdownHook(new Thread(this::save));
 	}
 
+	/**
+	 * Laed ein neues Level durch die Konfiguration mit dem angegebenen Praefix
+	 *
+	 * @param propertiesPrefix Praefix der Level-Properties
+	 * @return Geladenes Level
+	 * @throws IOException wenn das Level nicht existiert oder nicht geladen werden kann
+	 */
+	private Level loadLevel(String propertiesPrefix) throws IOException
+	{
+		URL    levelURL           = Level.class.getResource(
+				"levels/" + levelProperties.getProperty(propertiesPrefix + "filename") + ".properties");
+		String staticEnemySource  = levelProperties.getProperty(propertiesPrefix + "static_enemy_name");
+		String dynamicEnemySource = levelProperties.getProperty(propertiesPrefix + "dynamic_enemy_name");
+		System.out.printf(
+				"Static enemy (prefix: %s): %s; Dynamic enemy: %s\n",
+				propertiesPrefix,
+				staticEnemySource,
+				dynamicEnemySource);
+		return new Level(levelURL, staticEnemySource, dynamicEnemySource);
+	}
+
+	/**
+	 * Sichert den Spielstand
+	 */
 	private void save()
 	{
 		if (didExit)
@@ -301,27 +385,11 @@ public class LevelCoordinator extends PageController
 		LevelState levelState = SavedGameState.getLevelState();
 		levelState.setLevelIndex(levelIndex);
 		levelState.setTutorialIndex(tutorialIndex);
-		levelState.setPlayingTutorial(shouldPlayTutorial);
+		levelState.setAskedForTutorial(askedForTutorial);
 		levelState.setSavedLevel(currentLevel);
-
+		levelState.setLevelPlayed(shownLevel);
+		levelState.setDidShowPreLevelText(shownPreLevelText);
+		levelState.setDidShowPostLevelText(shownPostLevelText);
 		SavedGameState.save();
 	}
-/*
-	private Properties getLevelProperties()
-	{
-		if (levelProperties == null)
-		{
-			levelProperties = new Properties();
-			try
-			{
-				levelProperties.load(Underworld.class.getResourceAsStream("data/configuration/Configuration.properties"));
-			}
-			catch (IOException e)
-			{
-				//do nothing
-				e.printStackTrace();
-			}
-		}
-		return levelProperties;
-	}*/
 }

@@ -25,6 +25,11 @@
 
 package project.gui.event;
 
+/**
+ * Event-Objekt fuer ein KeyEvent
+ * Verwaltet den Event-Status (Key up oder Key down)
+ * und die gedrueckte Taste
+ */
 public class TEvent
 {
 	private enum EventState
@@ -35,20 +40,36 @@ public class TEvent
 
 	public static final EventState KEY_DOWN = EventState.KEY_DOWN;
 	public static final EventState KEY_UP   = EventState.KEY_UP;
-	private final char       key;
+
+	private final int        key;
 	private final EventState state;
 
-	public TEvent(char key, EventState state)
+	/**
+	 * Erstellt ein neues Event mit angegebener Taste und Status
+	 *
+	 * @param key   gedrueckte Taste
+	 * @param state Eventstatus
+	 * @see java.awt.event.KeyEvent
+	 */
+	public TEvent(int key, EventState state)
 	{
 		this.key = key;
 		this.state = state;
 	}
 
-	public char getKey()
+	/**
+	 * Gibt die gedrueckte Taste an
+	 * @return Zahlencode der gedrueckten Taste
+	 */
+	public int getKey()
 	{
 		return key;
 	}
 
+	/**
+	 * Gibt den Eventstatus an
+	 * @return Eventstatus
+	 */
 	public EventState getState()
 	{
 		return state;

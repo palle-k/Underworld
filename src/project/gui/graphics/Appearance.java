@@ -27,9 +27,23 @@ package project.gui.graphics;
 
 import java.awt.Color;
 
+/**
+ * Standardaussehen von Komponenten der Benutzeroberflaeche
+ */
 public class Appearance
 {
+	/**
+	 * Standard-Hintergrundfarbe fuer Komponenten
+	 */
 	public static Color defaultBackgroundColor = Color.BLACK;
+
+	/**
+	 * Standard-Kantenfarbe fuer Komponenten
+	 */
 	public static Color defaultBorderColor     = Color.WHITE;
+
+	/**
+	 * Standard-Textfarbe fuer Komponenten
+	 */
 	public static Color defaultTextColor       = Color.WHITE;
 }

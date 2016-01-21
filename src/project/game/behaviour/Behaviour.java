@@ -58,6 +58,11 @@ public abstract class Behaviour
 	private boolean executing;
 
 	/**
+	 * Zeitpunkt der letzten Aktualisierung
+	 */
+	private double lastUpdateTime;
+
+	/**
 	 * Erstellt ein neues Verhalten fuer den
 	 * angegebenen Aktor im angegebenen Level
 	 * @param controlledActor gesteuerter Aktor
@@ -106,6 +111,16 @@ public abstract class Behaviour
 	}
 
 	/**
+	 * Pausiert das Verhalten fuer die angegebene Anzahl von Sekunden.
+	 * Die Tatsaechliche Pausierungsdauer kann variieren.
+	 * @param duration Dauer der Pausierung in Sekunden
+	 */
+	public void pause(double duration)
+	{
+		lastUpdateTime += duration;
+	}
+
+	/**
 	 * Setzt eine Bedingung, die das Verhalten unterbinden kann
 	 * @param condition Verhaltensbedingung
 	 */
@@ -141,13 +156,13 @@ public abstract class Behaviour
 	 */
 	public void update(double time)
 	{
-		if (executing)
-		{
-			if (condition == null || condition.test(this))
-				executeBehaviour(time);
-			else
-				skipExecution(time);
-		}
+		if (!executing)
+			return;
+		if ((condition == null || condition.test(this)) && lastUpdateTime < time)
+			executeBehaviour(time);
+		else
+			skipExecution(time);
+		lastUpdateTime = time;
 	}
 
 	/**

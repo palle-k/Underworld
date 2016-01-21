@@ -45,7 +45,20 @@ import static project.game.localization.LocalizedString.LocalizedString;
 public class Enemy extends GameActor implements Serializable
 {
 	/**
-	 * Erzeugt einen dynamischen Gegner. Hierzu muss die Datei DynamicEnemy.properties
+	 * Erzeugt einen neuen Gegner mit angegebenem Namen der Konfigurationsdatei ohne Suffix.
+	 * Hierzu muss die Datei name.properties im Ordner objects, welcher ein Subordner der Package project.game.data
+	 * ist, gesichert sein.
+	 * @param name Konfigurationsname
+	 * @return Gegner mit Eigenschaften aus der Konfigurationsdatei
+	 * @throws IOException wenn die Datei nicht vorhanden ist oder nicht gelesen werden kann
+	 */
+	public static Enemy create(String name) throws IOException
+	{
+		return new Enemy(Enemy.class.getResource("objects/" + name + ".properties"));
+	}
+
+	/**
+	 * Erzeugt einen dynamischen Gegner. Hierzu muss die Datei PossessedKnight.properties
 	 * im Ordner objects, welcher ein Subordner der Package project.game.data ist,
 	 * gesichert sein.
 	 * @return dynamischer Gegner
@@ -54,13 +67,13 @@ public class Enemy extends GameActor implements Serializable
 	public static Enemy createDynamic() throws IOException
 	{
 		//Properties properties = new Properties();
-		//properties.load(Enemy.class.getResourceAsStream("objects/DynamicEnemy.properties"));
+		//properties.load(Enemy.class.getResourceAsStream("objects/PossessedKnight.properties"));
 		//return new Enemy(properties);
-		return new Enemy(Enemy.class.getResource("objects/DynamicEnemy.properties"));
+		return new Enemy(Enemy.class.getResource("objects/PossessedKnight.properties"));
 	}
 
 	/**
-	 * Erzeugt einen statischen Gegner. Hierzu muss die Datei StaticEnemy.properties
+	 * Erzeugt einen statischen Gegner. Hierzu muss die Datei GiantHogweed.properties
 	 * im Ordner objects, welcher ein Subordner der Package project.game.data ist,
 	 * gesichert sein.
 	 * @return statischer Gegner
@@ -69,11 +82,10 @@ public class Enemy extends GameActor implements Serializable
 	public static Enemy createStatic() throws IOException
 	{
 		//Properties properties = new Properties();
-		//properties.load(Enemy.class.getResourceAsStream("objects/StaticEnemy.properties"));
-		return new Enemy(Enemy.class.getResource("objects/StaticEnemy.properties"));
+		//properties.load(Enemy.class.getResourceAsStream("objects/GiantHogweed.properties"));
+		return new Enemy(Enemy.class.getResource("objects/GiantHogweed.properties"));
 	}
 
-	private transient int    earnedExperience; //Earned experience when killing the enemy
 	private transient int    follow_range; //Maximum distance to continue following the player
 	private transient int    level;
 	private transient String name;
@@ -89,7 +101,6 @@ public class Enemy extends GameActor implements Serializable
 	public Enemy(Properties properties)
 	{
 		super(properties);
-		earnedExperience = Integer.parseInt(properties.getProperty("earned_experience"));
 		follow_range = Integer.parseInt(properties.getProperty("follow_range"));
 		visionRange = Integer.parseInt(properties.getProperty("vision_range"));
 		name = properties.getProperty("name");
@@ -103,15 +114,6 @@ public class Enemy extends GameActor implements Serializable
 	public Enemy(URL source) throws IOException
 	{
 		super(source);
-	}
-
-	/**
-	 * Gibt die Erfahrung an, die beim Besiegen des Gegners erlangt wird.
-	 * @return Erlangte Erfahrung durch Besiegen
-	 */
-	public int getEarnedExperience()
-	{
-		return earnedExperience;
 	}
 
 	/**
@@ -161,9 +163,9 @@ public class Enemy extends GameActor implements Serializable
 	{
 		super.restore();
 
-		earnedExperience = Integer.parseInt(properties.getProperty("earned_experience"));
 		follow_range = Integer.parseInt(properties.getProperty("follow_range"));
 		visionRange = Integer.parseInt(properties.getProperty("vision_range"));
 		name = LocalizedString(properties.getProperty("name"));
+		level = Integer.parseInt(properties.getProperty("level", "1"));
 	}
 }

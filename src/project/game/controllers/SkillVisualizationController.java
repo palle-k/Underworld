@@ -36,24 +36,58 @@ import project.util.StringUtils;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SkillCoordinator
+/**
+ * Klasse zur Darstellung einer Faehigkeit
+ * auf der Benutzeroberflaeche
+ */
+public class SkillVisualizationController
 {
-	private int         damage;
 	private double      hitAnimationDuration;
 	private AudioPlayer hitPlayer;
+
+	private Runnable onHit;
+
 	private double      overlayAnimationDuration;
+
 	private double      projectileAnimationDuration;
+
+	private double projectileDissolveDelay;
+
 	private AudioPlayer shootPlayer;
+
 	private Color       skillHitColor;
+
 	private String[]    skillHitOverlays;
+
 	private Color       skillOverlayColor;
+
 	private String[]    skillOverlays;
+
 	private Color       skillProjectileColor;
+
 	private String[]    skillProjectiles;
+
 	private TComponent  visualizationTarget;
 
-	public SkillCoordinator(
+	/**
+	 * Erstellt eine neue Klasse zur Darstellung einer Faehigkeit mit den angegebenen Parametern
+	 *
+	 * @param visualizationTarget         Zielkomponente zur Darstellung
+	 * @param skillOverlays               Ebenen, welche ueber dem Angreifer dargestellt werden sollen
+	 * @param skillProjectiles            Ebenen, welche zwischen Angreifer und Ziel dargestellt werden sollen
+	 * @param skillHitOverlays            Ebenen, welche ueber dem Ziel dargestellt werden sollen
+	 * @param skillOverlayColor           Farbe der Ebenen, welche ueber dem Angreifer dargestellt werden sollen
+	 * @param skillProjectileColor        Farbe der Ebenen, welche zwischen Angreifer und Ziel dargestellt werden sollen
+	 * @param skillHitColor               Farbe der Ebenen, welche ueber dem Ziel dargestellt werden sollen
+	 * @param overlayAnimationDuration    Animationsdauer der Ebenen ueber dem Angreifer
+	 * @param projectileAnimationDuration Animationsdauer der Ebenen zwischen Angreifer und Ziel
+	 * @param projectileDissolveDelay     Verzoegerung, mit welcher sich Projektile aufloesen
+	 * @param hitAnimationDuration        Animationsdauer der Ebenen ueber dem Ziel
+	 */
+	public SkillVisualizationController(
 			final TComponent visualizationTarget,
 			final String[] skillOverlays,
 			final String[] skillProjectiles,
@@ -63,6 +97,7 @@ public class SkillCoordinator
 			final Color skillHitColor,
 			final double overlayAnimationDuration,
 			final double projectileAnimationDuration,
+			final double projectileDissolveDelay,
 			final double hitAnimationDuration)
 	{
 		this.visualizationTarget = visualizationTarget;
@@ -74,10 +109,27 @@ public class SkillCoordinator
 		this.skillHitColor = skillHitColor;
 		this.overlayAnimationDuration = overlayAnimationDuration;
 		this.projectileAnimationDuration = projectileAnimationDuration;
+		this.projectileDissolveDelay = projectileDissolveDelay;
 		this.hitAnimationDuration = hitAnimationDuration;
 	}
 
-	public SkillCoordinator(
+	/**
+	 * Erstellt eine neue Klasse zur Darstellung einer Faehigkeit mit den angegebenen Parametern
+	 * @param visualizationTarget Zielkomponente zur Darstellung
+	 * @param skillOverlays Ebenen, welche ueber dem Angreifer dargestellt werden sollen
+	 * @param skillProjectiles Ebenen, welche zwischen Angreifer und Ziel dargestellt werden sollen
+	 * @param skillHitOverlays Ebenen, welche ueber dem Ziel dargestellt werden sollen
+	 * @param skillOverlayColor Farbe der Ebenen, welche ueber dem Angreifer dargestellt werden sollen
+	 * @param skillProjectileColor Farbe der Ebenen, welche zwischen Angreifer und Ziel dargestellt werden sollen
+	 * @param skillHitColor Farbe der Ebenen, welche ueber dem Ziel dargestellt werden sollen
+	 * @param overlayAnimationDuration Animationsdauer der Ebenen ueber dem Angreifer
+	 * @param projectileAnimationDuration Animationsdauer der Ebenen zwischen Angreifer und Ziel
+	 * @param projectileDissolveDelay Verzoegerung, mit welcher sich Projektile aufloesen
+	 * @param hitAnimationDuration Animationsdauer der Ebenen zwischen Angreifer und Ziel
+	 * @param hitPlayer AudioPlayer fuer den Klang beim Treffen des Ziels
+	 * @param shootPlayer AudioPlayer fuer den Klang beim Ausloesen des Skills
+	 */
+	public SkillVisualizationController(
 			final TComponent visualizationTarget,
 			final String[] skillOverlays,
 			final String[] skillProjectiles,
@@ -87,62 +139,7 @@ public class SkillCoordinator
 			final Color skillHitColor,
 			final double overlayAnimationDuration,
 			final double projectileAnimationDuration,
-			final double hitAnimationDuration,
-			final int damage,
-			final AudioPlayer hitPlayer,
-			final AudioPlayer shootPlayer)
-	{
-		this.skillHitColor = skillHitColor;
-		this.skillHitOverlays = skillHitOverlays;
-		this.skillOverlayColor = skillOverlayColor;
-		this.skillOverlays = skillOverlays;
-		this.skillProjectileColor = skillProjectileColor;
-		this.skillProjectiles = skillProjectiles;
-		this.hitAnimationDuration = hitAnimationDuration;
-		this.overlayAnimationDuration = overlayAnimationDuration;
-		this.projectileAnimationDuration = projectileAnimationDuration;
-		this.visualizationTarget = visualizationTarget;
-		this.damage = damage;
-		this.hitPlayer = hitPlayer;
-		this.shootPlayer = shootPlayer;
-	}
-
-	public SkillCoordinator(
-			final TComponent visualizationTarget,
-			final String[] skillOverlays,
-			final String[] skillProjectiles,
-			final String[] skillHitOverlays,
-			final Color skillOverlayColor,
-			final Color skillProjectileColor,
-			final Color skillHitColor,
-			final double overlayAnimationDuration,
-			final double projectileAnimationDuration,
-			final double hitAnimationDuration,
-			final int damage)
-	{
-		this.skillHitColor = skillHitColor;
-		this.skillHitOverlays = skillHitOverlays;
-		this.skillOverlayColor = skillOverlayColor;
-		this.skillOverlays = skillOverlays;
-		this.skillProjectileColor = skillProjectileColor;
-		this.skillProjectiles = skillProjectiles;
-		this.hitAnimationDuration = hitAnimationDuration;
-		this.overlayAnimationDuration = overlayAnimationDuration;
-		this.projectileAnimationDuration = projectileAnimationDuration;
-		this.visualizationTarget = visualizationTarget;
-		this.damage = damage;
-	}
-
-	public SkillCoordinator(
-			final TComponent visualizationTarget,
-			final String[] skillOverlays,
-			final String[] skillProjectiles,
-			final String[] skillHitOverlays,
-			final Color skillOverlayColor,
-			final Color skillProjectileColor,
-			final Color skillHitColor,
-			final double overlayAnimationDuration,
-			final double projectileAnimationDuration,
+			final double projectileDissolveDelay,
 			final double hitAnimationDuration,
 			final AudioPlayer hitPlayer,
 			final AudioPlayer shootPlayer)
@@ -156,12 +153,47 @@ public class SkillCoordinator
 		this.hitAnimationDuration = hitAnimationDuration;
 		this.overlayAnimationDuration = overlayAnimationDuration;
 		this.projectileAnimationDuration = projectileAnimationDuration;
+		this.projectileDissolveDelay = projectileDissolveDelay;
 		this.visualizationTarget = visualizationTarget;
 		this.hitPlayer = hitPlayer;
 		this.shootPlayer = shootPlayer;
 	}
 
+	/**
+	 * Gibt die Aktion zurueck, die beim Treffen des Gegners ausgefuehrt wird
+	 * @return Trefferaktion
+	 */
+	public Runnable getOnHitAction()
+	{
+		return onHit;
+	}
+
+	/**
+	 * Setzt die Aktion, die beim Treffen des Gegners ausgefuehrt wird
+	 * @param onHit Trefferaktion
+	 */
+	public void setOnHitAction(final Runnable onHit)
+	{
+		this.onHit = onHit;
+	}
+
+	/**
+	 * Stellt den Skill zwischen Angreifer und Ziel dar.
+	 * @param from Angreifer
+	 * @param to Ziel
+	 */
 	public void visualizeSkill(GameActor from, GameActor to)
+	{
+		visualizeSkill(from, to, 0);
+	}
+
+	/**
+	 * Stellt den Skill zwischen Angreifer und Ziel dar.
+	 * @param from Angreifer
+	 * @param to Ziel
+	 * @param delay Verzoegerung
+	 */
+	public void visualizeSkill(GameActor from, GameActor to, double delay)
 	{
 		if (skillOverlays != null && skillOverlays.length > 0)
 		{
@@ -187,6 +219,7 @@ public class SkillCoordinator
 			overlayAnimation.setToValue(skillOverlays.length - 1);
 			overlayAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
 			overlayAnimation.setDuration(overlayAnimationDuration);
+			overlayAnimation.setDelay(delay);
 			overlayLabel.addAnimation(overlayAnimation);
 
 			if (shootPlayer != null)
@@ -195,12 +228,14 @@ public class SkillCoordinator
 
 		if (skillProjectiles != null && skillProjectiles.length > 0)
 		{
-			TLabel projectileLabel = new TLabel();
-			projectileLabel.setText("");
-			projectileLabel.setLocation(from.getCenter());
-			projectileLabel.setColor(skillProjectileColor);
-			visualizationTarget.add(projectileLabel);
+//			TLabel projectileLabel = new TLabel();
+//			projectileLabel.setText("");
+//			projectileLabel.setLocation(from.getCenter());
+//			projectileLabel.setColor(skillProjectileColor);
+//			visualizationTarget.add(projectileLabel);
+			List<TLabel> projectileLabels = new ArrayList<>();
 			Animation projectileAnimation = new Animation((AnimationHandler) value -> {
+				TLabel projectileLabel = new TLabel();
 				String newValue = skillProjectiles[(int) (value * (skillProjectiles.length - 1))];
 				if (newValue == null)
 					return;
@@ -211,28 +246,46 @@ public class SkillCoordinator
 				point.y = from.getCenter().y + (int) ((to.getCenter().y - from.getCenter().y) * value);
 				point.x -= newSize.width / 2;
 				point.y -= newSize.height / 2;
+				projectileLabel.setColor(skillProjectileColor);
 				projectileLabel.setLocation(point);
 				projectileLabel.setSize(newSize);
+				visualizationTarget.add(projectileLabel);
+				projectileLabels.add(projectileLabel);
 			});
 			projectileAnimation.setFromValue(0);
 			projectileAnimation.setToValue(1);
 			projectileAnimation.setDuration(projectileAnimationDuration);
 			projectileAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
+			projectileAnimation.setDelay(delay);
 			projectileAnimation.setCompletionHandler(animation -> {
-				projectileLabel.removeFromSuperview();
+				//projectileLabel.removeFromSuperview();
 				if (hitPlayer != null)
 					hitPlayer.play();
-				if (damage > 0)
-					to.decreaseHealth(damage);
+				if (onHit != null)
+					onHit.run();
 			});
-			projectileLabel.addAnimation(projectileAnimation);
+			//projectileLabel.addAnimation(projectileAnimation);
+
+			Animation dissolveAnimation = new Animation((AnimationHandler) value -> {
+				if (!projectileLabels.isEmpty())
+					projectileLabels.remove(0).removeFromSuperview();
+			});
+			dissolveAnimation.setFromValue(0);
+			dissolveAnimation.setToValue(1);
+			dissolveAnimation.setDuration(projectileAnimationDuration);
+			dissolveAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
+			dissolveAnimation.setDelay(delay + projectileDissolveDelay);
+			dissolveAnimation.setCompletionHandler(animation -> projectileLabels.forEach(TComponent::removeFromSuperview));
+
+			visualizationTarget.addAnimation(projectileAnimation);
+			visualizationTarget.addAnimation(dissolveAnimation);
 		}
 		else
 		{
 			if (hitPlayer != null)
 				hitPlayer.play();
-			if (damage > 0)
-				to.decreaseHealth(damage);
+			if (onHit != null)
+				onHit.run();
 		}
 
 		if (skillHitOverlays != null && skillHitOverlays.length > 0)
@@ -261,7 +314,9 @@ public class SkillCoordinator
 			attackHitAnimation.setInterpolationMode(Animation.ANIMATION_CURVE_LINEAR);
 			attackHitAnimation.setCompletionHandler(animation -> attackHitLabel.removeFromSuperview());
 			if (skillProjectiles != null)
-				attackHitAnimation.setDelay(projectileAnimationDuration);
+				attackHitAnimation.setDelay(projectileAnimationDuration + delay);
+			else
+				attackHitAnimation.setDelay(delay);
 			attackHitLabel.addAnimation(attackHitAnimation);
 		}
 	}

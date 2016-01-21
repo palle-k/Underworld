@@ -86,7 +86,7 @@
  * zum Ausfuehren eines Skills
  * SkillExecutor - Ausfuehrung eines Skills: Darstellung auf der Benutzeroberflaeche und Anwendung
  * von Effekten auf das Datenmodell
- * SkillCoordinator - Darstellung eines Skills
+ * SkillVisualizationController - Darstellung eines Skills
  *
  * Speichersystem:
  * Automatische Speicherung des Spiels
@@ -101,6 +101,7 @@
  * Lokalisierung:
  * LocalizedString fuer Mehrsprachensupport
  * Aktuell Unterstuetzung fuer Englisch und Deutsch
+ *
  */
 
 package project.game;
@@ -114,6 +115,16 @@ import java.awt.Color;
 import java.awt.Rectangle;
 
 import static project.game.localization.LocalizedString.LocalizedString;
+
+/**
+ * Version Roadmap:
+ * v1.1.0: Bug Fixes, AutoAttackBehaviour und ScheduledAttackBehaviour integrieren
+ * v1.2.0: Health und Attack Potions
+ * v2.0.0: Mehr Enemies, Sound effects, besseres Balancing, etc...
+ * v3.0.0: NPCs, Quests und eine Story
+ * v4.0.0: Online-Game, MMORPG
+ */
+
 
 /**
  * Main-Klasse<br>
@@ -138,12 +149,14 @@ public class Underworld
 	 */
 	public static void main(String[] args)
 	{
+		//TODO Neues Animationssystem: Animationen werden globalem Executor hinzugefuegt
 		for (String arg : args)
 		{
 			if (arg.equalsIgnoreCase("-showpaths"))
 				System.setProperty("com.palleklewitz.underworld.map.showpaths", "true");
 			else if (arg.equalsIgnoreCase("-performancemetrics"))
 				System.setProperty("com.palleklewitz.underworld.performancemetrics", "true");
+
 		}
 
 		Appearance.defaultBackgroundColor = Color.BLACK;

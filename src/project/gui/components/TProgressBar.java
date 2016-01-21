@@ -29,9 +29,11 @@ import project.gui.graphics.Appearance;
 import project.gui.graphics.TGraphics;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.Rectangle;
 
+/**
+ * Komponente zur Darstellung eines Fortschritts
+ */
 public class TProgressBar extends TComponent
 {
 	private Color  color;
@@ -39,6 +41,9 @@ public class TProgressBar extends TComponent
 	private double minValue;
 	private double value;
 
+	/**
+	 * Erstellt eine neue Fortschrittsleiste
+	 */
 	public TProgressBar()
 	{
 		value = 0;
@@ -46,54 +51,102 @@ public class TProgressBar extends TComponent
 		color = Appearance.defaultTextColor;
 	}
 
+	/**
+	 * Gibt die Farbe der Fortschrittsleiste an
+	 * @return Farbe der Leiste
+	 */
 	public Color getColor()
 	{
 		return color;
 	}
 
+	/**
+	 * Gibt den Maximalwert an, der angezeigt werden kann.
+	 * Ist der aktuelle Wert gleich gross wie der Maximalwert,
+	 * ist die Fortschrittsleiste komplett gefuellt.
+	 * @return Maximalwert der Fortschrittsleiste
+	 */
 	public double getMaxValue()
 	{
 		return maxValue;
 	}
 
+	/**
+	 * Gibt den Minimalwert der Forschrittsleiste an.
+	 * Ist der aktuelle Wert gleich gross wie der Minimalwert,
+	 * ist die Fortschrittsleiste komplett leer.
+	 * @return Minimalwert der Fortschrittsleiste
+	 */
 	public double getMinValue()
 	{
 		return minValue;
 	}
 
+	/**
+	 * Gibt den Fortschrittswert an, der aktuell dargestellt wird.
+	 * Dieser fuellt die Fortschrittsleiste zu einem Teil von
+	 * <code>
+	 *   (getValue() - getMinValue()) / (getMaxValue() - getMinValue())
+	 * </code>
+	 * @return dargestellter Fortschrittswert
+	 */
 	public double getValue()
 	{
 		return value;
 	}
 
+	/**
+	 * Setzt die Farbe der Fortschrittsleiste
+	 * @param color neue Farbe
+	 */
 	public void setColor(final Color color)
 	{
 		this.color = color;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		setNeedsDisplay();
 	}
 
+	/**
+	 * Setzt den Maximalwert der Fortschrittsleiste.
+	 * Ist der aktuelle Wert gleich gross wie der Maximalwert, ist die
+	 * Fortschrittsleiste komplett gefuellt.
+	 * @param maxValue neuer Maximalwert
+	 */
 	public void setMaxValue(final double maxValue)
 	{
 		if (this.maxValue == maxValue)
 			return;
 		this.maxValue = maxValue;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		setNeedsDisplay();
 	}
 
+	/**
+	 * Setzt den Minimalwert der Fortschrittsleiste.
+	 * Ist der aktuelle Wert gleich gross wie der Minimalwert, ist die
+	 * Fortschrittsleiste komplett leer.
+	 * @param minValue neuer Minimalwert
+	 */
 	public void setMinValue(final double minValue)
 	{
 		if (this.minValue == minValue)
 			return;
 		this.minValue = minValue;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		setNeedsDisplay();
 	}
 
+	/**
+	 * Setzt den aktuell dargestellten Wert der Fortschrittsleiste.
+	 * Dieser fuellt die Fortschrittsleiste zu einem Teil von
+	 * <code>
+	 *   (value - getMinValue()) / (getMaxValue() - getMinValue())
+	 * </code>
+	 * @param value neuer Fortschrittswert
+	 */
 	public void setValue(final double value)
 	{
 		if (this.value == value)
 			return;
 		this.value = value;
-		setNeedsDisplay(new Rectangle(new Point(), getSize()));
+		setNeedsDisplay();
 	}
 
 	@Override

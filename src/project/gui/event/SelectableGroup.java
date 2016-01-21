@@ -29,14 +29,21 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Klasse zur Steuerung und Verwaltung von mehreren Selectable-Elementen
+ * Implementiert selbst Selectable, eine SelectableGroup kann also einer SelectableGroup
+ * hinzugefuegt werden
+ */
 public class SelectableGroup extends TResponder implements Selectable
 {
 	private char             backwardsKey;
-	private int              currentIndex;
 	private char             forwardsKey;
 	private SelectableGroup  parent;
 	private List<Selectable> selectables;
 
+	/**
+	 * Erstellt eine neue Gruppe von Selectable-Elementen
+	 */
 	public SelectableGroup()
 	{
 		this.selectables = new ArrayList<>();
@@ -135,12 +142,63 @@ public class SelectableGroup extends TResponder implements Selectable
 		selectNext();
 	}
 
+	/**
+	 * Waehlt das naechste Selectable-Element aus
+	 */
+	public void selectNext()
+	{
+		int selectedIndex = -1;
+		for (int i = 0; i < selectables.size(); i++)
+			if (selectables.get(i).isSelected())
+			{
+				selectedIndex = i;
+				selectables.get(i).deselect();
+				break;
+			}
+		for (int i = 1; i <= selectables.size(); i++)
+		{
+			if (selectables.get((i + selectedIndex) % selectables.size()).selectionEnabled())
+			{
+				selectables.get((i + selectedIndex) % selectables.size()).select();
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Waehlt das vorherige Selectable-Element aus
+	 */
+	public void selectPrevious()
+	{
+		int selectedIndex = -1;
+		for (int i = 0; i < selectables.size(); i++)
+			if (selectables.get(i).isSelected())
+			{
+				selectedIndex = i;
+				selectables.get(i).deselect();
+				break;
+			}
+		selectedIndex += selectables.size();
+		for (int i = -1; i >= -selectables.size(); i--)
+		{
+			if (selectables.get((i + selectedIndex) % selectables.size()).selectionEnabled())
+			{
+				selectables.get((i + selectedIndex) % selectables.size()).select();
+				return;
+			}
+		}
+	}
+
 	@Override
 	public boolean selectionEnabled()
 	{
 		return parent != null;
 	}
 
+	/**
+	 * Setzt die Taste, mit der das vorherige Element ausgewaehlt wird
+	 * @param backwardsKey Taste fuer vorheriges Element
+	 */
 	public void setBackwardsKey(final char backwardsKey)
 	{
 		if (forwardsKey == KeyEvent.VK_ENTER)
@@ -148,6 +206,10 @@ public class SelectableGroup extends TResponder implements Selectable
 		this.backwardsKey = backwardsKey;
 	}
 
+	/**
+	 * Setzt die Taste, mit der das naechste Element ausgewaehlt wird
+	 * @param forwardsKey Taste fuer naechstes Element
+	 */
 	public void setForwardsKey(final char forwardsKey)
 	{
 		if (forwardsKey == KeyEvent.VK_ENTER)
@@ -186,62 +248,32 @@ public class SelectableGroup extends TResponder implements Selectable
 	protected void keyUp(final TEvent event)
 	{
 		if (event.getKey() == KeyEvent.VK_ENTER)
-			selectables.get(getSelectedIndex()).performAction();
+		{
+			int selectedIndex = getSelectedIndex();
+			if (selectedIndex >= 0)
+				selectables.get(selectedIndex).performAction();
+		}
 		else
 			super.keyUp(event);
 	}
 
+	/**
+	 * Deselektiert alle Selectable-Elemente
+	 */
 	private void deselectAll()
 	{
 		selectables.stream().filter(Selectable::isSelected).forEach(Selectable::deselect);
 	}
 
+	/**
+	 * Gibt den Index des ausgewaehlten Selectable-Elements an
+	 * @return Index oder -1, wenn kein Element ausgewaehlt ist
+	 */
 	private int getSelectedIndex()
 	{
 		for (int i = 0; i < selectables.size(); i++)
 			if (selectables.get(i).isSelected())
 				return i;
 		return -1;
-	}
-
-	private void selectNext()
-	{
-		int selectedIndex = -1;
-		for (int i = 0; i < selectables.size(); i++)
-			if (selectables.get(i).isSelected())
-			{
-				selectedIndex = i;
-				selectables.get(i).deselect();
-				break;
-			}
-		for (int i = 1; i <= selectables.size(); i++)
-		{
-			if (selectables.get((i + selectedIndex) % selectables.size()).selectionEnabled())
-			{
-				selectables.get((i + selectedIndex) % selectables.size()).select();
-				return;
-			}
-		}
-	}
-
-	private void selectPrevious()
-	{
-		int selectedIndex = -1;
-		for (int i = 0; i < selectables.size(); i++)
-			if (selectables.get(i).isSelected())
-			{
-				selectedIndex = i;
-				selectables.get(i).deselect();
-				break;
-			}
-		selectedIndex += selectables.size();
-		for (int i = -1; i >= -selectables.size(); i--)
-		{
-			if (selectables.get((i + selectedIndex) % selectables.size()).selectionEnabled())
-			{
-				selectables.get((i + selectedIndex) % selectables.size()).select();
-				return;
-			}
-		}
 	}
 }

@@ -65,7 +65,6 @@ public class SavedGameState
 		state = new SavedGameState(preferences);
 		//Automatisches Sichern beim Schliessen
 		Runtime.getRuntime().addShutdownHook(new Thread(SavedGameState::save));
-
 	}
 
 	/**

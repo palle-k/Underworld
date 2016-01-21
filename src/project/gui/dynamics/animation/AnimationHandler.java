@@ -25,7 +25,17 @@
 
 package project.gui.dynamics.animation;
 
+/**
+ * Interface zur Aktualisierung von Animationen
+ */
 public interface AnimationHandler
 {
+	/**
+	 * Anwendung des Animationswertes value auf die zu animierenden Objekte
+	 * Der Animationswert befindet sich zwischen fromValue und toValue der
+	 * verwendeten Animation.
+	 *
+	 * @param value Animationswert
+	 */
 	void updateAnimation(double value);
 }

@@ -83,10 +83,6 @@ public class FollowBehaviour extends TargetedBehaviour
 	@Override
 	public void executeBehaviour(final double time)
 	{
-		if (lastCheckActorLocation != null)
-			requiredDistance -= Math.abs(getControlledActor().getCenter().x - lastCheckActorLocation.x) +
-			                    Math.abs(getControlledActor().getCenter().y - lastCheckActorLocation.y);
-
 		//Aktualisiere Schrittsystem
 		horizontalMovementController.updateTime(time);
 		verticalMovementController.updateTime(time);
@@ -101,24 +97,19 @@ public class FollowBehaviour extends TargetedBehaviour
 		int targetDist = Math.abs(getControlledActor().getCenter().x - getTarget().getCenter().x) +
 		                 Math.abs(getControlledActor().getCenter().y - getTarget().getCenter().y) * 2;
 
-//		if (pathToTarget == null)
-//		{
-//			if (lastCheckPoint == null ||
-//			    Math.abs(getTarget().getCenter().x - lastCheckPoint.x) + Math.abs(getTarget().getCenter().y - lastCheckPoint.y) * 2 >=
-//			    requiredDistance)
-//			{
-//				if (targetDist > beginDistance)
-//				{
-//					lastCheckPoint = getTarget().getCenter();
-//					requiredDistance = targetDist - beginDistance;
-//				}
-//				else
-//					recalculate = true;
-//			}
-//		}
-//		else if (!PathUtil.pathContains(pathToTarget, getTarget().getCenter()) ||
-//		         !PathUtil.pathContains(pathToTarget, getControlledActor().getCenter()))
-//			recalculate = true;
+		if (targetDist > beginDistance && pathToTarget == null)
+			return;
+		if (targetDist > maxDistance && pathToTarget != null)
+		{
+			pathToTarget = null;
+			return;
+		}
+
+		if (lastCheckActorLocation != null)
+		{
+			if (!lastCheckActorLocation.equals(getControlledActor().getCenter()))
+				recalculate = true;
+		}
 
 		if (pathToTarget == null)
 		{
@@ -126,7 +117,7 @@ public class FollowBehaviour extends TargetedBehaviour
 			                              Math.abs(getTarget().getCenter().y - lastCheckPoint.y) * 2 >=
 			                              requiredDistance)
 			{
-				recalculate = targetDist <= beginDistance;
+				recalculate |= targetDist <= beginDistance;
 				if (!recalculate)
 				{
 					lastCheckPoint = getTarget().getCenter();
@@ -139,14 +130,11 @@ public class FollowBehaviour extends TargetedBehaviour
 		else if (!PathUtil.pathContains(pathToTarget, getControlledActor().getCenter()))
 			recalculate = true;
 
+		//Berechne neuen Pfad
+
 		if (recalculate)
 		{
-//			pathIndex = 0;
-//			pathToTarget = getLevel().getMap()
-//					.findPath(getControlledActor().getCenter(),
-//					          getTarget().getCenter(),
-//					          getControlledActor().getBounds().width,
-//					          getControlledActor().getBounds().height);
+			pathIndex = 0;
 			Point[] newPath = getLevel().getMap().findPath(
 					getControlledActor().getCenter(),
 					getTarget().getCenter(),
@@ -162,7 +150,6 @@ public class FollowBehaviour extends TargetedBehaviour
 			else
 			{
 				pathToTarget = newPath;
-				pathIndex = 0;
 			}
 		}
 

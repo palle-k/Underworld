@@ -33,6 +33,9 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
+/**
+ * Dialog zur Wahl einer Taste
+ */
 public class SingleKeyInputDialog extends Dialog
 {
 	private int chosenKey;

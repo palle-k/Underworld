@@ -35,19 +35,17 @@ import java.awt.event.KeyEvent;
 
 import static project.game.localization.LocalizedString.LocalizedString;
 
+/**
+ * Dialog zum Praesentieren einer Nachricht
+ */
 public class MessageDialog extends Dialog
 {
-	private String message = "";
 	private TLabel messageLabel;
 
-	public String getMessage()
-	{
-		return message;
-	}
-
+	@Override
 	public void setMessage(final String message)
 	{
-		this.message = message;
+		super.setMessage(message);
 		if (messageLabel != null)
 			messageLabel.setText(message);
 	}

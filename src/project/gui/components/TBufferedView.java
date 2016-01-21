@@ -31,14 +31,34 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+/**
+ * Gepufferte Komponente<br>
+ * Erweiterung einer Standardkomponente,
+ * bei welcher lediglich geaenderte Punkte in die hoehere Komponente
+ * gezeichnet werden<br>
+ * WARNUNG:
+ * Eine gepufferte Komponente sollte moeglichst lediglich als oberste Komponente
+ * in einer Komponentenhierarchie verwendet werden oder vor dem Neuzeichnen
+ * ist die Methode clearFramebuffer() aufzurufen.
+ */
 public class TBufferedView extends TComponent
 {
+	/**
+	 * Pufferzeichen<br>
+	 * Ein einzelnes Zeichen mit Farbattributen
+	 */
 	public static class TChar
 	{
 		private final Color backgroundColor;
 		private final char  character;
 		private final Color color;
 
+		/**
+		 * Erzeugt ein neues Pufferzeichen
+		 * @param character Zeichen
+		 * @param color Zeichenfarbe
+		 * @param backgroundColor Zeichenhintergrundfarbe
+		 */
 		public TChar(char character, Color color, Color backgroundColor)
 		{
 			this.character = character;
@@ -63,16 +83,28 @@ public class TBufferedView extends TComponent
 			return super.equals(obj);
 		}
 
+		/**
+		 * Gibt die Hintergrundfarbe des Zeichens an
+		 * @return Zeichenhintergrundfarbe
+		 */
 		public Color getBackgroundColor()
 		{
 			return backgroundColor;
 		}
 
+		/**
+		 * Gibt das Zeichen an
+		 * @return Zeichen
+		 */
 		public char getCharacter()
 		{
 			return character;
 		}
 
+		/**
+		 * Gibt die Zeichenfarbe an
+		 * @return Zeichenfarbe
+		 */
 		public Color getColor()
 		{
 			return color;
@@ -88,6 +120,9 @@ public class TBufferedView extends TComponent
 	private TChar[][] backBuffer;
 	private TChar[][] frameBuffer;
 
+	/**
+	 * Erzeugt eine neue, gepufferte Komponente
+	 */
 	public TBufferedView()
 	{
 		super();
@@ -95,6 +130,10 @@ public class TBufferedView extends TComponent
 		frameBuffer = new TChar[0][0];
 	}
 
+	/**
+	 * Entleert den Framebuffer.
+	 * Nach der Entleerung muessen alle Zeichen neu gerendert werden
+	 */
 	protected void clearFramebuffer()
 	{
 		for (int x = 0; x < frameBuffer.length; x++)
@@ -118,6 +157,11 @@ public class TBufferedView extends TComponent
 		updateFramebuffer(graphics, dirtyRect);
 	}
 
+	/**
+	 * Aktualisiert den Framebuffer und zeichnet geaenderte Punkte in den Grafikkontext
+	 * @param graphics Zielkontext fuer geaenderte Zeichen
+	 * @param dirtyRect geaenderter Bereich
+	 */
 	private void updateFramebuffer(TGraphics graphics, Rectangle dirtyRect)
 	{
 		for (int y = dirtyRect.y; y < dirtyRect.y + dirtyRect.height; y++)
@@ -140,6 +184,10 @@ public class TBufferedView extends TComponent
 				}
 	}
 
+	/**
+	 * Ueberprueft die Puffer und aktualisiert diese, falls noetig
+	 * @return true, wenn die Puffer geaendert wurden, sonst false
+	 */
 	private boolean validateBuffers()
 	{
 		boolean bufferUpdated = false;
