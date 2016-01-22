@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Underworld.jar">
+    <output-path>$USER_HOME$/Desktop/Underworld.jar</output-path>
+    <root id="archive" name="PGdP.jar">
+      <element id="module-output" name="PGdP" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/projektvorlage/lanterna-2.1.9.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

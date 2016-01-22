@@ -36,7 +36,6 @@ import project.gui.controller.dialog.ConfirmDialog;
 import project.gui.controller.dialog.Dialog;
 import project.gui.controller.dialog.DialogDelegate;
 import project.gui.controller.dialog.MessageDialog;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -252,7 +251,7 @@ public class LevelCoordinator extends PageController
 				}
 			}
 			else
-				throw new InvalidStateException("already shown all states of the current level");
+				throw new IllegalStateException("already shown all states of the current level");
 
 			shownPreLevelText = true;
 			shownLevel = true;

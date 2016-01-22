@@ -119,13 +119,6 @@ public class MainMenuViewController extends ViewController
 		play.setSize(20, 1);
 		play.setText(LocalizedString("main_menu_play"));
 		play.setActionHandler(() -> {
-			//PageController gamePages = new PageController(new TComponent());
-			//if (!SavedGameState.getSavedGameState().getPlayerState().playerClassChosen())
-			//	gamePages.addController(new ClassChooserController());
-			//if (!SavedGameState.getSavedGameState().getLevelState().tutorialWasPlayed())
-			//	gamePages.addController(new TutorialViewController());
-			//gamePages.addController(new LevelViewController());
-			//getNavigationController().push(gamePages);
 			LevelCoordinator coordinator = new LevelCoordinator(new TComponent());
 			getNavigationController().push(coordinator);
 		});
